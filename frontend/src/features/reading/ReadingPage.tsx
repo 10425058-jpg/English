@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BookOpen, BookmarkPlus, CheckCircle2, Clock, Type, Volume2, XCircle } from 'lucide-react';
-import { evaluateExerciseAnswer, type CEFRLevel } from '@english-quest/shared';
+import { useQuery } from '@tanstack/react-query';
+import { BookOpen, BookmarkPlus, CheckCircle2, Clock, ExternalLink, Globe, Type, Volume2, XCircle } from 'lucide-react';
+import { evaluateExerciseAnswer, type CEFRLevel, type SkillTag } from '@english-quest/shared';
+import { loadLearningResources } from '@content/index';
 import { PillBadge, QuestCard } from '@/components/ui/QuestUI';
 import { TactileButton } from '@/components/ui/TactileButton';
 import { ExerciseRenderer } from '@/features/learning/ExerciseRenderer';
@@ -19,7 +21,28 @@ export function ReadingPage() {
   const readingHistory = useQuestStore((s) => s.readingHistory);
 
   const [cefrFilter, setCefrFilter] = useState<'ALL' | CEFRLevel>('ALL');
+  const [libraryTab, setLibraryTab] = useState<'passages' | 'resources'>('passages');
+  const [resourceSkill, setResourceSkill] = useState<'ALL' | SkillTag | 'ielts'>('ALL');
+  const [resourceCefr, setResourceCefr] = useState<'ALL' | CEFRLevel>('ALL');
   const [selectedId, setSelectedId] = useState(READING_LIBRARY_PASSAGES[0].id);
+
+  const { data: curatedResources = [], isLoading: resourcesLoading } = useQuery({
+    queryKey: ['learning-resources'],
+    queryFn: loadLearningResources,
+    enabled: libraryTab === 'resources',
+    staleTime: Infinity,
+  });
+
+  const filteredResources = useMemo(() => {
+    return curatedResources.filter((r) => {
+      if (resourceCefr !== 'ALL' && !r.cefrLevels.includes(resourceCefr)) return false;
+      if (resourceSkill === 'ielts') {
+        return r.subject.toLowerCase().includes('ielts') || r.title.toLowerCase().includes('ielts');
+      }
+      if (resourceSkill !== 'ALL' && !r.skills.includes(resourceSkill)) return false;
+      return true;
+    });
+  }, [curatedResources, resourceCefr, resourceSkill]);
   const [fontScale, setFontScale] = useState<FontScale>('base');
   const [secondsElapsed, setSecondsElapsed] = useState(0);
   const [selectedGlossaryWord, setSelectedGlossaryWord] = useState<string | null>(null);
@@ -171,6 +194,124 @@ export function ReadingPage() {
           <p className="text-lg font-black text-[#46A302]">{readingHistory.length}</p>
         </div>
       </div>
+
+      {/* Mode Switcher */}
+      <div className="flex flex-wrap gap-2">
+        <TactileButton
+          size="sm"
+          variant={libraryTab === 'passages' ? 'primary' : 'outline'}
+          onClick={() => setLibraryTab('passages')}
+        >
+          <BookOpen className="h-4 w-4" />
+          Reading Passages ({READING_LIBRARY_PASSAGES.length})
+        </TactileButton>
+        <TactileButton
+          size="sm"
+          variant={libraryTab === 'resources' ? 'secondary' : 'outline'}
+          onClick={() => setLibraryTab('resources')}
+        >
+          <Globe className="h-4 w-4" />
+          Curated Open Resources (36)
+        </TactileButton>
+      </div>
+
+      {libraryTab === 'resources' && (
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {(['ALL', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const).map((lvl) => (
+              <button
+                key={lvl}
+                type="button"
+                onClick={() => setResourceCefr(lvl)}
+                className={`rounded-xl border-2 px-3 py-1 text-xs font-black ${
+                  resourceCefr === lvl
+                    ? 'border-[#0E8BC9] bg-[#1CB0F6] text-white'
+                    : 'border-[#E5E5E5] bg-white text-[#555555]'
+                }`}
+              >
+                {lvl === 'ALL' ? 'All CEFR' : lvl}
+              </button>
+            ))}
+            {(['ALL', 'reading', 'listening', 'speaking', 'writing', 'grammar', 'vocabulary', 'ielts'] as const).map(
+              (sk) => (
+                <button
+                  key={sk}
+                  type="button"
+                  onClick={() => setResourceSkill(sk)}
+                  className={`rounded-xl border-2 px-3 py-1 text-xs font-black uppercase ${
+                    resourceSkill === sk
+                      ? 'border-[#46A302] bg-[#58CC02] text-white'
+                      : 'border-[#E5E5E5] bg-white text-[#555555]'
+                  }`}
+                >
+                  {sk}
+                </button>
+              )
+            )}
+          </div>
+
+          {resourcesLoading ? (
+            <QuestCard className="p-6 text-center text-sm font-bold text-[#666666]">
+              Loading verified external educational library...
+            </QuestCard>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2">
+              {filteredResources.map((res) => (
+                <QuestCard key={res.id} className="flex flex-col justify-between space-y-3 p-4">
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-[11px] font-black uppercase text-[#0E8BC9]">{res.publisher}</p>
+                        <h2 className="text-base font-black text-[#3C3C3C]">{res.title}</h2>
+                      </div>
+                      <PillBadge tone={res.pricing === 'free' ? 'green' : 'gold'}>
+                        {res.pricing}
+                      </PillBadge>
+                    </div>
+                    <p className="text-xs font-semibold text-[#555555]">{res.description}</p>
+                    <p className="rounded-xl bg-[#F7F8FA] p-2.5 text-xs font-bold text-[#3C3C3C]">
+                      Study tip: {res.recommendedStudyMethod}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {res.cefrLevels.map((lvl) => (
+                        <span
+                          key={lvl}
+                          className="rounded-md bg-[#E3F6FF] px-2 py-0.5 text-[10px] font-black text-[#0E8BC9]"
+                        >
+                          {lvl}
+                        </span>
+                      ))}
+                      {res.skills.map((s) => (
+                        <span
+                          key={s}
+                          className="rounded-md border border-[#E5E5E5] bg-white px-2 py-0.5 text-[10px] font-bold uppercase text-[#666666]"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-[#E5E5E5] pt-2.5 text-[11px] font-bold text-[#777777]">
+                    <span>Verified {res.lastVerifiedDate}</span>
+                    <a
+                      href={res.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 font-black text-[#0E8BC9] hover:underline"
+                    >
+                      Open Official Resource
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                </QuestCard>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {libraryTab === 'passages' && (
+        <>
 
       {/* Filters & Controls */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -342,6 +483,8 @@ export function ReadingPage() {
           </div>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 }
