@@ -29,7 +29,7 @@ export function evaluateExerciseAnswer(
   exercise: Exercise,
   rawAnswer: string | string[]
 ): AnswerValidationResult {
-  if (exercise.type === 'word_matching' && exercise.pairs) {
+  if ((exercise.type === 'word_matching' || exercise.type === 'definition_matching') && exercise.pairs) {
     const expectedSummary = exercise.pairs.map((p) => `${p.left}=${p.right}`).join('; ');
     const submitted = Array.isArray(rawAnswer) ? rawAnswer.join('; ') : rawAnswer;
     const isCorrect = normalizeAnswer(submitted) === normalizeAnswer(expectedSummary);
@@ -37,6 +37,31 @@ export function evaluateExerciseAnswer(
       isCorrect,
       normalizedUserAnswer: submitted,
       expectedDisplay: expectedSummary,
+      matchedAlternative: false,
+    };
+  }
+
+  if (exercise.type === 'multiple_response') {
+    const expectedList = (Array.isArray(exercise.correctAnswer)
+      ? exercise.correctAnswer
+      : exercise.correctAnswer.split(';;')
+    )
+      .map((s) => normalizeAnswer(s))
+      .filter(Boolean)
+      .sort();
+    const userList = (Array.isArray(rawAnswer) ? rawAnswer : rawAnswer.split(';;'))
+      .map((s) => normalizeAnswer(s))
+      .filter(Boolean)
+      .sort();
+    const isCorrect =
+      expectedList.length === userList.length &&
+      expectedList.every((val, idx) => val === userList[idx]);
+    return {
+      isCorrect,
+      normalizedUserAnswer: userList.join('; '),
+      expectedDisplay: Array.isArray(exercise.correctAnswer)
+        ? exercise.correctAnswer.join('; ')
+        : exercise.correctAnswer,
       matchedAlternative: false,
     };
   }
@@ -70,7 +95,10 @@ export function evaluateExerciseAnswer(
     : [exercise.correctAnswer];
   const primaryDisplay = primaryList.join(' ');
 
-  if (primaryList.length > 1 && exercise.type === 'sentence_reconstruction') {
+  if (
+    primaryList.length > 1 &&
+    (exercise.type === 'sentence_reconstruction' || exercise.type === 'sentence_ordering')
+  ) {
     const joinedExpected = normalizeAnswer(primaryDisplay);
     if (normalizedUser === joinedExpected) {
       return {

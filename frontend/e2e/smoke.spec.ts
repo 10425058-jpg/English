@@ -100,6 +100,29 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
     expect(overflow, `Horizontal overflow detected on desktop ${route}`).toBe(false);
   }
 
+  // Also verify expanded Milestone 1 lazy modules on Desktop
+  await page.goto('./#/vocabulary');
+  await page.getByRole('button', { name: /C1 Pack/i }).click();
+  await expect(page.getByText(/ubiquitous/i)).toBeVisible();
+  await page.getByRole('button', { name: /Thematic Collections \(30\)/i }).click();
+  await expect(page.getByText(/Greetings, Introductions & Small Talk/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-vocabulary-collections.png'), fullPage: false });
+
+  await page.goto('./#/grammar');
+  await page.getByRole('button', { name: /C1 Academy \(8\)/i }).click();
+  await expect(page.getByRole('heading', { name: /Negative & Restrictive Inversion/i })).toBeVisible();
+  await page.getByRole('button', { name: /600 Interactive Drills/i }).click();
+  await expect(page.getByText(/Item #1 •/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-grammar-drills.png'), fullPage: false });
+
+  await page.goto('./#/reading');
+  await page.getByRole('button', { name: /Curated Open Resources \(36\)/i }).click();
+  await expect(page.getByText(/British Council/i).first()).toBeVisible();
+
+  await page.goto('./#/learn');
+  await page.getByRole('tab', { name: /B2–C2 Roadmap/i }).click();
+  await expect(page.getByText(/Complete A1–C2 CEFR Coverage Matrix/i)).toBeVisible();
+
   // Also check Onboarding page
   await page.goto('./#/onboarding');
   await expect(page.getByText(/Welcome to English Quest/i)).toBeVisible();

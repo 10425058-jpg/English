@@ -59,6 +59,58 @@ describe('evaluateExerciseAnswer', () => {
       false
     );
   });
+
+  it('evaluates multiple_response order-independently and validates extended exercise types', () => {
+    const multi: Exercise = {
+      id: 'ex-multi',
+      lessonId: 'l-m',
+      type: 'multiple_response',
+      instruction: 'Select both cold seasons',
+      prompt: 'Pick TWO cool/cold seasons:',
+      options: ['summer', 'autumn', 'winter', 'morning'],
+      correctAnswer: ['autumn', 'winter'],
+      explanation: 'Autumn and winter bring cool air.',
+      difficulty: 1,
+      skills: ['vocabulary'],
+      xpReward: 12,
+    };
+
+    expect(evaluateExerciseAnswer(multi, ['winter', 'autumn']).isCorrect).toBe(true);
+    expect(evaluateExerciseAnswer(multi, ['autumn']).isCorrect).toBe(false);
+    expect(evaluateExerciseAnswer(multi, ['autumn', 'winter', 'summer']).isCorrect).toBe(false);
+
+    const matchEx: Exercise = {
+      id: 'ex-match',
+      lessonId: 'l-m',
+      type: 'definition_matching',
+      instruction: 'Match terms',
+      prompt: 'Match pairs',
+      pairs: [
+        { id: 'p1', left: 'early', right: 'sớm' },
+        { id: 'p2', left: 'late', right: 'muộn' },
+      ],
+      correctAnswer: 'early=sớm; late=muộn',
+      explanation: 'Pairs',
+      difficulty: 1,
+      skills: ['vocabulary'],
+      xpReward: 12,
+    };
+    expect(evaluateExerciseAnswer(matchEx, 'early=sớm; late=muộn').isCorrect).toBe(true);
+
+    const recallEx: Exercise = {
+      id: 'ex-recall',
+      lessonId: 'l-r',
+      type: 'vocabulary_recall',
+      instruction: 'Recall noun',
+      prompt: 'Morning meal',
+      correctAnswer: 'breakfast',
+      explanation: 'Breakfast starts the day.',
+      difficulty: 1,
+      skills: ['vocabulary'],
+      xpReward: 10,
+    };
+    expect(evaluateExerciseAnswer(recallEx, 'Breakfast.').isCorrect).toBe(true);
+  });
 });
 
 describe('SM-2 Spaced Repetition', () => {

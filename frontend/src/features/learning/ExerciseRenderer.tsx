@@ -136,14 +136,28 @@ export function ExerciseRenderer({
   const isChoiceExercise =
     (exercise.type === 'multiple_choice' ||
       exercise.type === 'error_correction' ||
+      exercise.type === 'error_identification' ||
       exercise.type === 'vocabulary_recognition' ||
+      exercise.type === 'collocation_selection' ||
       exercise.type === 'grammar_challenge' ||
+      exercise.type === 'grammar_application' ||
+      exercise.type === 'pronunciation_discrimination' ||
       exercise.type === 'dialogue_completion' ||
       exercise.type === 'scenario_conversation' ||
       exercise.type === 'reading_comprehension' ||
       exercise.type === 'audio_recognition' ||
-      (exercise.type === 'fill_blank' && Boolean(exercise.options?.length))) &&
+      ((exercise.type === 'fill_blank' || exercise.type === 'vocabulary_recall' || exercise.type === 'sentence_transformation') &&
+        Boolean(exercise.options?.length))) &&
     Boolean(exercise.options?.length);
+
+  const isMultiResponse = exercise.type === 'multiple_response' && Boolean(exercise.options?.length);
+
+  const toggleMultiOption = (option: string) => {
+    if (disabled) return;
+    const current = Array.isArray(value) ? value : [];
+    const exists = current.includes(option);
+    onChange(exists ? current.filter((o) => o !== option) : [...current, option]);
+  };
 
   return (
     <div className="space-y-5">
@@ -266,8 +280,42 @@ export function ExerciseRenderer({
         </div>
       )}
 
-      {/* Word Bank Sentence Reconstruction */}
-      {exercise.type === 'sentence_reconstruction' && (
+      {/* Multi-Select Response Options */}
+      {isMultiResponse && (
+        <div className="grid grid-cols-1 gap-3">
+          <p className="text-xs font-black uppercase text-[#0E8BC9]">Select all correct options</p>
+          {exercise.options?.map((option) => {
+            const selected = Array.isArray(value) && value.includes(option);
+            return (
+              <button
+                key={option}
+                type="button"
+                disabled={disabled}
+                onClick={() => toggleMultiOption(option)}
+                className={`flex min-h-[52px] items-center gap-3 rounded-2xl border-2 border-b-4 px-4 py-3 text-left text-base font-extrabold transition-all ${
+                  selected
+                    ? 'border-[#1CB0F6] bg-[#DDF4FF] text-[#0E8BC9]'
+                    : 'border-[#E5E5E5] bg-white text-[#3C3C3C] hover:bg-[#F7F8FA]'
+                }`}
+              >
+                <span
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 text-xs font-black ${
+                    selected
+                      ? 'border-[#1CB0F6] bg-[#1CB0F6] text-white'
+                      : 'border-[#E5E5E5] bg-[#F7F8FA] text-transparent'
+                  }`}
+                >
+                  ✓
+                </span>
+                <span>{option}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Word Bank Sentence Reconstruction / Ordering */}
+      {(exercise.type === 'sentence_reconstruction' || exercise.type === 'sentence_ordering') && (
         <div className="space-y-4">
           <div
             aria-label="Your assembled sentence"
@@ -308,8 +356,9 @@ export function ExerciseRenderer({
         </div>
       )}
 
-      {/* Word Matching */}
-      {exercise.type === 'word_matching' && exercise.pairs && (
+      {/* Word / Definition Matching */}
+      {(exercise.type === 'word_matching' || exercise.type === 'definition_matching') &&
+        exercise.pairs && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2.5">
             <p className="text-xs font-black uppercase text-[#777777]">English</p>
@@ -362,10 +411,13 @@ export function ExerciseRenderer({
         </div>
       )}
 
-      {/* Text Input Exercises (Translation, Dictation, Fill Blank without options, Free Writing) */}
+      {/* Text Input Exercises */}
       {(exercise.type === 'translation' ||
         exercise.type === 'dictation' ||
-        (exercise.type === 'fill_blank' && !exercise.options?.length) ||
+        ((exercise.type === 'fill_blank' ||
+          exercise.type === 'vocabulary_recall' ||
+          exercise.type === 'sentence_transformation') &&
+          !exercise.options?.length) ||
         exercise.type === 'free_writing') && (
         <div>
           <label htmlFor={`input-${exercise.id}`} className="sr-only">

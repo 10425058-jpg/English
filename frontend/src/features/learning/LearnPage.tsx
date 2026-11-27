@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { loadCurriculumMatrix } from '@content/index';
 import {
   BookOpen,
   Check,
@@ -61,6 +63,13 @@ export function LearnPage() {
   );
   const [openGuideUnitId, setOpenGuideUnitId] = useState<string | null>(null);
   const [chestToast, setChestToast] = useState<string | null>(null);
+
+  const { data: curriculumMatrix = [] } = useQuery({
+    queryKey: ['curriculum-matrix'],
+    queryFn: loadCurriculumMatrix,
+    enabled: selectedCefr === 'UPCOMING',
+    staleTime: Infinity,
+  });
 
   const units = selectedCefr === 'UPCOMING' ? [] : getUnitsByCefr(selectedCefr);
   const nextStep = findNextRecommendedLesson(lessonProgress, recommendedCefr);
@@ -238,6 +247,58 @@ export function LearnPage() {
               </ul>
             </QuestCard>
           ))}
+
+          {curriculumMatrix.length > 0 && (
+            <div className="space-y-3 pt-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-lg font-black text-[#3C3C3C]">
+                    Complete A1–C2 CEFR Coverage Matrix
+                  </h2>
+                  <p className="text-xs font-bold text-[#666666]">
+                    Can-Do outcomes, grammar &amp; lexical domains, and Milestone 1 study tracks across every proficiency band.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Link to="/vocabulary">
+                    <TactileButton size="sm" variant="secondary">Vocabulary Bank</TactileButton>
+                  </Link>
+                  <Link to="/grammar">
+                    <TactileButton size="sm" variant="outline">Grammar &amp; Drills</TactileButton>
+                  </Link>
+                </div>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                {curriculumMatrix.map((row) => (
+                  <QuestCard key={row.cefrLevel} className="space-y-2.5 p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <PillBadge tone={row.cefrLevel === 'C1' || row.cefrLevel === 'C2' ? 'purple' : 'blue'}>
+                        {row.title}
+                      </PillBadge>
+                      <span className="text-[11px] font-black text-[#46A302]">
+                        {row.grammarTarget} grammar • {row.vocabularyTarget.toLocaleString()} vocab goal
+                      </span>
+                    </div>
+                    <ul className="space-y-1 text-xs font-semibold text-[#444444]">
+                      {row.canDoStatements.map((stmt) => (
+                        <li key={stmt}>• {stmt}</li>
+                      ))}
+                    </ul>
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {row.keyGrammarThemes.slice(0, 4).map((theme) => (
+                        <span
+                          key={theme}
+                          className="rounded-lg border border-[#E5E5E5] bg-[#F7F8FA] px-2 py-0.5 text-[11px] font-bold text-[#555555]"
+                        >
+                          {theme}
+                        </span>
+                      ))}
+                    </div>
+                  </QuestCard>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

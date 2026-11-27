@@ -17,8 +17,9 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["./src/*"],
+      "@content/*": ["../content/*"],
       "@english-quest/shared": ["../packages/shared/src/index.ts"]
     }
   },
-  "include": ["src", "vite.config.ts", "vitest.config.ts", "e2e"]
+  "include": ["src", "../content", "vite.config.ts", "vitest.config.ts", "e2e"]
 }
