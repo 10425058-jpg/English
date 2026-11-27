@@ -43,6 +43,9 @@ jobs:
       - name: Run unit tests
         run: npm run test
 
+      - name: Validate curriculum content & integrity
+        run: npm run validate:content
+
       - name: Build production bundle for GitHub Pages
         env:
           VITE_BASE_PATH: /English/

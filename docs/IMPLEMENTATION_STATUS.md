@@ -1,17 +1,25 @@
 # English Quest — Implementation Status
 
-> Updated: 2026-11-27 | Active Branch: `feature/english-quest-foundation`
+> Updated: 2026-11-27 | Active Branch: `feature/curriculum-content-expansion`
 
 ## Milestone Summary
 
-- **Phase 1 — Core Product & Visual Foundation:** **Implemented & Verified**
+- **Phase 1 — Core Product & Visual Foundation:** **Implemented & Verified (`main` @ `7e3b872`)**
   - Monorepo structure (`frontend/`, `packages/shared/`, `backend/`, `docs/`, `.github/workflows/`).
   - Original visual identity: Pip the Quest Finch animated mascot, custom SVG scenes, tactile 3D button system, Nunito typography, exact color system, desktop 3-column layout, and mobile bottom bar + full drawer.
   - All 15 required routes implemented and interactive (`/learn`, `/listening`, `/speaking`, `/reading`, `/writing`, `/ai-tutor`, `/vocabulary`, `/grammar`, `/ielts`, `/review`, `/quests`, `/leaderboard`, `/achievements`, `/profile`, `/settings`) plus full-screen `/onboarding` and `/lesson/:lessonId`.
   - 12 complete CEFR units across A1, A2, and B1 (48 lessons, 192 curated exercises) + B2–C2 roadmap preview.
-  - Reusable exercise engine covering all 15 exercise types, retry queue, bilingual explanations, lesson recovery, and idempotent XP/chest rewards.
+  - Reusable exercise engine covering expanded interactive formats, retry queue, bilingual explanations, lesson recovery, and idempotent XP/chest rewards.
   - Four-skill labs, SM-2 spaced repetition flashcards, Mistake Notebook, Recharts real-progress dashboard, offline Local Smart AI Tutor (9 modes), local Writing analyzer, JSON data export/import/reset, and PWA manifest/service worker.
-  - GitHub Pages CI/CD workflow configured (`VITE_BASE_PATH=/English/` + `HashRouter`).
+
+- **Milestone 1 — Massive Content & Curriculum Expansion:** **Implemented & Verified**
+  - Lazy per-level modular `content/` architecture (`@content/index`) preserving lightweight startup bundle size via dynamic Vite `import()` splitting paired with TanStack Query caching.
+  - **1,444** new A1–C2 curated vocabulary entries (+24 core seed = **1,468 total**) with UK/US IPA variants, register tags, synonyms/antonyms, collocations, usage notes, and bilingual sentences.
+  - **48** deep Grammar Academy lessons across A1–C2 (8/level, 17 pedagogical components each + 144 quizzes; **55 total grammar topics** including 7 core guides).
+  - **30** Thematic Vocabulary Collections (`Everyday`, `Academic`, `Professional`, `IELTS & Advanced`) integrated directly with SM-2 flashcard study decks.
+  - **600** unique interactive Vocabulary & Grammar practice drills (100/level across 13 distinct formats, bringing total verified interactive items to **944**).
+  - **36** verified open educational resources integrated into `ReadingPage`, plus the **6-level A1–C2 Curriculum Matrix** visible in `LearnPage`.
+  - Automated validation suite (`npm run validate:content`) + Vitest integration tests enforcing zero duplicate IDs, zero broken references, and 100% evaluator round-trip verification (`docs/CONTENT_QUALITY_REPORT.md`).
 
 - **Phase 2 — Backend & Cloud Persistence:** **Schema & Contracts Drafted**
   - 28 normalized PostgreSQL Prisma models defined in `backend/prisma/schema.prisma`.
