@@ -22,19 +22,28 @@ export type LearningPurpose =
 
 export type ExerciseType =
   | 'multiple_choice'
+  | 'multiple_response'
   | 'fill_blank'
   | 'word_matching'
+  | 'definition_matching'
   | 'sentence_reconstruction'
+  | 'sentence_ordering'
+  | 'sentence_transformation'
   | 'translation'
+  | 'error_identification'
   | 'error_correction'
   | 'audio_recognition'
   | 'dictation'
+  | 'pronunciation_discrimination'
   | 'speaking'
   | 'reading_comprehension'
   | 'free_writing'
   | 'dialogue_completion'
   | 'vocabulary_recognition'
+  | 'vocabulary_recall'
+  | 'collocation_selection'
   | 'grammar_challenge'
+  | 'grammar_application'
   | 'scenario_conversation';
 
 export type LessonNodeType =
@@ -145,6 +154,11 @@ export interface Lesson {
   xpReward: number;
   estimatedMinutes: number;
   exercises: Exercise[];
+  learningObjectives?: string[];
+  prerequisites?: string[];
+  topicTags?: string[];
+  assessmentCriteria?: string[];
+  reviewRecommendations?: string[];
 }
 
 export interface MatchingPair {
@@ -176,6 +190,8 @@ export interface Exercise {
   difficulty: 1 | 2 | 3;
   skills: SkillTag[];
   xpReward: number;
+  relatedKnowledgeId?: string;
+  reviewRecommendation?: string;
 }
 
 export interface ExerciseAttempt {
@@ -212,14 +228,25 @@ export interface Vocabulary {
   word: string;
   partOfSpeech: string;
   ipa: string;
+  ipaUk?: string;
+  ipaUs?: string;
   definition: string;
+  detailedDefinition?: string;
   vietnameseTranslation: string;
   exampleSentence: string;
   exampleTranslationVi?: string;
+  examples?: Array<{ english: string; vietnamese?: string }>;
   synonyms: string[];
   antonyms: string[];
   collocations: string[];
   wordFamily: string[];
+  inflectedForms?: string[];
+  register?: 'formal' | 'neutral' | 'informal' | 'academic' | 'technical' | 'spoken' | 'literary';
+  commonMistakes?: string[];
+  usageNote?: string;
+  topics?: string[];
+  senseLabel?: string;
+  sourceMetadata?: string;
   cefrLevel: CEFRLevel;
   category: string;
   isUserSaved?: boolean;
@@ -246,11 +273,62 @@ export interface GrammarTopic {
   title: string;
   summary: string;
   summaryVi: string;
+  objectives?: string[];
+  detailedExplanation?: string;
   structures: Array<{ label: string; formula: string; example: string }>;
+  usageRules?: string[];
+  exceptions?: string[];
+  examples?: Array<{ english: string; vietnamese?: string; note?: string }>;
   commonMistakes: Array<{ wrong: string; right: string; why: string }>;
+  comparisons?: Array<{ structure: string; difference: string; example: string }>;
   speakingTip: string;
   writingTip: string;
+  reviewSummary?: string;
   quiz: Exercise[];
+}
+
+export interface ThematicCollection {
+  id: string;
+  title: string;
+  domain: 'everyday' | 'academic' | 'professional' | 'ielts_advanced';
+  cefrLevels: CEFRLevel[];
+  description: string;
+  vocabularyIds: string[];
+  commonExpressions: Array<{ expression: string; meaning: string; example: string }>;
+  collocationGroups: Array<{ label: string; items: string[] }>;
+  speakingApplications: string[];
+  writingApplications: string[];
+}
+
+export interface LearningResource {
+  id: string;
+  title: string;
+  publisher: string;
+  url: string;
+  description: string;
+  skills: SkillTag[];
+  cefrLevels: CEFRLevel[];
+  subject: string;
+  learningObjectives: string[];
+  pricing: 'free' | 'freemium' | 'paid';
+  licenseInfo: string;
+  recommendedStudyMethod: string;
+  lastVerifiedDate: string;
+}
+
+export interface CurriculumMatrixEntry {
+  cefrLevel: CEFRLevel;
+  title: string;
+  canDoStatements: string[];
+  vocabularyTarget: number;
+  grammarTarget: number;
+  listeningTarget: number;
+  speakingTarget: number;
+  readingTarget: number;
+  writingTarget: number;
+  keyGrammarThemes: string[];
+  keyVocabularyDomains: string[];
+  milestoneAssessmentTypes: string[];
 }
 
 export interface Mistake {
