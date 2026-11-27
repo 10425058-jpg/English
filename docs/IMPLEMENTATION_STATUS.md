@@ -21,9 +21,11 @@
   - **36** verified open educational resources integrated into `ReadingPage`, plus the **6-level A1–C2 Curriculum Matrix** visible in `LearnPage`.
   - Automated validation suite (`npm run validate:content`) + Vitest integration tests enforcing zero duplicate IDs, zero broken references, and 100% evaluator round-trip verification (`docs/CONTENT_QUALITY_REPORT.md`).
 
-- **Milestone 2 — Four-Skill Intensive Training (Batch 2A Complete; Batches 2B–2D In Progress):**
+- **Milestone 2 — Four-Skill Intensive Training (Batches 2A & 2B Complete; Batches 2C–2D In Progress):**
   - Expanded `ListeningAcademyPage` (`46` lessons across A1–C2 = 40 new + 6 core) with **0.5x–2.0x** speed presets (`speechService.ts`), multi-speaker Web Speech dialogue synthesis (`speakDialogueLine`), loop replay, dictation mode toggle, connected speech notes, bookmarking, and **160** listening comprehension & dictation exercises.
   - Expanded `SpeakingAcademyPage` with **Speaking Academy (`47` lessons)**, **Pronunciation Academy (`24` IPA/Vietnamese trap lessons, `72` discrimination exercises)**, **Shadowing Studio (`20` progressive sessions)**, and **6 Speaking Mindset & Framework guides** (`PREP`, `STAR`, `Past-Present-Future`, `Circumlocution`, etc.).
+  - Expanded `ReadingAcademyPage` (`126` leveled passages across A1–C2 = 120 new + 6 core, **480** new comprehension/IELTS-style questions, interactive SM-2 click-to-save glossaries, WPM dwell indicator, paragraph highlighter, summary check, plus all **36** Curated Open Resources).
+  - Expanded `WritingAcademyPage` (`97` lessons across A1–C2 = 90 new + 7 core, **270** interactive pre-draft drills, model outlines, clickable vocab/sentence-frame banks, rubrics, common mistakes, annotated model samples, autosave drafts, and side-by-side **Revision Compare** alongside local heuristic feedback).
   - See [MILESTONE_2_PROGRESS.md](./MILESTONE_2_PROGRESS.md) for live batch-by-batch tracking.
 
 - **Phase 2 — Backend & Cloud Persistence:** **Schema & Contracts Drafted**

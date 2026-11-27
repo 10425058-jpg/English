@@ -116,8 +116,28 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-grammar-drills.png'), fullPage: false });
 
   await page.goto('./#/reading');
+  await expect(page.getByRole('button', { name: /Passages \(126\)/i })).toBeVisible();
+  await page.getByRole('button', { name: 'C2', exact: true }).click();
+  await expect(page.getByText(/Goodhart’s Law/i)).toBeVisible();
+  await page.getByRole('button', { name: /Goodhart’s Law/i }).click();
+  await expect(page.getByText(/One-Sentence Comprehension Summary Check/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-reading-academy.png'), fullPage: false });
   await page.getByRole('button', { name: /Curated Open Resources \(36\)/i }).click();
   await expect(page.getByText(/British Council/i).first()).toBeVisible();
+
+  await page.goto('./#/writing');
+  await expect(page.getByText(/0 \/ 97 Completed/i)).toBeVisible();
+  await page.getByRole('button', { name: 'C1', exact: true }).click();
+  await expect(page.getByText(/Executive Synthesis Memo/i)).toBeVisible();
+  await page.getByRole('button', { name: /Executive Synthesis Memo/i }).click();
+  await page.getByRole('button', { name: /Pre-Draft Drills \(3\)/i }).click();
+  await expect(page.getByText(/Drill 1 of 3/i)).toBeVisible();
+  await page.locator('#writing-academy-editor').fill(
+    'This calibration memo analyzes how engineering teams and sales cohorts diverge smoothly under flexible hybrid schedules while preserving mentorship.'
+  );
+  await page.getByRole('button', { name: /Submit & Analyze Locally/i }).click();
+  await expect(page.getByText(/Local Revision Feedback/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-writing-academy.png'), fullPage: false });
 
   await page.goto('./#/learn');
   await page.getByRole('tab', { name: /B2–C2 Roadmap/i }).click();

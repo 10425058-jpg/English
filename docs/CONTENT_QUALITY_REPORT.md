@@ -18,9 +18,11 @@ Generated automatically by `npm run validate:content`.
 | Interactive Practice Bank Exercises | 0 | 600 | 600 |
 | Grammar Academy Mini-Quizzes | 8 | 144 | 152 |
 | Core Learning Path Exercises | 192 | 0 | 192 |
-| **Combined Interactive Exercises** | **200** | **976** | **1176** |
+| **Combined Interactive Exercises** | **200** | **1726** | **1926** |
 | Listening Academy Lessons (Batch 2A+) | 6 | 40 | 46 |
 | Speaking Academy Lessons (Batch 2A+) | 7 | 40 | 47 |
+| Reading Academy Passages (Batch 2B) | 6 | 120 | 126 |
+| Writing Academy Lessons (Batch 2B) | 7 | 90 | 97 |
 | Pronunciation Academy Lessons | 0 | 24 | 24 |
 | Shadowing Studio Sessions | 0 | 20 | 20 |
 | Speaking Mindset Guides | 0 | 6 | 6 |

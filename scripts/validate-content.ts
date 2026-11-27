@@ -14,8 +14,10 @@ import {
   loadAllExercises,
   loadAllGrammar,
   loadAllListening,
+  loadAllReading,
   loadAllSpeaking,
   loadAllVocabulary,
+  loadAllWriting,
   loadCurriculumMatrix,
   loadLearningResources,
   loadPronunciationLessons,
@@ -27,7 +29,9 @@ import { SEED_VOCABULARY } from '../frontend/src/data/vocabularySeed';
 import { GRAMMAR_TOPICS } from '../frontend/src/data/grammarTopics';
 import { ALL_UNITS } from '../frontend/src/data/curriculum/index';
 import { LISTENING_LAB_TRACKS } from '../frontend/src/data/listeningLabData';
+import { READING_LIBRARY_PASSAGES } from '../frontend/src/data/readingLibraryData';
 import { SPEAKING_LAB_ACTIVITIES } from '../frontend/src/data/speakingLabData';
+import { WRITING_LAB_PROMPTS } from '../frontend/src/data/writingPromptsData';
 
 function checkNonEmpty(label: string, val: string | undefined | null, errors: string[]): void {
   if (!val || !val.trim()) {
@@ -51,6 +55,8 @@ export async function runValidation(writeReport = false): Promise<number> {
     speakingGuides,
     pronunciationLessons,
     shadowingSessions,
+    expandedReading,
+    expandedWriting,
   ] = await Promise.all([
     loadAllVocabulary(),
     loadAllGrammar(),
@@ -63,6 +69,8 @@ export async function runValidation(writeReport = false): Promise<number> {
     loadSpeakingMindsetGuides(),
     loadPronunciationLessons(),
     loadShadowingSessions(),
+    loadAllReading(),
+    loadAllWriting(),
   ]);
 
   // 1. Vocabulary integrity
@@ -422,6 +430,98 @@ export async function runValidation(writeReport = false): Promise<number> {
     }
   }
 
+  // 11. Milestone 2 Reading Academy integrity
+  const readingIds = new Set<string>(READING_LIBRARY_PASSAGES.map((p) => p.id));
+  const readingTitles = new Set<string>(
+    READING_LIBRARY_PASSAGES.map((p) => p.title.toLowerCase().trim())
+  );
+  const readingCountsByLevel: Record<CEFRLevel, number> = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+  const minReadingWords: Record<CEFRLevel, number> = { A1: 90, A2: 115, B1: 130, B2: 150, C1: 165, C2: 240 };
+  const readingWordBands: Record<CEFRLevel, number[]> = { A1: [], A2: [], B1: [], B2: [], C1: [], C2: [] };
+  let readingExercisesCount = 0;
+
+  for (const r of expandedReading) {
+    readingCountsByLevel[r.cefrLevel] = (readingCountsByLevel[r.cefrLevel] ?? 0) + 1;
+    if (readingIds.has(r.id)) errors.push(`Duplicate reading ID: ${r.id}`);
+    readingIds.add(r.id);
+    const normTitle = r.title.toLowerCase().trim();
+    if (readingTitles.has(normTitle)) errors.push(`Duplicate reading title: ${r.title}`);
+    readingTitles.add(normTitle);
+    checkNonEmpty(`reading.${r.id}.readingStrategy`, r.readingStrategy, errors);
+    checkNonEmpty(`reading.${r.id}.summaryPrompt`, r.summaryPrompt, errors);
+    if (!r.keyTakeaways?.length) errors.push(`Reading ${r.id} missing keyTakeaways`);
+    const wc =
+      r.wordCount ?? r.paragraphs.join(' ').trim().split(/\s+/).filter(Boolean).length;
+    readingWordBands[r.cefrLevel].push(wc);
+    if (wc < minReadingWords[r.cefrLevel]) {
+      warnings.push(`Reading ${r.id} wordCount ${wc} below target baseline (${minReadingWords[r.cefrLevel]})`);
+    }
+    if (!r.glossary || r.glossary.length < 3) {
+      errors.push(`Reading ${r.id} requires >= 3 glossary entries`);
+    }
+    for (const g of r.glossary) {
+      if (!g.ipa.startsWith('/') || !g.ipa.endsWith('/')) {
+        errors.push(`Reading ${r.id} glossary invalid IPA for "${g.word}": ${g.ipa}`);
+      }
+    }
+    if (!r.questions || r.questions.length < 3) {
+      errors.push(`Reading ${r.id} requires >= 3 questions`);
+    }
+    for (const q of r.questions) {
+      readingExercisesCount += 1;
+      if (exerciseIds.has(q.id)) errors.push(`Duplicate reading exercise ID: ${q.id}`);
+      exerciseIds.add(q.id);
+      if (!evaluateExerciseAnswer(q, q.correctAnswer).isCorrect) {
+        errors.push(`Reading question self-eval failed: ${q.id}`);
+      }
+    }
+  }
+
+  // 12. Milestone 2 Writing Academy integrity
+  const writingIds = new Set<string>(WRITING_LAB_PROMPTS.map((w) => w.id));
+  const writingTitles = new Set<string>(
+    WRITING_LAB_PROMPTS.map((w) => w.title.toLowerCase().trim())
+  );
+  const writingCountsByLevel: Record<CEFRLevel, number> = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+  let writingExercisesCount = 0;
+
+  for (const w of expandedWriting) {
+    writingCountsByLevel[w.cefrLevel] = (writingCountsByLevel[w.cefrLevel] ?? 0) + 1;
+    if (writingIds.has(w.id)) errors.push(`Duplicate writing ID: ${w.id}`);
+    writingIds.add(w.id);
+    const normTitle = w.title.toLowerCase().trim();
+    if (writingTitles.has(normTitle)) errors.push(`Duplicate writing title: ${w.title}`);
+    writingTitles.add(normTitle);
+    checkNonEmpty(`writing.${w.id}.prompt`, w.prompt, errors);
+    checkNonEmpty(`writing.${w.id}.instructions`, w.instructions, errors);
+    checkNonEmpty(`writing.${w.id}.sampleResponse`, w.sampleResponse, errors);
+    if (!w.modelOutline || w.modelOutline.length < 3 || !w.rubric?.length || !w.checklist?.length) {
+      errors.push(`Writing ${w.id} needs >= 3 modelOutline steps plus rubric and checklist`);
+    }
+    if (!w.usefulVocabulary?.length || !w.usefulStructures?.length) {
+      errors.push(`Writing ${w.id} missing usefulVocabulary/usefulStructures`);
+    }
+    if (!w.annotatedModelNotes?.length) {
+      errors.push(`Writing ${w.id} missing annotatedModelNotes`);
+    }
+    const sampleWords = w.sampleResponse.trim().split(/\s+/).filter(Boolean).length;
+    if (sampleWords < w.minWords) {
+      errors.push(`Writing ${w.id} sampleResponse (${sampleWords}w) shorter than minWords (${w.minWords}w)`);
+    }
+    const drills = w.practiceExercises ?? [];
+    if (drills.length < 3) {
+      errors.push(`Writing ${w.id} requires >= 3 practiceExercises (found ${drills.length})`);
+    }
+    for (const ex of drills) {
+      writingExercisesCount += 1;
+      if (exerciseIds.has(ex.id)) errors.push(`Duplicate writing drill ID: ${ex.id}`);
+      exerciseIds.add(ex.id);
+      if (!evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect) {
+        errors.push(`Writing drill self-eval failed: ${ex.id}`);
+      }
+    }
+  }
+
   const totalVocab = SEED_VOCABULARY.length + expandedVocab.length;
   const totalGrammarTopics = GRAMMAR_TOPICS.length + expandedGrammar.length;
   const legacyPathExercises = ALL_UNITS.reduce(
@@ -429,7 +529,11 @@ export async function runValidation(writeReport = false): Promise<number> {
     0
   );
   const legacyGrammarQuizzes = GRAMMAR_TOPICS.reduce((sum, g) => sum + g.quiz.length, 0);
-  const m2NewExercises = listeningExercisesCount + pronunciationExercisesCount;
+  const m2NewExercises =
+    listeningExercisesCount +
+    pronunciationExercisesCount +
+    readingExercisesCount +
+    writingExercisesCount;
   const totalExercises =
     legacyPathExercises +
     legacyGrammarQuizzes +
@@ -450,6 +554,27 @@ export async function runValidation(writeReport = false): Promise<number> {
   console.log('  Listening by CEFR:', JSON.stringify(listeningCountsByLevel));
   console.log(`Milestone 2 Speaking Lessons: ${expandedSpeaking.length} (+ ${SPEAKING_LAB_ACTIVITIES.length} core = ${expandedSpeaking.length + SPEAKING_LAB_ACTIVITIES.length}) + ${speakingGuides.length} guides`);
   console.log('  Speaking by CEFR:', JSON.stringify(speakingCountsByLevel));
+  console.log(`Milestone 2 Reading Passages: ${expandedReading.length} (+ ${READING_LIBRARY_PASSAGES.length} core = ${expandedReading.length + READING_LIBRARY_PASSAGES.length}) [${readingExercisesCount} ex]`);
+  console.log('  Reading by CEFR:', JSON.stringify(readingCountsByLevel));
+  console.log(
+    '  Reading avg words by CEFR:',
+    JSON.stringify(
+      Object.fromEntries(
+        CEFR_LEVELS.map((l) => [
+          l,
+          {
+            min: Math.min(...readingWordBands[l]),
+            avg: Math.round(
+              readingWordBands[l].reduce((a, b) => a + b, 0) / Math.max(1, readingWordBands[l].length)
+            ),
+            max: Math.max(...readingWordBands[l]),
+          },
+        ])
+      )
+    )
+  );
+  console.log(`Milestone 2 Writing Lessons: ${expandedWriting.length} (+ ${WRITING_LAB_PROMPTS.length} core = ${expandedWriting.length + WRITING_LAB_PROMPTS.length}) [${writingExercisesCount} ex]`);
+  console.log('  Writing by CEFR:', JSON.stringify(writingCountsByLevel));
   console.log(`Milestone 2 Pronunciation Lessons: ${pronunciationLessons.length} [${pronunciationExercisesCount} ex]`);
   console.log(`Milestone 2 Shadowing Sessions: ${shadowingSessions.length}`);
   console.log(`Curated Learning Resources: ${resources.length}`);
@@ -488,6 +613,8 @@ Generated automatically by \`npm run validate:content\`.
 | **Combined Interactive Exercises** | **${legacyPathExercises + legacyGrammarQuizzes}** | **${expandedExercises.length + grammarQuizCount + m2NewExercises}** | **${totalExercises}** |
 | Listening Academy Lessons (Batch 2A+) | ${LISTENING_LAB_TRACKS.length} | ${expandedListening.length} | ${LISTENING_LAB_TRACKS.length + expandedListening.length} |
 | Speaking Academy Lessons (Batch 2A+) | ${SPEAKING_LAB_ACTIVITIES.length} | ${expandedSpeaking.length} | ${SPEAKING_LAB_ACTIVITIES.length + expandedSpeaking.length} |
+| Reading Academy Passages (Batch 2B) | ${READING_LIBRARY_PASSAGES.length} | ${expandedReading.length} | ${READING_LIBRARY_PASSAGES.length + expandedReading.length} |
+| Writing Academy Lessons (Batch 2B) | ${WRITING_LAB_PROMPTS.length} | ${expandedWriting.length} | ${WRITING_LAB_PROMPTS.length + expandedWriting.length} |
 | Pronunciation Academy Lessons | 0 | ${pronunciationLessons.length} | ${pronunciationLessons.length} |
 | Shadowing Studio Sessions | 0 | ${shadowingSessions.length} | ${shadowingSessions.length} |
 | Speaking Mindset Guides | 0 | ${speakingGuides.length} | ${speakingGuides.length} |

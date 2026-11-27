@@ -5,8 +5,10 @@ import {
   loadAllExercises,
   loadAllGrammar,
   loadAllListening,
+  loadAllReading,
   loadAllSpeaking,
   loadAllVocabulary,
+  loadAllWriting,
   loadCurriculumMatrix,
   loadLearningResources,
   loadPronunciationLessons,
@@ -17,7 +19,9 @@ import {
 import { SEED_VOCABULARY } from '@/data/vocabularySeed';
 import { GRAMMAR_TOPICS } from '@/data/grammarTopics';
 import { LISTENING_LAB_TRACKS } from '@/data/listeningLabData';
+import { READING_LIBRARY_PASSAGES } from '@/data/readingLibraryData';
 import { SPEAKING_LAB_ACTIVITIES } from '@/data/speakingLabData';
+import { WRITING_LAB_PROMPTS } from '@/data/writingPromptsData';
 
 describe('Expanded Milestone 1 Content Integrity & Lazy Modules', () => {
   it('loads 1,400+ curated unique vocabulary entries distributed cleanly across A1–C2', async () => {
@@ -161,5 +165,40 @@ describe('Expanded Milestone 1 Content Integrity & Lazy Modules', () => {
       shdIds.add(shd.id);
       expect(shd.segments.length).toBeGreaterThanOrEqual(3);
     }
+  });
+
+  it('loads Milestone 2 Batch 2B 120 Reading Passages and 90 Writing Lessons cleanly across A1–C2', async () => {
+    const [reading, writing] = await Promise.all([loadAllReading(), loadAllWriting()]);
+
+    expect(reading.length).toBe(120);
+    expect(writing.length).toBe(90);
+
+    const readCounts: Record<string, number> = {};
+    const readIds = new Set(READING_LIBRARY_PASSAGES.map((p) => p.id));
+    for (const p of reading) {
+      expect(readIds.has(p.id)).toBe(false);
+      readIds.add(p.id);
+      readCounts[p.cefrLevel] = (readCounts[p.cefrLevel] ?? 0) + 1;
+      expect(p.glossary.length).toBeGreaterThanOrEqual(3);
+      expect(p.questions.length).toBeGreaterThanOrEqual(3);
+      for (const q of p.questions) {
+        expect(evaluateExerciseAnswer(q, q.correctAnswer).isCorrect).toBe(true);
+      }
+    }
+    expect(readCounts).toEqual({ A1: 15, A2: 15, B1: 20, B2: 30, C1: 25, C2: 15 });
+
+    const wrtCounts: Record<string, number> = {};
+    const wrtIds = new Set(WRITING_LAB_PROMPTS.map((w) => w.id));
+    for (const lesson of writing) {
+      expect(wrtIds.has(lesson.id)).toBe(false);
+      wrtIds.add(lesson.id);
+      wrtCounts[lesson.cefrLevel] = (wrtCounts[lesson.cefrLevel] ?? 0) + 1;
+      expect(lesson.modelOutline.length).toBeGreaterThanOrEqual(3);
+      expect(lesson.practiceExercises?.length).toBeGreaterThanOrEqual(3);
+      for (const ex of lesson.practiceExercises ?? []) {
+        expect(evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect).toBe(true);
+      }
+    }
+    expect(wrtCounts).toEqual({ A1: 10, A2: 10, B1: 15, B2: 25, C1: 20, C2: 10 });
   });
 });

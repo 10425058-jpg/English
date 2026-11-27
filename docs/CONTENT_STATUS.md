@@ -11,15 +11,15 @@ This document records **exact observed repository counts** only—never counting
 | Vocabulary & Lexical Entries | 24 | 1,444 | **1,468** | 15,000 | Milestone 1 Complete (~9.8%) |
 | Grammar Lessons & Guides | 7 | 48 | **55** | 200 | Milestone 1 Complete (27.5%) |
 | Thematic Vocabulary Collections | 0 | 30 | **30** | 200 | Milestone 1 Complete (15.0%) |
-| Interactive Exercises & Quizzes | 200 | 744 *(600 bank + 144 academy)* + 232 *(Milestone 2 Batch 2A)* | **1,176** | 20,000 | Milestone 1 + Batch 2A (~5.9%) |
+| Interactive Exercises & Quizzes | 200 | 744 *(600 bank + 144 academy)* + 982 *(Milestone 2A + 2B)* | **1,926** | 20,000 | Milestone 1 + Batch 2A–2B (~9.6%) |
 | Curated Open Educational Resources | 0 | 36 | **36** | 30+ | **Milestone Target Met** |
 | CEFR Matrix Specifications | 3 active | 6 full A1–C2 | **6 levels** | 6 levels | **Complete (A1–C2)** |
 | Listening Lessons | 6 | 40 *(Batch 2A)* | **46** | 600 | Batch 2A Complete |
 | Speaking Lessons | 7 | 40 *(Batch 2A, +6 guides)* | **47** | 600 | Batch 2A Complete |
 | Pronunciation Academy Lessons | 0 | 24 *(Batch 2A)* | **24** | 150 | Batch 2A Complete |
 | Shadowing Studio Sessions | 0 | 20 *(Batch 2A)* | **20** | — | Batch 2A Complete |
-| Reading Passages | 6 | 0 | **6** | 600 | Baseline Only (Milestone 2+) |
-| Writing Activities | 7 | 0 | **7** | 400 | Baseline Only (Milestone 2+) |
+| Reading Passages | 6 | 120 *(Batch 2B)* | **126** | 600 | **Milestone 2 Target Met (120 new)** |
+| Writing Activities | 7 | 90 *(Batch 2B)* | **97** | 400 | **Milestone 2 Target Met (90 new)** |
 | IELTS Practice Activities | 7 | 0 | **7** | 500 | Baseline Only (Milestone 3+) |
 
 ## Milestone 1 Breakdown by CEFR Level

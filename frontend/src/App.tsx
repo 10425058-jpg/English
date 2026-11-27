@@ -29,10 +29,14 @@ const SpeakingPage = lazy(() =>
   }))
 );
 const ReadingPage = lazy(() =>
-  import('@/features/reading/ReadingPage').then((m) => ({ default: m.ReadingPage }))
+  import('@/features/reading/ReadingAcademyPage').then((m) => ({
+    default: m.ReadingAcademyPage,
+  }))
 );
 const WritingPage = lazy(() =>
-  import('@/features/writing/WritingPage').then((m) => ({ default: m.WritingPage }))
+  import('@/features/writing/WritingAcademyPage').then((m) => ({
+    default: m.WritingAcademyPage,
+  }))
 );
 const AITutorPage = lazy(() =>
   import('@/features/ai-tutor/AITutorPage').then((m) => ({ default: m.AITutorPage }))
