@@ -1,0 +1,18 @@
+{
+  "name": "English Quest",
+  "short_name": "English Quest",
+  "description": "Playful, gamified AI-powered English learning across CEFR levels and IELTS.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#58CC02",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
