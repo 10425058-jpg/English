@@ -356,7 +356,11 @@ export interface SpeakingSession {
     | 'topic_discussion'
     | 'roleplay'
     | 'timed_challenge'
-    | 'ielts_speaking';
+    | 'ielts_speaking'
+    | 'rapid_response'
+    | 'debate_defense'
+    | 'academic_speaking'
+    | 'pronunciation_drill';
   cefrLevel: CEFRLevel;
   durationSeconds: number;
   transcript?: string;
@@ -398,9 +402,17 @@ export interface ReadingPassage {
     | 'culture'
     | 'history'
     | 'academic'
-    | 'ielts';
+    | 'ielts'
+    | 'biography'
+    | 'opinion';
   cefrLevel: CEFRLevel;
   estimatedMinutes: number;
+  wordCount?: number;
+  readingStrategy?: string;
+  summaryPrompt?: string;
+  keyTakeaways?: string[];
+  relatedVocabIds?: string[];
+  relatedGrammarIds?: string[];
   paragraphs: string[];
   glossary: Array<{
     word: string;
@@ -424,22 +436,250 @@ export interface ReadingPassage {
   >;
 }
 
+export type ListeningCategory =
+  | 'conversation'
+  | 'announcement'
+  | 'phone_call'
+  | 'interview'
+  | 'short_story'
+  | 'podcast'
+  | 'academic_lecture'
+  | 'workplace_discussion'
+  | 'academic_presentation'
+  | 'news_report'
+  | 'scientific_explanation'
+  | 'debate'
+  | 'ielts_listening'
+  | 'minimal_pairs'
+  | 'connected_speech';
+
 export interface ListeningContent {
   id: string;
   title: string;
-  category:
-    | 'conversation'
-    | 'short_story'
-    | 'academic_lecture'
-    | 'podcast'
-    | 'minimal_pairs'
-    | 'ielts_listening';
+  subtitle?: string;
+  category: ListeningCategory;
   cefrLevel: CEFRLevel;
   accent: EnglishAccent;
   durationLabel: string;
+  learningObjectives?: string[];
+  preListeningPrompt?: string;
+  connectedSpeechNotes?: string[];
+  summaryText?: string;
+  discussionQuestions?: string[];
+  relatedVocabIds?: string[];
+  relatedGrammarIds?: string[];
   scriptLines: Array<{ speaker: string; text: string }>;
   vocabularyNotes: Array<{ term: string; meaning: string; vietnamese: string }>;
   exercises: Exercise[];
+}
+
+export type SpeakingActivityType =
+  | 'repetition'
+  | 'shadowing'
+  | 'picture_description'
+  | 'topic_discussion'
+  | 'roleplay'
+  | 'timed_challenge'
+  | 'ielts_speaking'
+  | 'rapid_response'
+  | 'debate_defense'
+  | 'academic_speaking';
+
+export type SpeakingCategory =
+  | 'daily_conversation'
+  | 'travel_service'
+  | 'workplace'
+  | 'academic_discussion'
+  | 'storytelling'
+  | 'opinion_debate'
+  | 'ielts_part_1'
+  | 'ielts_part_2'
+  | 'ielts_part_3'
+  | 'social_situations';
+
+export interface SpeakingLesson {
+  id: string;
+  title: string;
+  activityType: SpeakingActivityType;
+  category: SpeakingCategory;
+  cefrLevel: CEFRLevel;
+  prompt: string;
+  promptVi?: string;
+  objectives: string[];
+  preparationQuestions: string[];
+  modelText: string;
+  modelComparisonByLevel?: Partial<Record<'basic' | 'natural' | 'advanced', string>>;
+  alternativeResponses: string[];
+  vocabularyBank: Array<{ term: string; meaning: string; vietnamese: string }>;
+  naturalExpressions: string[];
+  sentenceStructures: Array<{ frame: string; example: string }>;
+  suggestedOrganization: string[];
+  commonMistakes: Array<{ mistake: string; correction: string; why: string }>;
+  followUpQuestions: string[];
+  improvementStrategies: string[];
+  tips: string[];
+  selfChecklist: string[];
+  keyVocabulary: string[];
+  suggestedSeconds: number;
+  scene?: 'cafe' | 'airport' | 'workspace' | 'park';
+  roleplayTurns?: Array<{ partner: string; cue: string }>;
+  relatedVocabIds?: string[];
+  relatedGrammarIds?: string[];
+}
+
+export interface SpeakingFrameworkGuide {
+  id: string;
+  title: string;
+  focus: 'mindset' | 'think_in_english' | 'fluency_strategy' | 'self_practice';
+  cefrRange: string;
+  summary: string;
+  steps: Array<{ label: string; detail: string; example: string }>;
+}
+
+export type PronunciationCategory =
+  | 'vowels'
+  | 'diphthongs'
+  | 'consonants'
+  | 'consonant_clusters'
+  | 'word_endings'
+  | 'word_stress'
+  | 'sentence_stress'
+  | 'connected_speech'
+  | 'intonation'
+  | 'uk_us_differences'
+  | 'vietnamese_traps';
+
+export interface PronunciationLesson {
+  id: string;
+  title: string;
+  category: PronunciationCategory;
+  cefrLevel: CEFRLevel;
+  targetSymbols: string[];
+  contrastSymbol?: string;
+  articulatoryGuide: string;
+  vietnameseLearnerTip: string;
+  commonErrors: string[];
+  ukUsNote?: string;
+  minimalPairs: Array<{
+    wordA: string;
+    ipaA: string;
+    wordB: string;
+    ipaB: string;
+    differenceNote: string;
+  }>;
+  practiceWords: Array<{ word: string; ipa: string; stressPattern?: string }>;
+  practiceSentences: Array<{ text: string; focusHighlight: string }>;
+  listeningExercises: Exercise[];
+}
+
+export interface ShadowingSegment {
+  id: string;
+  speaker?: string;
+  text: string;
+  focusWords: string[];
+  linkingNote: string;
+  rhythmBeat?: string;
+}
+
+export interface ShadowingSession {
+  id: string;
+  title: string;
+  cefrLevel: CEFRLevel;
+  topic: string;
+  durationLabel: string;
+  recommendedRate: number;
+  rhythmOverview: string;
+  vietnameseFocusTip: string;
+  segments: ShadowingSegment[];
+  keyExpressions: Array<{ phrase: string; meaning: string; vietnamese: string }>;
+  reflectionChecklist: string[];
+}
+
+export interface WritingLesson {
+  id: string;
+  title: string;
+  category:
+    | 'sentence_construction'
+    | 'grammar_correction'
+    | 'sentence_transformation'
+    | 'paragraph'
+    | 'email'
+    | 'story'
+    | 'academic_essay'
+    | 'argumentative_essay'
+    | 'ielts_task_1'
+    | 'ielts_task_2'
+    | 'report'
+    | 'synthesis';
+  cefrLevel: CEFRLevel;
+  prompt: string;
+  instructions: string;
+  objectives: string[];
+  modelOutline: string[];
+  usefulVocabulary: Array<{ term: string; meaning: string; vietnamese: string }>;
+  usefulStructures: Array<{ pattern: string; example: string }>;
+  minWords: number;
+  targetWords: number;
+  checklist: string[];
+  rubric: Array<{ criterion: string; description: string }>;
+  commonMistakes: Array<{ issue: string; fix: string }>;
+  sampleResponse: string;
+  annotatedModelNotes: string[];
+  practiceExercises?: Exercise[];
+}
+
+export interface ConversationScenario {
+  id: string;
+  title: string;
+  domain: 'everyday' | 'travel' | 'workplace' | 'social' | 'academic' | 'emergency';
+  cefrLevel: CEFRLevel;
+  setting: string;
+  userRole: string;
+  partnerRole: string;
+  goal: string;
+  keyPhrases: Array<{ phrase: string; meaning: string; register: string; vietnamese: string }>;
+  dialogueBranches: Array<{
+    step: number;
+    partnerSays: string;
+    politeOption: string;
+    casualOption: string;
+    formalOption?: string;
+    followUpNote: string;
+  }>;
+  culturalTip: string;
+  commonPitfalls: string[];
+}
+
+export interface ThinkInEnglishActivity {
+  id: string;
+  title: string;
+  mode: 'object_naming' | 'daily_narration' | 'circumlocution' | 'rapid_question' | 'problem_solving';
+  cefrLevel: CEFRLevel;
+  durationSeconds: 15 | 30 | 60 | 120 | 300;
+  prompt: string;
+  visualFocus?: string;
+  antiTranslationTip: string;
+  starterFrames: string[];
+  sampleMonologue: string;
+  circumlocutionTarget?: { targetIdea: string; clues: string[]; sampleParaphrase: string };
+}
+
+export interface IntegratedSequence {
+  id: string;
+  title: string;
+  theme: string;
+  cefrLevel: CEFRLevel;
+  estimatedMinutes: number;
+  listeningLessonId: string;
+  readingPassageId?: string;
+  speakingPrompt: string;
+  writingTaskPrompt: string;
+  keyVocabIds: string[];
+  sequenceSteps: Array<{
+    skill: SkillTag;
+    title: string;
+    instruction: string;
+  }>;
 }
 
 export interface AIConversation {

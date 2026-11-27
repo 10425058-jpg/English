@@ -1,0 +1,312 @@
+import type { SpeakingLesson } from '@english-quest/shared';
+import { createSpeakingLesson } from './helpers';
+
+export const C1_SPEAKING_LESSONS: SpeakingLesson[] = [
+  createSpeakingLesson({
+    id: 'spk-m2-c1-01',
+    title: 'Executive Synthesis: Framing Complex Trade-Offs in 60 Seconds',
+    activityType: 'academic_speaking',
+    category: 'workplace',
+    cefrLevel: 'C1',
+    prompt: 'Brief busy directors who only gave you 60 seconds: summarize why expanding customer self-serve help centers cuts recurring ticket costs WITHOUT sacrificing complex VIP warmth.',
+    promptVi: 'Tóm tắt ngắn gọn súc tích cho ban giám đốc trong 60 giây: giải thích vì sao mở rộng trung tâm tự hỗ trợ giúp giảm chi phí vận hành mà vẫn giữ được chất lượng chăm sóc tận tâm cho các ca phức tạp.',
+    objectives: [
+      'Deliver headline-first executive synthesis (Bottom Line Up Front) cleanly under strict timing.',
+      'Use crisp C1 parallel phrasing ("offloading repetitive triage... frees senior specialists").',
+    ],
+    preparationQuestions: ['What single metric hooks directors in sentence one?', 'How do you reassure executives worried self-serve feels cold?'],
+    modelText: 'Bottom line up front: upgrading our self-serve billing troubleshooter won’t distance customers—it’s actually the quickest lever to restore human care where complex complaints happen! Right now, forty-two percent of live support queues ask three identical invoice-reset questions easily answered in thirty seconds via clear interactive walkthroughs. Offloading that repetitive tier-one triage cleanly frees seasoned specialists from copy-paste fatigue, enabling twenty-minute personal troubleshooting calls whenever urgent edge cases strike. Put bluntly, smart automation protects genuine human empathy rather than replacing it—let’s green-light a tracked Q2 billing rollout Monday.',
+    modelComparisonByLevel: {
+      basic: 'Help page reduces 42% easy questions so support staff can talk nicely to hard problems. Good choice for next quarter.',
+      natural: 'Upgrading our self-serve troubleshooter won’t push customers away—it directly restores deep human care where messy cases occur. Clear interactive billing guides resolve 42% of repetitive tickets fast, freeing experienced staff for unhurried empathy on critical complaints.',
+      advanced: 'Synthesizing cleanly upfront: broadening intuitive self-service resolution elevates rather than dilutes human hospitality. Deflecting forty-two percent of routine invoice inquiries liberates seasoned agents from monotonous triage fatigue, redirecting unhurried attention onto high-stakes edge escalations—meriting Q2 deployment.',
+    },
+    alternativeResponses: [
+      'If I boil sixty days of ticket audits into one recommendation: automate easy password resets first, never urgent refund empathy! Clearing predictable clutter unlocks deeper conversational care without adding extra shift payroll.',
+    ],
+    vocabularyBank: [
+      { term: 'Bottom line up front (BLUF)', meaning: 'Lead instantly with key decision recommendation before supporting figures.', vietnamese: 'đưa kết luận trọng tâm lên ngay câu mở đầu' },
+      { term: 'repetitive triage', meaning: 'Sorting high volumes of simple predictable customer requests.', vietnamese: 'phân loại xử lý lặp đi lặp lại các ca đơn giản' },
+      { term: 'unhurried empathy', meaning: 'Patient thoughtful human care freed from time panic.', vietnamese: 'sự lắng nghe thấu cảm không vội vã' },
+    ],
+    naturalExpressions: ['Bottom line up front...', 'Put bluntly...', 'Protects X rather than replacing it'],
+    sentenceStructures: [
+      { frame: 'Offloading [routine task] frees [experts] from [drain], enabling [higher-value impact].', example: 'Offloading routine formatting frees designers from tedious alignment, enabling sharper user testing.' },
+    ],
+    suggestedOrganization: ['1. Headline conclusion FIRST ("Bottom line up front...")', '2. Crisp hard figure (42% repetitive queue)', '3. Reallocation payoff (20-min deep calls)', '4. Clear decision ask'],
+    commonMistakes: [
+      { mistake: 'Burying the actual recommendation until second 55 after 45s backstory.', correction: 'Drop recommendation straight into sentence 1 so directors know why every number matters!', why: 'Executives scan conclusion-first rather than suspense-novel buildup.' },
+    ],
+    followUpQuestions: ['Notice how "Not distancing customers—restoring empathy where it counts!" preempts stakeholder resistance immediately!'],
+    improvementStrategies: ['Time yourself cleanly—stop at 55 seconds flat; brevity proves mastery cleanly!'],
+    tips: ['Practice dropping crisp contrast verbs: "deflect", "offload", "liberate", "redirect".'],
+    selfChecklist: ['Put headline conclusion inside first 10 seconds.', 'Cited supporting pattern concisely.', 'Ended with clear actionable call.'],
+    keyVocabulary: ['BLUF', 'triage', 'offloading'],
+    suggestedSeconds: 60,
+    scene: 'workspace',
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-02',
+    title: 'IELTS Part 3 High-Band Depth: Preserving Local Dialects Alongside Global Languages',
+    activityType: 'ielts_speaking',
+    category: 'ielts_part_3',
+    cefrLevel: 'C1',
+    prompt: 'Answer a complex C1–C2 Part 3 prompt: "Does widespread English adoption inevitably erode regional languages and cultural diversity, or can both thrive together?"',
+    promptVi: 'Phân tích sâu IELTS Part 3 trình độ C1: Liệu sự phổ biến của tiếng Anh có tất yếu làm mai một ngôn ngữ bản địa hay cả hai có thể cùng phát triển?',
+    objectives: [
+      'Avoid simplistic binary doom or blind optimism by contrasting economic pragmatism vs domestic heritage vitality.',
+      'Use sophisticated hedging & concession cleanly ("only insofar as...", "far from being mutually exclusive").',
+    ],
+    preparationQuestions: ['What differentiates learning a global bridge language cleanly from abandoning home storytelling?', 'Which real institutional habits keep minority and national languages thriving?'],
+    modelText: 'Far from viewing global English fluency and rich regional tongues as strictly mutually exclusive, the real risk hinges less on adding English itself than underfunding everyday domains where local voices thrive. When families treat English strictly as an external bridge for cross-border science, medicine, and trade—while celebrating home humor, vibrant local journalism, and multi-generational folk storytelling in regional mother tongues—bilingualism expands horizons cleanly without erasing roots. Erosion tends to accelerate primarily when institutions quietly signal local dialects lack scholarly dignity or restrict childhood print media. So vibrant bilingual education, paired with unapologetic pride across native literature and street cinema, turns global fluency into an amplifier rather than a replacement.',
+    modelComparisonByLevel: {
+      basic: 'English does not always destroy local languages if families speak home language well and schools fund local books too.',
+      natural: 'Global English and regional tongues need not fight as zero-sum rivals. So long as English functions strictly as a practical international bridge while local journalism, literature, and family pride stay valued at home, communities preserve deep heritage alongside worldwide opportunity.',
+      advanced: 'Constructing global lingua francas and vernacular diversity as mutually exclusive misses the decisive driver: institutional prestige. Where English serves pragmatically across transborder scholarship without usurping intimate civic, artistic, and familial arenas, additive bilingualism sustains cultural specificity—eroding only where misguided hierarchies stigmatize native speech.',
+    },
+    alternativeResponses: [
+      'History suggests languages perish rarely from useful global companions alone, and far more from domestic indifference! Preserving vibrant public radio, crisp bilingual signage, and lively modern poetry in mother tongues lets youth adopt English effortlessly in boardrooms without losing ancestral cadence around kitchen tables.',
+    ],
+    vocabularyBank: [
+      { term: 'mutually exclusive', meaning: 'Incompatible options where choosing one automatically destroys the other.', vietnamese: 'triệt tiêu loại trừ lẫn nhau' },
+      { term: 'additive bilingualism', meaning: 'Gaining a strong second language cleanly without weakening native roots.', vietnamese: 'song ngữ bồi đắp mở rộng chứ không thay thế' },
+      { term: 'institutional prestige', meaning: 'Social respect shown toward languages by schools, media, and public life.', vietnamese: 'vị thế uy tín xã hội từ giáo dục & truyền thông' },
+    ],
+    naturalExpressions: ['Far from viewing A and B as...', 'Hinges less on X than on...', 'Turn global fluency into an amplifier rather than a replacement'],
+    sentenceStructures: [
+      { frame: 'Far from being [false conflict], the real risk hinges less on [surface culprit] than on [structural driver].', example: 'Far from technology destroying reading, declining focus hinges less on tablets than on endless notification alerts.' },
+    ],
+    suggestedOrganization: ['1. Reframe false binary ("Far from viewing X as mutually exclusive...")', '2. Contrast functional bridge vs intimate home domains', '3. Identify real institutional threat (prestige neglect)', '4. Optimistic synthesis ("amplifier rather than replacement")'],
+    commonMistakes: [
+      { mistake: 'Language culture will disappear totally because young people play games English.', correction: 'Local expression weakens mainly if native creative media and school pride lag behind—not simply because youth learn international terms.', why: 'Sharp C1 nuance identifies root social institutions cleanly rather than blaming surface apps.' },
+    ],
+    followUpQuestions: ['Notice "Far from viewing A and B as mutually exclusive..."—that single architectural opener elevates C1 academic discourse dramatically!'],
+    improvementStrategies: ['Practice flipping false either/or traps into "Condition + Institutional Balance" frameworks cleanly!'],
+    tips: ['Avoid melodramatic words like "destroys forever"—nuance ("erodes", "amplifies", "hinges upon") shines at C1+.'],
+    selfChecklist: ['Deconstructed either/or premise immediately.', 'Used accurate conditional hedging ("hinges less on...").', 'Distinguished bridge utility cleanly from cultural identity.'],
+    keyVocabulary: ['mutually exclusive', 'hinges on', 'additive'],
+    suggestedSeconds: 70,
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-03',
+    title: 'Diplomatic Disagreement: Redirecting a Flawed Meeting Assumption',
+    activityType: 'roleplay',
+    category: 'workplace',
+    cefrLevel: 'C1',
+    prompt: 'A senior stakeholder insists customer drop-off came solely from slow checkout button colors and orders an expensive overnight redesign. Gently push back with funnel analytics without bruised egos.',
+    promptVi: 'Một lãnh đạo cấp cao khăng khăng khách rời trang vì màu nút thanh toán xấu và yêu cầu sửa giao diện gấp. Khéo léo phản biện bằng dữ liệu hành trình thực tế mà không làm mất lòng.',
+    objectives: [
+      'Disagree softly upward ("Build on what you spotted...", "Before investing heavy studio time...").',
+      'Pinpoint real friction with calm curiosity rather than lecturing superiority.',
+    ],
+    preparationQuestions: ['What compliment affirms their instinct to look carefully at checkout conversion first?', 'How do unexpected shipping costs at step 3 explain the drop cleanly?'],
+    modelText: 'I really appreciate you zeroing straight in on that checkout drop—losing thirty-eight percent right before payment clearly stings! Before committing heavy studio weeks solely to button palette swaps, though, might we glance quickly at one interesting session-replay pattern from Tuesday? Over two-thirds of stalled visitors paused almost forty seconds right when surprise shipping estimates popped up at step three, long after clicking the green button smoothly! What if we run a nimble forty-eight-hour copy test displaying transparent shipping ranges upfront on product pages first—potentially validating the big fix quickly before tearing open full visual design?',
+    modelComparisonByLevel: {
+      basic: 'Button color is not problem, surprise shipping cost is problem in data. Let’s test shipping text 2 days before full redesign.',
+      natural: 'Great eye spotting the checkout leak—that 38% drop hurts! Before investing weeks repainting button palettes, Tuesday’s user replays flagged something wild: shoppers clicked the button smoothly, then froze for forty seconds when surprise shipping costs appeared at step three! Shall we A/B test upfront shipping ranges cleanly for 48 hours first?',
+      advanced: 'Zeroing straight into checkout friction captures the exact pressure point. Before mobilizing extensive visual overhaul resources, however, replay telemetry reveals an intriguing distinction: users engaged the primary CTA effortlessly, stalling only upon encountering unexpected freight surcharges late at step three. Might a nimble 48-hour copy test surfacing shipping transparently upfront isolate the genuine bottleneck rapidly?',
+    },
+    alternativeResponses: [
+      'You’re spot-on flagging checkout conversion as priority one! Interestingly, support chat transcripts suggest uncertainty over return eligibility—not color legibility—drove most late hesitations. Let’s validate adding a calm two-line return assurance beside totals this sprint before rebuilding visual tokens.',
+    ],
+    vocabularyBank: [
+      { term: 'session-replay pattern', meaning: 'Observed cursor hesitations showing exactly where users paused.', vietnamese: 'mẫu hành vi quan sát qua bản ghi phiên người dùng' },
+      { term: 'nimble 48-hour test', meaning: 'Fast low-effort experiment proving insight before expensive builds.', vietnamese: 'thử nghiệm nhanh gọn trong 48 giờ' },
+      { term: 'surprise surcharges', meaning: 'Hidden late fees triggering abrupt cart abandonment.', vietnamese: 'phụ phí phát sinh bất ngờ ở bước cuối' },
+    ],
+    naturalExpressions: ['I really appreciate you zeroing straight in...', 'Before committing heavy studio weeks...', 'Might we run a nimble test first?'],
+    sentenceStructures: [
+      { frame: 'Before committing [heavy resource] solely to [Hypothesis A], telemetry points toward [Hypothesis B]—might we test [lean check] first?', example: 'Before rebuilding the entire engine, logs point toward timeout defaults—might we adjust cache headers first?' },
+    ],
+    suggestedOrganization: ['1. Affirm diagnostic urgency ("Spot-on flagging the leak!")', '2. Soft bridge ("Before heavy redesign...")', '3. Neutral objective observation ("Users stalled at surprise shipping...")', '4. Lean 48-hr test framing collaboration'],
+    commonMistakes: [
+      { mistake: 'Actually you’re totally wrong about button colors.', correction: 'You spotted the exact conversion leak—before full repainting, user logs point strongly toward hidden shipping fees.', why: 'Agree on the PROBLEM ("checkout drop") immediately before gently pivoting the DIAGNOSIS.' },
+    ],
+    followUpQuestions: ['Notice how praising THEIR focus on checkout urgency builds immediate trust before data steers direction smoothly!'],
+    improvementStrategies: ['Use "Yes, on the urgency—and before heavy work, data flags..." whenever correcting upward nicely!'],
+    tips: ['Avoid saying "users are stupid"; frame neutral user hesitation empathetically ("paused forty seconds at unexpected costs").'],
+    selfChecklist: ['Affirmed stakeholder’s core observation first.', 'Presented objective data calmly without ego.', 'Proposed quick lean test protecting time & budget.'],
+    keyVocabulary: ['telemetry', 'nimble', 'bottleneck'],
+    suggestedSeconds: 55,
+    scene: 'workspace',
+    roleplayTurns: [
+      { partner: 'Director: "Checkout conversion slumped! Paint those buttons bright orange tonight so clicks surge tomorrow morning."', cue: 'Agree on conversion urgency, bridge gently before orange overhaul, cite users stalling at late shipping surprises.' },
+      { partner: 'Director: "Wait—if orange doesn’t fix shipping surprise, fair catch! How fast can you test upfront fees?"', cue: 'Confirm nimble 48-hour test timeline and promise crisp Friday readout.' },
+    ],
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-04',
+    title: 'Spontaneous Debate Rebuttal: Evaluating "Learn While You Sleep" Marketing Claims',
+    activityType: 'debate_defense',
+    category: 'opinion_debate',
+    cefrLevel: 'C1',
+    prompt: 'Deliver a poised 60-second critique dismantling exaggerated claims ("Absorb fluent English overnight effortlessly in your sleep!") while acknowledging what genuine sleep science DOES support.',
+    promptVi: 'Phản biện sắc bén trong 60 giây trước lời quảng cáo thổi phồng ("Thành thạo tiếng Anh thụ động ngay trong lúc ngủ!"), đồng thời công bằng chỉ ra điều khoa học giấc ngủ thực sự chứng minh.',
+    objectives: [
+      'Distinguish false passive overnight acquisition from legitimate overnight memory consolidation.',
+      'Rebut gimmicks credibly through measured scientific clarity rather than blanket negativity.',
+    ],
+    preparationQuestions: ['Does playing background podcasts during deep sleep build active conversation fluency?', 'What DOES sleep genuinely do for vocabulary you studied while awake?'],
+    modelText: 'While "absorb fluent grammar passively overnight!" sells plenty of late-night headphone ads, honest memory research splits two very different claims sharply apart. True deep sleep does perform extraordinary unseen maintenance—consolidating words and sentence frames you actively practiced earlier while awake, pruning fragile connections smoothly overnight. However, piping unfamiliar English dialogues softly over pillows while unconscious neither trains vocal muscles nor builds rapid turn-taking retrieval when real callers await morning answers! Worse still, background noise fracturing deep restorative sleep leaves exhausted brains noticeably clumsier studying the next afternoon. Skip bedtime gimmicks: pair twenty alert evening retrieval minutes with clean quiet unbroken rest afterward—THAT combination delivers real overnight magic effortlessly.',
+    modelComparisonByLevel: {
+      basic: 'Sleep audio cannot teach fresh speaking magically—it even breaks sleep quality! Study 20 minutes awake then sleep quietly helps memory real.',
+      natural: 'Promising effortless overnight fluency confuses two things cleanly: healthy sleep strongly cements vocabulary studied earlier while awake, yet passive pillow audio fails to train speech production and fragments restorative rest. Alert 20-minute evening recall followed by peaceful silence works wonders instead.',
+      advanced: 'Overnight-fluency gimmicks opportunistically conflate passive nocturnal audio exposure with legitimate synaptic consolidation. Whereas unbroken slow-wave sleep genuinely stabilizes syntax actively encoded during waking retrieval, unconscious auditory playback neither engages articulatory planning nor spares fractured rest—rendering brisk evening recall paired with silent slumber vastly superior.',
+    },
+    alternativeResponses: [
+      'Sleep consolidation acts like hitting "Save Project" inside your notebook—except sleeping never types fresh chapters while you snore! Focus deliberate speaking energy awake, then honor calm dark sleep cleanly afterward.',
+    ],
+    vocabularyBank: [
+      { term: 'conflate', meaning: 'Incorrectly blend two separate mechanisms together as one.', vietnamese: 'đánh đồng gộp nhầm hai cơ chế khác nhau' },
+      { term: 'fragile / fractured rest', meaning: 'Interrupted shallow sleep robbing next-day alertness.', vietnamese: 'giấc ngủ bị đứt quãng nông cạn' },
+      { term: 'synaptic consolidation', meaning: 'Overnight strengthening of awake learning traces quietly.', vietnamese: 'củng cố kết nối trí nhớ trong lúc ngủ' },
+    ],
+    naturalExpressions: ['Splits two very different claims cleanly...', 'Skip gimmicks...', 'Delivers the real overnight payoff'],
+    sentenceStructures: [
+      { frame: 'True [process] genuinely [authentic role]; however, [myth] neither [benefit 1] nor [benefit 2].', example: 'True immersion genuinely builds intuition; however, random background noise neither clarifies structure nor corrects fossilized habits.' },
+    ],
+    suggestedOrganization: ['1. Critique ad confusion immediately', '2. Honest credit (sleep cements AWAKE practice)', '3. Rebuttal (unconscious ears don’t build speech, noise breaks rest)', '4. Constructive golden alternative (alert 20-min recall + quiet sleep)'],
+    commonMistakes: [
+      { mistake: 'Science proved sleeping does nothing for language.', correction: 'Science confirms silent sleep strengthens waking practice—not brand-new unstudied lessons played through speakers.', why: 'Nuanced rebuttals hold authority precisely because they preserve the genuine kernel of truth!' },
+    ],
+    followUpQuestions: ['Notice the crisp distinction: "Sleep saves awake drafts—it doesn’t type them!"'],
+    improvementStrategies: ['Steelman the opposing marketing grain ("Why do people fall for it? Because consolidation IS real!") before surgically separating truth from hype!'],
+    tips: ['Use clean parallel pairs: "neither trains... nor builds...".'],
+    selfChecklist: ['Used measured nuanced separation rather than blanket dismissal.', 'Mastered parallel negative structure ("neither... nor...").', 'Ended with constructive high-value actionable habit.'],
+    keyVocabulary: ['consolidate', 'conflate', 'fractured'],
+    suggestedSeconds: 60,
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-05',
+    title: 'IELTS Part 2 High-Nuance Story: A Small Decision That Altered Long-Term Trajectory',
+    activityType: 'ielts_speaking',
+    category: 'ielts_part_2',
+    cefrLevel: 'C1',
+    prompt: 'Narrate for 90 seconds an apparently minor choice (joining an extra club, replying politely to a stranger’s question, signing up last-minute) that subtly reshaped your study, friendships, or confidence years later.',
+    promptVi: 'Kể sâu sắc trong ~90 giây về một quyết định tưởng nhỏ nhặt (vô tình tham gia câu lạc bộ, trả lời lịch sự một người lạ, đăng ký phút chót) nhưng tạo hiệu ứng gợn sóng thay đổi lớn về sau.',
+    objectives: [
+      'Balance causal subtlety ("It looked inconsequential then, yet quietly seeded...").',
+      'Mix complex past forms naturally (Past Perfect + Conditional Type 3 nuance: "Had I turned home directly, I’d never have met...").',
+    ],
+    preparationQuestions: ['What tiny excuse almost kept you on the sofa that day?', 'Trace two domino steps linking that ordinary evening to months later!'],
+    modelText: 'Four autumns back, almost nothing felt smaller or more forgettable than signing up nervously as a last-minute reserve timer at a cramped campus book-club discussion—purely because rain kept my bicycle locked indoors anyway! At the time, holding a plastic kitchen stopwatch seemed downright peripheral; I fully anticipated handing it back afterward and slipping quietly back to dorm problem sets. Yet lingering ten extra minutes tidying chairs beside two quiet upper-year mentors sparked an unexpected debate over translated travel essays, uncovering a shared fascination with oral history preservation. Out of that casual post-meeting chat grew an invitation helping record local elders’ harbor stories that very summer—and ultimately steering my entire elective research track toward sociolinguistics! Looking back, had I brushed off one chilly Tuesday walk citing midterm tiredness, nearly half my favorite friendships and current analytical confidence might simply never have materialized.',
+    modelComparisonByLevel: {
+      basic: '4 years ago rainy night I joined campus club late. Almost went home. Met two older students cleaning chairs. Later joined summer project and changed my college focus.',
+      natural: 'Four years ago, slipping reluctantly out of the rain to volunteer as a backup book-club timer looked completely trivial. Yet chatting casually while stacking chairs afterward connected me with two seniors running an oral-history recording project—gradually reshaping my academic focus. Had I hurried straight back to dorms, half those enduring friendships would never have started.',
+      advanced: 'Seemingly negligible choices occasionally conceal outsized inflection points: four autumns prior, sheltering from drizzle inside a modest campus reading circle as backup timekeeper appeared completely incidental. Lingering merely to stack folding chairs ignited an impromptu exchange on disappearing coastal dialects, rippling cleanly into summer field research—a cascading trajectory completely unimagined had midterm fatigue triumphed that evening.',
+    },
+    alternativeResponses: [
+      'Replying kindly in broken intermediate English to a lost marathon volunteer outside a coffee shop six years ago changed how fiercely I dreaded spoken slips! Realizing practical human connection thrived smoothly despite imperfect articles cured years of silent perfectionism in forty cheerful seconds.',
+    ],
+    vocabularyBank: [
+      { term: 'seemingly negligible', meaning: 'Appearing tiny or unimportant when evaluated in that passing moment.', vietnamese: 'tưởng chừng nhỏ nhặt không đáng kể' },
+      { term: 'peripheral', meaning: 'Sitting strictly at the edge rather than the center of events.', vietnamese: 'nằm ngoài rìa phụ họa' },
+      { term: 'cascading trajectory', meaning: 'Domino series of growing opportunities expanding over time.', vietnamese: 'chuỗi hiệu ứng domino lan tỏa dài lâu' },
+    ],
+    naturalExpressions: ['At the time, ... seemed downright peripheral...', 'Out of that casual chat grew...', 'Had I brushed off...'],
+    sentenceStructures: [
+      { frame: 'Had I [past participle negative choice], [desired impact] might never have [past participle].', example: 'Had I waited until feeling 100% fluent before volunteering, those summer workshops might never have clicked.' },
+    ],
+    suggestedOrganization: ['1. Mundane accidental motivation ("purely because rain kept me indoors")', '2. Peripheral minor detail ("holding a stopwatch")', '3. Quiet hinge moment ("stacking chairs sparked...")', '4. Domino effect + inverted 3rd conditional closing reflection ("Had I brushed off...")'],
+    commonMistakes: [
+      { mistake: 'If I didn’t go that rainy night, I won’t meet them later.', correction: 'Had I stayed home that night, I wouldn’t have met them.', why: 'Always anchor counter-factual past regrets inside Type 3 conditional ("Had I + V3 / If I hadn’t + V3, ... wouldn’t have + V3").' },
+    ],
+    followUpQuestions: ['Hear how smooth "Had I brushed off..." lands right at the climax of an IELTS Part 2 answer!'],
+    improvementStrategies: ['Include ONE quiet physical gesture ("stacking chairs", "holding a plastic stopwatch")—hyper-specific mundane objects create unforgettable literary reality!'],
+    tips: ['Practice delivering Type 3 conditional inversion ("Had I stayed...") evenly without stumbling over "wouldn’t have".'],
+    selfChecklist: ['Landed clear Type 3 conditional reflection naturally.', 'Built smooth escalating timeline across ordinary details.', 'Maintained rich evocative verbs throughout.'],
+    keyVocabulary: ['negligible', 'peripheral', 'had I'],
+    suggestedSeconds: 90,
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-06',
+    title: 'Natural Discourse Markers Clinic: Hedging, Buying Time & Reframing Gracefully',
+    activityType: 'shadowing',
+    category: 'social_situations',
+    cefrLevel: 'C1',
+    prompt: 'Shadow high-fluency conversational hedges ("Broadly speaking...", "To put that slightly differently...", "At least on paper...") to navigate surprise abstract questions cleanly without robotic panic.',
+    promptVi: 'Luyện kỹ thuật dùng cụm từ mở & điều chỉnh mạch nói ("Broadly speaking...", "To put that slightly differently...") để ứng biến trôi chảy trước câu hỏi trừu tượng bất ngờ.',
+    objectives: [
+      'Replace empty nervous "uhmmms" cleanly with articulate reflective stalling frames.',
+      'Recalibrate overstatements gracefully mid-flight ("Or rather, more accurately...").',
+    ],
+    preparationQuestions: ['Notice how thoughtful speakers openly allow themselves 2 seconds to carve a sharp metaphor?', 'Why does hedging ("to some degree", "in practice") sound far smarter than overclaiming "always/never"?'],
+    modelText: 'That’s a surprisingly layered question—if I unpack it carefully, modern remote apprenticeships look liberating at least on paper. Broadly speaking, flexible geographic access undeniably lets talented rural designers join cosmopolitan teams cleanly without painful relocation bills. Yet to put that slightly differently, spontaneous hallway eavesdropping often taught juniors tacit craft norms impossible to schedule inside tidy half-hour video slots! Or rather, the sweet spot isn’t discarding remote reach—it’s pairing early intensive shared studio quarters with long-haul distributed autonomy later.',
+    modelComparisonByLevel: {
+      basic: 'Good question. Remote work good on paper for countryside people, but young workers miss talking in hallway. Better mix both.',
+      natural: 'That’s a rich tension—at least on paper, remote hiring lets promising talent join strong teams anywhere without costly relocation. Yet to reframe slightly, early career learners absorb vital unspoken judgment alongside senior desks, suggesting hybrid intensive starts beat isolated onboarding.',
+      advanced: 'Unpacking that gracefully: while borderless remote onboarding expands spatial equity in principle, tacit craftsmanship rarely transmits cleanly through scheduled calendar squares—favoring intentional early co-location tapering gradually into distributed autonomy.',
+    },
+    alternativeResponses: [
+      'How should I put this—while algorithmic playlists widen instant exposure impressively at first glance, genuine musical curiosity often deepens slowly when trusted friends hand you one odd unexpected record to sit with all autumn.',
+    ],
+    vocabularyBank: [
+      { term: 'at least on paper', meaning: 'Sounding promising theoretically before confronting real messy practice.', vietnamese: 'ít nhất là trên lý thuyết bản vẽ' },
+      { term: 'to put that slightly differently', meaning: 'Graceful bridge re-aiming clarity right after an abstract claim.', vietnamese: 'diễn đạt lại góc nhìn khác rõ hơn một chút' },
+      { term: 'sweet spot', meaning: 'Optimal balanced center gaining strengths of both poles.', vietnamese: 'điểm cân bằng lý tưởng nhất' },
+    ],
+    naturalExpressions: ['That’s a layered question...', 'At least on paper...', 'Or rather, more accurately...'],
+    sentenceStructures: [
+      { frame: 'At least on paper, [ideal]. Yet to put that slightly differently, [hidden reality].', example: 'At least on paper, zero deadlines foster creativity; yet in practice, clear milestones free focus.' },
+    ],
+    suggestedOrganization: ['1. Buy thoughtful beat ("That’s a layered question...")', '2. Theoretical promise ("at least on paper")', '3. Graceful pivot ("To put that slightly differently...")', '4. Mid-flight recalibration ("Or rather, the sweet spot...")'],
+    commonMistakes: [
+      { mistake: 'Um... ah... wait... how to say... very complex yes.', correction: 'That’s a nuanced tradeoff—Broadly speaking, let me trace two sides.', why: 'Articulate stalling frames preserve executive poise while your working memory retrieves examples!' },
+    ],
+    followUpQuestions: ['Pause 0.6s right after "That’s a surprisingly layered question..." cleanly—silent breathing paired with natural framing beats rushed filler murmurs every time!'],
+    improvementStrategies: ['Pick your two personal favorite framing markers today and intentionally weave BOTH into answers later this week!'],
+    tips: ['Notice falling intonation on "at least on paper" signals readers a sharper contrast follows right next!'],
+    selfChecklist: ['Substituted purposeful bridge frames for empty gaps.', 'Softened sweeping absolute generalizations cleanly.', 'Delivered clear crisp balanced conclusion.'],
+    keyVocabulary: ['on paper', 'put differently', 'sweet spot'],
+    suggestedSeconds: 50,
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-07',
+    title: 'Case Presentation Walkthrough: Auditing & Summarizing User Insights Cohesively',
+    activityType: 'academic_speaking',
+    category: 'academic_discussion',
+    cefrLevel: 'C1',
+    prompt: 'Present a concise 75-second research walkthrough detailing why an educational app dropped onboarding step three—and how empirical testing shaped the leaner solution.',
+    promptVi: 'Trình bày nghiên cứu tình huống trong ~75 giây về lý do người học bỏ cuộc ở bước đăng ký số 3 và cách quan sát thực nghiệm giúp tinh gọn giải pháp hiệu quả.',
+    objectives: [
+      'Chain Problem -> Diagnostic Observation -> Design Hypothesis -> Measured Validation seamlessly in clear seminar English.',
+      'Preserve strict empirical honesty (never overstating causality on small samples).',
+    ],
+    preparationQuestions: ['What exact needless question alienated hesitant beginners upfront?', 'Why shouldn’t one small user cohort claim "universal proof"?'],
+    modelText: 'Walking briefly through our Q1 onboarding diagnostic: originally, twenty-eight percent of enthusiastic first-time visitors abandoned signup midway at Step Three—making that screen our sharpest retention bottleneck. Rather than guessing visually, we watched twelve quiet usability recordings closely and spotted an immediate behavioral mismatch: Step Three asked self-conscious beginners to declare rigid exam score forecasts BEFORE even sampling one interactive speaking warm-up! Naturally, novices worried picking the wrong label felt like failing an entry gate, so they exited quietly. Testing a streamlined hypothesis, we deferred heavy goal customization cleanly behind one thirty-second trial lesson—keeping early commitment light while capturing authentic interests afterwards. Across our follow-up cohort, trial completion improved noticeably; though mindful small pilots vary seasonally, postponing intimidating forms consistently lowers early threshold anxiety.',
+    modelComparisonByLevel: {
+      basic: '28% users quit step 3 because app asked tough test score before letting them try lesson. Putting tiny lesson first made completion higher.',
+      natural: 'Initially, 28% of newcomers dropped out at Step Three. Watching usability clips revealed why: asking anxious beginners to pick rigid exam targets before trying one fun warm-up felt intimidating! Moving goal settings right AFTER a quick trial lesson eased entry stress and noticeably lifted completion.',
+      advanced: 'Auditing Q1 funnel telemetry surfaced an immediate twenty-eight percent attrition spike at Step Three. Observational playbacks exposed clear psychological friction: prompting tentative novices to project rigid test scores prematurely prior to experiencing core interaction triggered perceived failure sensitivity. Inverting sequence—leading with a frictionless thirty-second preview prior to goal calibration—measurably raised pilot progression while preserving epistemic caution over seasonal variance.',
+    },
+    alternativeResponses: [
+      'Diagnosing drop-off in short mobile lessons revealed learners abandoned audio screens rarely from syntax difficulty, and largely from unannounced microphone permission prompts startling commuters on busy trains—resolved simply by offering clear silent fallback buttons upfront.',
+    ],
+    vocabularyBank: [
+      { term: 'behavioral mismatch', meaning: 'Friction between software sequence and actual nervous human feelings.', vietnamese: 'sự lệch pha tâm lý hành vi người dùng' },
+      { term: 'deferred', meaning: 'Postponed intentionally until a smarter later step.', vietnamese: 'lùi lại sang bước hợp lý hơn phía sau' },
+      { term: 'threshold anxiety', meaning: 'Hesitation felt right at the doorway before starting something new.', vietnamese: 'nỗi e ngại ngay ngưỡng cửa bắt đầu' },
+    ],
+    naturalExpressions: ['Rather than guessing visually...', 'We deferred X cleanly behind...', 'Mindful small pilots vary...'],
+    sentenceStructures: [
+      { frame: 'Observing [evidence] surfaced a mismatch: [friction]. Deferring [burden] behind [quick win] lowered [barrier].', example: 'Observing essays surfaced a pattern: blank-page dread. Starting with a two-line outline lowered paralysis.' },
+    ],
+    suggestedOrganization: ['1. Quantified puzzle (28% dropout at Step 3)', '2. Empirical observation method (12 usability clips)', '3. Root psychological diagnosis (score forecast anxiety)', '4. Sequence intervention + honest caveat over pilot size'],
+    commonMistakes: [
+      { mistake: 'Proved 100% scientifically forever!', correction: 'Noticeably improved completion across our pilot cohort, though seasonal variance merits ongoing tracking.', why: 'Honest epistemic humility distinguishes true C1 researchers from sales hype!' },
+    ],
+    followUpQuestions: ['Notice how leading with a crisp problem-diagnostic story engages non-designers cleanly too!'],
+    improvementStrategies: ['Track clear logical arrows verbally: "Diagnosing -> Watching -> Deferring -> Observing modestly..."'],
+    tips: ['Always guard small observations calmly rather than pretending twelve testers equal universal law.'],
+    selfChecklist: ['Sequenced problem -> diagnostic proof -> intervention -> caveat smoothly.', 'Maintained honest empirical scope.', 'Spoke crisply ~65–75s without rushing data points.'],
+    keyVocabulary: ['diagnostic', 'deferred', 'threshold anxiety'],
+    suggestedSeconds: 75,
+    scene: 'workspace',
+  }),
+];

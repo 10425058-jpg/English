@@ -19,10 +19,14 @@ const ReviewPage = lazy(() =>
   import('@/features/learning/ReviewPage').then((m) => ({ default: m.ReviewPage }))
 );
 const ListeningPage = lazy(() =>
-  import('@/features/listening/ListeningPage').then((m) => ({ default: m.ListeningPage }))
+  import('@/features/listening/ListeningAcademyPage').then((m) => ({
+    default: m.ListeningAcademyPage,
+  }))
 );
 const SpeakingPage = lazy(() =>
-  import('@/features/speaking/SpeakingPage').then((m) => ({ default: m.SpeakingPage }))
+  import('@/features/speaking/SpeakingAcademyPage').then((m) => ({
+    default: m.SpeakingAcademyPage,
+  }))
 );
 const ReadingPage = lazy(() =>
   import('@/features/reading/ReadingPage').then((m) => ({ default: m.ReadingPage }))

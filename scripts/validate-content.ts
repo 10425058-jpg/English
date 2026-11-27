@@ -13,14 +13,21 @@ import {
   CEFR_LEVELS,
   loadAllExercises,
   loadAllGrammar,
+  loadAllListening,
+  loadAllSpeaking,
   loadAllVocabulary,
   loadCurriculumMatrix,
   loadLearningResources,
+  loadPronunciationLessons,
+  loadShadowingSessions,
+  loadSpeakingMindsetGuides,
   loadThematicCollections,
 } from '../content/index';
 import { SEED_VOCABULARY } from '../frontend/src/data/vocabularySeed';
 import { GRAMMAR_TOPICS } from '../frontend/src/data/grammarTopics';
 import { ALL_UNITS } from '../frontend/src/data/curriculum/index';
+import { LISTENING_LAB_TRACKS } from '../frontend/src/data/listeningLabData';
+import { SPEAKING_LAB_ACTIVITIES } from '../frontend/src/data/speakingLabData';
 
 function checkNonEmpty(label: string, val: string | undefined | null, errors: string[]): void {
   if (!val || !val.trim()) {
@@ -32,15 +39,31 @@ export async function runValidation(writeReport = false): Promise<number> {
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  const [expandedVocab, expandedGrammar, expandedExercises, collections, resources, matrix] =
-    await Promise.all([
-      loadAllVocabulary(),
-      loadAllGrammar(),
-      loadAllExercises(),
-      loadThematicCollections(),
-      loadLearningResources(),
-      loadCurriculumMatrix(),
-    ]);
+  const [
+    expandedVocab,
+    expandedGrammar,
+    expandedExercises,
+    collections,
+    resources,
+    matrix,
+    expandedListening,
+    expandedSpeaking,
+    speakingGuides,
+    pronunciationLessons,
+    shadowingSessions,
+  ] = await Promise.all([
+    loadAllVocabulary(),
+    loadAllGrammar(),
+    loadAllExercises(),
+    loadThematicCollections(),
+    loadLearningResources(),
+    loadCurriculumMatrix(),
+    loadAllListening(),
+    loadAllSpeaking(),
+    loadSpeakingMindsetGuides(),
+    loadPronunciationLessons(),
+    loadShadowingSessions(),
+  ]);
 
   // 1. Vocabulary integrity
   const vocabById = new Map<string, Vocabulary>();
@@ -169,6 +192,9 @@ export async function runValidation(writeReport = false): Promise<number> {
       }
     }
   }
+  for (const t of LISTENING_LAB_TRACKS) {
+    for (const ex of t.exercises) exerciseIds.add(ex.id);
+  }
   for (const g of GRAMMAR_TOPICS) {
     for (const qItem of g.quiz) exerciseIds.add(qItem.id);
   }
@@ -286,6 +312,116 @@ export async function runValidation(writeReport = false): Promise<number> {
     }
   }
 
+  // 7. Milestone 2 Listening Academy integrity
+  const listeningIds = new Set<string>(LISTENING_LAB_TRACKS.map((l) => l.id));
+  const listeningTitles = new Set<string>(LISTENING_LAB_TRACKS.map((l) => l.title.toLowerCase().trim()));
+  const listeningCountsByLevel: Record<CEFRLevel, number> = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+  let listeningExercisesCount = 0;
+
+  for (const lis of expandedListening) {
+    listeningCountsByLevel[lis.cefrLevel] = (listeningCountsByLevel[lis.cefrLevel] ?? 0) + 1;
+    if (listeningIds.has(lis.id)) errors.push(`Duplicate listening ID: ${lis.id}`);
+    listeningIds.add(lis.id);
+    const normTitle = lis.title.toLowerCase().trim();
+    if (listeningTitles.has(normTitle)) errors.push(`Duplicate listening title: ${lis.title}`);
+    listeningTitles.add(normTitle);
+    checkNonEmpty(`listening.${lis.id}.title`, lis.title, errors);
+    checkNonEmpty(`listening.${lis.id}.preListeningPrompt`, lis.preListeningPrompt, errors);
+    checkNonEmpty(`listening.${lis.id}.summaryText`, lis.summaryText, errors);
+    if (!lis.scriptLines || lis.scriptLines.length < 4) {
+      errors.push(`Listening ${lis.id} needs >= 4 scriptLines`);
+    }
+    if (!lis.vocabularyNotes || lis.vocabularyNotes.length < 3) {
+      errors.push(`Listening ${lis.id} needs >= 3 vocabularyNotes`);
+    }
+    if (!lis.exercises || lis.exercises.length < 3) {
+      errors.push(`Listening ${lis.id} needs >= 3 comprehension/dictation exercises`);
+    }
+    for (const ex of lis.exercises) {
+      listeningExercisesCount += 1;
+      if (exerciseIds.has(ex.id)) errors.push(`Duplicate listening exercise ID: ${ex.id}`);
+      exerciseIds.add(ex.id);
+      checkNonEmpty(`listeningEx.${ex.id}.prompt`, ex.prompt, errors);
+      checkNonEmpty(`listeningEx.${ex.id}.explanation`, ex.explanation, errors);
+      if ((ex.type === 'dictation' || ex.type === 'audio_recognition') && !ex.audioText?.trim()) {
+        errors.push(`Listening exercise ${ex.id} requires audioText`);
+      }
+      if (!evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect) {
+        errors.push(`Listening exercise self-eval failed: ${ex.id}`);
+      }
+    }
+  }
+
+  // 8. Milestone 2 Speaking Academy integrity
+  const speakingIds = new Set<string>(SPEAKING_LAB_ACTIVITIES.map((s) => s.id));
+  const speakingTitles = new Set<string>(SPEAKING_LAB_ACTIVITIES.map((s) => s.title.toLowerCase().trim()));
+  const speakingCountsByLevel: Record<CEFRLevel, number> = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+
+  for (const spk of expandedSpeaking) {
+    speakingCountsByLevel[spk.cefrLevel] = (speakingCountsByLevel[spk.cefrLevel] ?? 0) + 1;
+    if (speakingIds.has(spk.id)) errors.push(`Duplicate speaking ID: ${spk.id}`);
+    speakingIds.add(spk.id);
+    const normTitle = spk.title.toLowerCase().trim();
+    if (speakingTitles.has(normTitle)) errors.push(`Duplicate speaking title: ${spk.title}`);
+    speakingTitles.add(normTitle);
+    checkNonEmpty(`speaking.${spk.id}.prompt`, spk.prompt, errors);
+    checkNonEmpty(`speaking.${spk.id}.modelText`, spk.modelText, errors);
+    if (!spk.objectives?.length || !spk.vocabularyBank?.length || !spk.selfChecklist?.length) {
+      errors.push(`Speaking ${spk.id} missing objectives/vocabularyBank/selfChecklist`);
+    }
+  }
+  if (speakingGuides.length < 6) {
+    errors.push(`Expected >= 6 speaking mindset/framework guides, found ${speakingGuides.length}`);
+  }
+
+  // 9. Milestone 2 Pronunciation Academy integrity
+  const proIds = new Set<string>();
+  const proTitles = new Set<string>();
+  let pronunciationExercisesCount = 0;
+
+  for (const pro of pronunciationLessons) {
+    if (proIds.has(pro.id)) errors.push(`Duplicate pronunciation ID: ${pro.id}`);
+    proIds.add(pro.id);
+    const normTitle = pro.title.toLowerCase().trim();
+    if (proTitles.has(normTitle)) errors.push(`Duplicate pronunciation title: ${pro.title}`);
+    proTitles.add(normTitle);
+    checkNonEmpty(`pro.${pro.id}.articulatoryGuide`, pro.articulatoryGuide, errors);
+    checkNonEmpty(`pro.${pro.id}.vietnameseLearnerTip`, pro.vietnameseLearnerTip, errors);
+    if (!pro.minimalPairs || pro.minimalPairs.length < 2) {
+      errors.push(`Pronunciation ${pro.id} requires >= 2 minimalPairs`);
+    }
+    for (const mp of pro.minimalPairs) {
+      if (!mp.ipaA || !mp.ipaB) errors.push(`Pronunciation ${pro.id} missing IPA in minimal pair`);
+    }
+    if (!pro.listeningExercises || pro.listeningExercises.length < 3) {
+      errors.push(`Pronunciation ${pro.id} requires >= 3 listeningExercises`);
+    }
+    for (const ex of pro.listeningExercises) {
+      pronunciationExercisesCount += 1;
+      if (exerciseIds.has(ex.id)) errors.push(`Duplicate pronunciation exercise ID: ${ex.id}`);
+      exerciseIds.add(ex.id);
+      if (!evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect) {
+        errors.push(`Pronunciation exercise self-eval failed: ${ex.id}`);
+      }
+    }
+  }
+
+  // 10. Milestone 2 Shadowing Studio integrity
+  const shdIds = new Set<string>();
+  const shdTitles = new Set<string>();
+  for (const shd of shadowingSessions) {
+    if (shdIds.has(shd.id)) errors.push(`Duplicate shadowing ID: ${shd.id}`);
+    shdIds.add(shd.id);
+    const normTitle = shd.title.toLowerCase().trim();
+    if (shdTitles.has(normTitle)) errors.push(`Duplicate shadowing title: ${shd.title}`);
+    shdTitles.add(normTitle);
+    checkNonEmpty(`shd.${shd.id}.rhythmOverview`, shd.rhythmOverview, errors);
+    checkNonEmpty(`shd.${shd.id}.vietnameseFocusTip`, shd.vietnameseFocusTip, errors);
+    if (!shd.segments || shd.segments.length < 3) {
+      errors.push(`Shadowing ${shd.id} requires >= 3 segments`);
+    }
+  }
+
   const totalVocab = SEED_VOCABULARY.length + expandedVocab.length;
   const totalGrammarTopics = GRAMMAR_TOPICS.length + expandedGrammar.length;
   const legacyPathExercises = ALL_UNITS.reduce(
@@ -293,8 +429,13 @@ export async function runValidation(writeReport = false): Promise<number> {
     0
   );
   const legacyGrammarQuizzes = GRAMMAR_TOPICS.reduce((sum, g) => sum + g.quiz.length, 0);
+  const m2NewExercises = listeningExercisesCount + pronunciationExercisesCount;
   const totalExercises =
-    legacyPathExercises + legacyGrammarQuizzes + grammarQuizCount + expandedExercises.length;
+    legacyPathExercises +
+    legacyGrammarQuizzes +
+    grammarQuizCount +
+    expandedExercises.length +
+    m2NewExercises;
 
   console.log('\n=== ENGLISH QUEST CONTENT VALIDATION REPORT ===');
   console.log(`Expanded Vocabulary: ${expandedVocab.length} (+ ${SEED_VOCABULARY.length} core seed = ${totalVocab})`);
@@ -302,9 +443,15 @@ export async function runValidation(writeReport = false): Promise<number> {
   console.log(`Expanded Grammar Topics: ${expandedGrammar.length} (+ ${GRAMMAR_TOPICS.length} core = ${totalGrammarTopics})`);
   console.log('  By CEFR level:', JSON.stringify(grammarCountsByLevel));
   console.log(`Thematic Collections: ${collections.length}`);
-  console.log(`Expanded Exercise Bank: ${expandedExercises.length} (+ ${grammarQuizCount} academy quizzes + ${legacyPathExercises} path exercises = ${totalExercises})`);
+  console.log(`Expanded Exercise Bank: ${expandedExercises.length} (+ ${grammarQuizCount} academy + ${m2NewExercises} Milestone 2 + ${legacyPathExercises} path = ${totalExercises})`);
   console.log('  Exercise Bank by CEFR level:', JSON.stringify(exerciseCountsByLevel));
   console.log('  Exercise Bank Formats:', JSON.stringify(exerciseTypeCounts));
+  console.log(`Milestone 2 Listening Lessons: ${expandedListening.length} (+ ${LISTENING_LAB_TRACKS.length} core = ${expandedListening.length + LISTENING_LAB_TRACKS.length}) [${listeningExercisesCount} ex]`);
+  console.log('  Listening by CEFR:', JSON.stringify(listeningCountsByLevel));
+  console.log(`Milestone 2 Speaking Lessons: ${expandedSpeaking.length} (+ ${SPEAKING_LAB_ACTIVITIES.length} core = ${expandedSpeaking.length + SPEAKING_LAB_ACTIVITIES.length}) + ${speakingGuides.length} guides`);
+  console.log('  Speaking by CEFR:', JSON.stringify(speakingCountsByLevel));
+  console.log(`Milestone 2 Pronunciation Lessons: ${pronunciationLessons.length} [${pronunciationExercisesCount} ex]`);
+  console.log(`Milestone 2 Shadowing Sessions: ${shadowingSessions.length}`);
   console.log(`Curated Learning Resources: ${resources.length}`);
   console.log(`Curriculum Matrix Levels: ${matrix.length}`);
   console.log(`Warnings: ${warnings.length}`);
@@ -338,7 +485,12 @@ Generated automatically by \`npm run validate:content\`.
 | Interactive Practice Bank Exercises | 0 | ${expandedExercises.length} | ${expandedExercises.length} |
 | Grammar Academy Mini-Quizzes | ${legacyGrammarQuizzes} | ${grammarQuizCount} | ${legacyGrammarQuizzes + grammarQuizCount} |
 | Core Learning Path Exercises | ${legacyPathExercises} | 0 | ${legacyPathExercises} |
-| **Combined Interactive Exercises** | **${legacyPathExercises + legacyGrammarQuizzes}** | **${expandedExercises.length + grammarQuizCount}** | **${totalExercises}** |
+| **Combined Interactive Exercises** | **${legacyPathExercises + legacyGrammarQuizzes}** | **${expandedExercises.length + grammarQuizCount + m2NewExercises}** | **${totalExercises}** |
+| Listening Academy Lessons (Batch 2A+) | ${LISTENING_LAB_TRACKS.length} | ${expandedListening.length} | ${LISTENING_LAB_TRACKS.length + expandedListening.length} |
+| Speaking Academy Lessons (Batch 2A+) | ${SPEAKING_LAB_ACTIVITIES.length} | ${expandedSpeaking.length} | ${SPEAKING_LAB_ACTIVITIES.length + expandedSpeaking.length} |
+| Pronunciation Academy Lessons | 0 | ${pronunciationLessons.length} | ${pronunciationLessons.length} |
+| Shadowing Studio Sessions | 0 | ${shadowingSessions.length} | ${shadowingSessions.length} |
+| Speaking Mindset Guides | 0 | ${speakingGuides.length} | ${speakingGuides.length} |
 | Curated Open Educational Resources | 0 | ${resources.length} | ${resources.length} |
 | CEFR Coverage Matrix Levels | 3 active + 3 upcoming | 6 full A1–C2 specifications | ${matrix.length} |
 

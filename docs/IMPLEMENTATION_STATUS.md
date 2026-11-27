@@ -1,6 +1,6 @@
 # English Quest — Implementation Status
 
-> Updated: 2026-11-27 | Active Branch: `feature/curriculum-content-expansion`
+> Updated: 2026-11-27 | Active Branch: `feature/four-skill-intensive-training`
 
 ## Milestone Summary
 
@@ -20,6 +20,11 @@
   - **600** unique interactive Vocabulary & Grammar practice drills (100/level across 13 distinct formats, bringing total verified interactive items to **944**).
   - **36** verified open educational resources integrated into `ReadingPage`, plus the **6-level A1–C2 Curriculum Matrix** visible in `LearnPage`.
   - Automated validation suite (`npm run validate:content`) + Vitest integration tests enforcing zero duplicate IDs, zero broken references, and 100% evaluator round-trip verification (`docs/CONTENT_QUALITY_REPORT.md`).
+
+- **Milestone 2 — Four-Skill Intensive Training (Batch 2A Complete; Batches 2B–2D In Progress):**
+  - Expanded `ListeningAcademyPage` (`46` lessons across A1–C2 = 40 new + 6 core) with **0.5x–2.0x** speed presets (`speechService.ts`), multi-speaker Web Speech dialogue synthesis (`speakDialogueLine`), loop replay, dictation mode toggle, connected speech notes, bookmarking, and **160** listening comprehension & dictation exercises.
+  - Expanded `SpeakingAcademyPage` with **Speaking Academy (`47` lessons)**, **Pronunciation Academy (`24` IPA/Vietnamese trap lessons, `72` discrimination exercises)**, **Shadowing Studio (`20` progressive sessions)**, and **6 Speaking Mindset & Framework guides** (`PREP`, `STAR`, `Past-Present-Future`, `Circumlocution`, etc.).
+  - See [MILESTONE_2_PROGRESS.md](./MILESTONE_2_PROGRESS.md) for live batch-by-batch tracking.
 
 - **Phase 2 — Backend & Cloud Persistence:** **Schema & Contracts Drafted**
   - 28 normalized PostgreSQL Prisma models defined in `backend/prisma/schema.prisma`.

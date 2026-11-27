@@ -4,6 +4,11 @@ import type {
   Exercise,
   GrammarTopic,
   LearningResource,
+  ListeningContent,
+  PronunciationLesson,
+  ShadowingSession,
+  SpeakingFrameworkGuide,
+  SpeakingLesson,
   ThematicCollection,
   Vocabulary,
 } from '@english-quest/shared';
@@ -74,4 +79,56 @@ export async function loadLearningResources(): Promise<LearningResource[]> {
 
 export async function loadCurriculumMatrix(): Promise<CurriculumMatrixEntry[]> {
   return import('./curriculum/matrix').then((m) => m.CURRICULUM_MATRIX);
+}
+
+const listeningLoaders: Record<CEFRLevel, () => Promise<ListeningContent[]>> = {
+  A1: () => import('./listening/a1').then((m) => m.A1_LISTENING_LESSONS),
+  A2: () => import('./listening/a2').then((m) => m.A2_LISTENING_LESSONS),
+  B1: () => import('./listening/b1').then((m) => m.B1_LISTENING_LESSONS),
+  B2: () => import('./listening/b2').then((m) => m.B2_LISTENING_LESSONS),
+  C1: () => import('./listening/c1').then((m) => m.C1_LISTENING_LESSONS),
+  C2: () => import('./listening/c2').then((m) => m.C2_LISTENING_LESSONS),
+};
+
+const speakingLoaders: Record<CEFRLevel, () => Promise<SpeakingLesson[]>> = {
+  A1: () => import('./speaking/a1').then((m) => m.A1_SPEAKING_LESSONS),
+  A2: () => import('./speaking/a2').then((m) => m.A2_SPEAKING_LESSONS),
+  B1: () => import('./speaking/b1').then((m) => m.B1_SPEAKING_LESSONS),
+  B2: () => import('./speaking/b2').then((m) => m.B2_SPEAKING_LESSONS),
+  C1: () => import('./speaking/c1').then((m) => m.C1_SPEAKING_LESSONS),
+  C2: () => import('./speaking/c2').then((m) => m.C2_SPEAKING_LESSONS),
+};
+
+export async function loadListeningByLevel(level: CEFRLevel): Promise<ListeningContent[]> {
+  return listeningLoaders[level]();
+}
+
+export async function loadAllListening(): Promise<ListeningContent[]> {
+  const packs = await Promise.all(CEFR_LEVELS.map((lvl) => listeningLoaders[lvl]()));
+  return packs.flat();
+}
+
+export async function loadSpeakingByLevel(level: CEFRLevel): Promise<SpeakingLesson[]> {
+  return speakingLoaders[level]();
+}
+
+export async function loadAllSpeaking(): Promise<SpeakingLesson[]> {
+  const packs = await Promise.all(CEFR_LEVELS.map((lvl) => speakingLoaders[lvl]()));
+  return packs.flat();
+}
+
+export async function loadSpeakingMindsetGuides(): Promise<SpeakingFrameworkGuide[]> {
+  return import('./speaking/guides').then((m) => m.SPEAKING_MINDSET_GUIDES);
+}
+
+export async function loadPronunciationLessons(): Promise<PronunciationLesson[]> {
+  const [p1, p2] = await Promise.all([
+    import('./pronunciation/pack1_vowels_consonants').then((m) => m.PRONUNCIATION_PACK_1),
+    import('./pronunciation/pack2_stress_rhythm_connected').then((m) => m.PRONUNCIATION_PACK_2),
+  ]);
+  return [...p1, ...p2];
+}
+
+export async function loadShadowingSessions(): Promise<ShadowingSession[]> {
+  return import('./shadowing/sessions_batch1').then((m) => m.SHADOWING_SESSIONS_BATCH1);
 }
