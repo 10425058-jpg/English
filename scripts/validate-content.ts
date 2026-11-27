@@ -11,6 +11,7 @@ import type {
 import { evaluateExerciseAnswer } from '../packages/shared/src/utils/sm2';
 import {
   CEFR_LEVELS,
+  loadAllConversations,
   loadAllExercises,
   loadAllGrammar,
   loadAllListening,
@@ -19,11 +20,13 @@ import {
   loadAllVocabulary,
   loadAllWriting,
   loadCurriculumMatrix,
+  loadIntegratedSequences,
   loadLearningResources,
   loadPronunciationLessons,
   loadShadowingSessions,
   loadSpeakingMindsetGuides,
   loadThematicCollections,
+  loadThinkInEnglish,
 } from '../content/index';
 import { SEED_VOCABULARY } from '../frontend/src/data/vocabularySeed';
 import { GRAMMAR_TOPICS } from '../frontend/src/data/grammarTopics';
@@ -57,6 +60,9 @@ export async function runValidation(writeReport = false): Promise<number> {
     shadowingSessions,
     expandedReading,
     expandedWriting,
+    conversations,
+    thinkInEnglish,
+    integratedSequences,
   ] = await Promise.all([
     loadAllVocabulary(),
     loadAllGrammar(),
@@ -71,6 +77,9 @@ export async function runValidation(writeReport = false): Promise<number> {
     loadShadowingSessions(),
     loadAllReading(),
     loadAllWriting(),
+    loadAllConversations(),
+    loadThinkInEnglish(),
+    loadIntegratedSequences(),
   ]);
 
   // 1. Vocabulary integrity
@@ -522,6 +531,97 @@ export async function runValidation(writeReport = false): Promise<number> {
     }
   }
 
+  // 13. Milestone 2 Conversations integrity
+  const convIds = new Set<string>();
+  const convTitles = new Set<string>();
+  const convCountsByDomain: Record<string, number> = {};
+  for (const conv of conversations) {
+    if (convIds.has(conv.id)) errors.push(`Duplicate conversation ID: ${conv.id}`);
+    convIds.add(conv.id);
+    const normTitle = conv.title.toLowerCase().trim();
+    if (convTitles.has(normTitle)) errors.push(`Duplicate conversation title: ${conv.title}`);
+    convTitles.add(normTitle);
+    convCountsByDomain[conv.domain] = (convCountsByDomain[conv.domain] ?? 0) + 1;
+    checkNonEmpty(`conv.${conv.id}.setting`, conv.setting, errors);
+    checkNonEmpty(`conv.${conv.id}.goal`, conv.goal, errors);
+    checkNonEmpty(`conv.${conv.id}.culturalTip`, conv.culturalTip, errors);
+    if (!conv.dialogueBranches || conv.dialogueBranches.length < 2) {
+      errors.push(`Conversation ${conv.id} requires >= 2 dialogueBranches`);
+    }
+    if (!conv.keyPhrases || conv.keyPhrases.length < 2) {
+      errors.push(`Conversation ${conv.id} requires >= 2 keyPhrases`);
+    }
+  }
+
+  // 14. Milestone 2 Think in English integrity
+  const thinkIds = new Set<string>();
+  const thinkTitles = new Set<string>();
+  const allowedDurations = new Set([15, 30, 60, 120, 300]);
+  for (const act of thinkInEnglish) {
+    if (thinkIds.has(act.id)) errors.push(`Duplicate Think-in-English ID: ${act.id}`);
+    thinkIds.add(act.id);
+    const normTitle = act.title.toLowerCase().trim();
+    if (thinkTitles.has(normTitle)) errors.push(`Duplicate Think-in-English title: ${act.title}`);
+    thinkTitles.add(normTitle);
+    checkNonEmpty(`think.${act.id}.prompt`, act.prompt, errors);
+    checkNonEmpty(`think.${act.id}.antiTranslationTip`, act.antiTranslationTip, errors);
+    checkNonEmpty(`think.${act.id}.sampleMonologue`, act.sampleMonologue, errors);
+    if (!allowedDurations.has(act.durationSeconds)) {
+      errors.push(`Think-in-English ${act.id} invalid durationSeconds: ${act.durationSeconds}`);
+    }
+    if (!act.starterFrames?.length) {
+      errors.push(`Think-in-English ${act.id} requires starterFrames`);
+    }
+    if (
+      act.mode === 'circumlocution' &&
+      (!act.circumlocutionTarget || act.circumlocutionTarget.clues.length < 2)
+    ) {
+      errors.push(`Think-in-English circumlocution ${act.id} requires >= 2 clues`);
+    }
+  }
+
+  // 15. Milestone 2 Integrated Four-Skill Sequences integrity & referential validation
+  const seqIds = new Set<string>();
+  const seqTitles = new Set<string>();
+  for (const seq of integratedSequences) {
+    if (seqIds.has(seq.id)) errors.push(`Duplicate integrated sequence ID: ${seq.id}`);
+    seqIds.add(seq.id);
+    const normTitle = seq.title.toLowerCase().trim();
+    if (seqTitles.has(normTitle)) errors.push(`Duplicate integrated sequence title: ${seq.title}`);
+    seqTitles.add(normTitle);
+    checkNonEmpty(`seq.${seq.id}.speakingPrompt`, seq.speakingPrompt, errors);
+    checkNonEmpty(`seq.${seq.id}.writingTaskPrompt`, seq.writingTaskPrompt, errors);
+    if (!listeningIds.has(seq.listeningLessonId)) {
+      errors.push(`Integrated sequence ${seq.id} references unknown listeningLessonId: ${seq.listeningLessonId}`);
+    }
+    if (!seq.readingPassageId || !readingIds.has(seq.readingPassageId)) {
+      errors.push(`Integrated sequence ${seq.id} references unknown readingPassageId: ${seq.readingPassageId}`);
+    }
+    const localVocab = new Set<string>();
+    if (!seq.keyVocabIds || seq.keyVocabIds.length < 3) {
+      errors.push(`Integrated sequence ${seq.id} requires >= 3 keyVocabIds`);
+    }
+    for (const vid of seq.keyVocabIds) {
+      if (!vocabById.has(vid)) {
+        errors.push(`Integrated sequence ${seq.id} references unknown keyVocabId: ${vid}`);
+      }
+      if (localVocab.has(vid)) {
+        errors.push(`Integrated sequence ${seq.id} has duplicate keyVocabId: ${vid}`);
+      }
+      localVocab.add(vid);
+    }
+    const skillsSeen = new Set(seq.sequenceSteps.map((s) => s.skill));
+    if (
+      seq.sequenceSteps.length !== 4 ||
+      !skillsSeen.has('listening') ||
+      !skillsSeen.has('reading') ||
+      !skillsSeen.has('speaking') ||
+      !skillsSeen.has('writing')
+    ) {
+      errors.push(`Integrated sequence ${seq.id} must have 4 steps covering listening, reading, speaking, writing`);
+    }
+  }
+
   const totalVocab = SEED_VOCABULARY.length + expandedVocab.length;
   const totalGrammarTopics = GRAMMAR_TOPICS.length + expandedGrammar.length;
   const legacyPathExercises = ALL_UNITS.reduce(
@@ -577,6 +677,9 @@ export async function runValidation(writeReport = false): Promise<number> {
   console.log('  Writing by CEFR:', JSON.stringify(writingCountsByLevel));
   console.log(`Milestone 2 Pronunciation Lessons: ${pronunciationLessons.length} [${pronunciationExercisesCount} ex]`);
   console.log(`Milestone 2 Shadowing Sessions: ${shadowingSessions.length}`);
+  console.log(`Milestone 2 Conversation Scenarios: ${conversations.length} (${JSON.stringify(convCountsByDomain)})`);
+  console.log(`Milestone 2 Think in English Drills: ${thinkInEnglish.length}`);
+  console.log(`Milestone 2 Integrated 4-Skill Units: ${integratedSequences.length}`);
   console.log(`Curated Learning Resources: ${resources.length}`);
   console.log(`Curriculum Matrix Levels: ${matrix.length}`);
   console.log(`Warnings: ${warnings.length}`);
@@ -617,6 +720,9 @@ Generated automatically by \`npm run validate:content\`.
 | Writing Academy Lessons (Batch 2B) | ${WRITING_LAB_PROMPTS.length} | ${expandedWriting.length} | ${WRITING_LAB_PROMPTS.length + expandedWriting.length} |
 | Pronunciation Academy Lessons | 0 | ${pronunciationLessons.length} | ${pronunciationLessons.length} |
 | Shadowing Studio Sessions | 0 | ${shadowingSessions.length} | ${shadowingSessions.length} |
+| Practical Conversation Scenarios | 0 | ${conversations.length} | ${conversations.length} |
+| Think in English Drills | 0 | ${thinkInEnglish.length} | ${thinkInEnglish.length} |
+| Integrated 4-Skill Units | 0 | ${integratedSequences.length} | ${integratedSequences.length} |
 | Speaking Mindset Guides | 0 | ${speakingGuides.length} | ${speakingGuides.length} |
 | Curated Open Educational Resources | 0 | ${resources.length} | ${resources.length} |
 | CEFR Coverage Matrix Levels | 3 active + 3 upcoming | 6 full A1–C2 specifications | ${matrix.length} |

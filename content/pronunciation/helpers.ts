@@ -11,7 +11,7 @@ export interface PronunciationExerciseSeed {
   type: 'pronunciation_discrimination' | 'audio_recognition' | 'multiple_choice';
   instruction: string;
   prompt: string;
-  audioText: string;
+  audioText?: string;
   options: string[];
   correctAnswer: string;
   explanation: string;

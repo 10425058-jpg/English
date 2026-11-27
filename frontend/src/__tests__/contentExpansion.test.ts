@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { evaluateExerciseAnswer } from '@english-quest/shared';
 import {
   CEFR_LEVELS,
+  loadAllConversations,
   loadAllExercises,
   loadAllGrammar,
   loadAllListening,
@@ -10,11 +11,13 @@ import {
   loadAllVocabulary,
   loadAllWriting,
   loadCurriculumMatrix,
+  loadIntegratedSequences,
   loadLearningResources,
   loadPronunciationLessons,
   loadShadowingSessions,
   loadSpeakingMindsetGuides,
   loadThematicCollections,
+  loadThinkInEnglish,
 } from '@content/index';
 import { SEED_VOCABULARY } from '@/data/vocabularySeed';
 import { GRAMMAR_TOPICS } from '@/data/grammarTopics';
@@ -126,8 +129,8 @@ describe('Expanded Milestone 1 Content Integrity & Lazy Modules', () => {
     expect(listening.length).toBeGreaterThanOrEqual(40);
     expect(speaking.length).toBeGreaterThanOrEqual(40);
     expect(guides.length).toBeGreaterThanOrEqual(6);
-    expect(pronunciation.length).toBeGreaterThanOrEqual(24);
-    expect(shadowing.length).toBeGreaterThanOrEqual(20);
+    expect(pronunciation.length).toBe(48);
+    expect(shadowing.length).toBe(60);
 
     const lisIds = new Set(LISTENING_LAB_TRACKS.map((l) => l.id));
     for (const track of listening) {
@@ -200,5 +203,50 @@ describe('Expanded Milestone 1 Content Integrity & Lazy Modules', () => {
       }
     }
     expect(wrtCounts).toEqual({ A1: 10, A2: 10, B1: 15, B2: 25, C1: 20, C2: 10 });
+  });
+
+  it('loads Milestone 2 Batch 2C Conversations (60), Think in English (30), and Integrated Units (24) cleanly', async () => {
+    const [vocab, listening, reading, conversations, thinkItems, integrated] = await Promise.all([
+      loadAllVocabulary(),
+      loadAllListening(),
+      loadAllReading(),
+      loadAllConversations(),
+      loadThinkInEnglish(),
+      loadIntegratedSequences(),
+    ]);
+
+    expect(conversations.length).toBe(60);
+    expect(thinkItems.length).toBe(30);
+    expect(integrated.length).toBe(24);
+
+    const vocabIds = new Set([...SEED_VOCABULARY.map((v) => v.id), ...vocab.map((v) => v.id)]);
+    const lisIds = new Set([...LISTENING_LAB_TRACKS.map((l) => l.id), ...listening.map((l) => l.id)]);
+    const readIds = new Set([...READING_LIBRARY_PASSAGES.map((p) => p.id), ...reading.map((p) => p.id)]);
+
+    const convIds = new Set<string>();
+    for (const c of conversations) {
+      expect(convIds.has(c.id)).toBe(false);
+      convIds.add(c.id);
+      expect(c.dialogueBranches.length).toBeGreaterThanOrEqual(2);
+      expect(c.keyPhrases.length).toBeGreaterThanOrEqual(2);
+    }
+
+    const thkIds = new Set<string>();
+    for (const t of thinkItems) {
+      expect(thkIds.has(t.id)).toBe(false);
+      thkIds.add(t.id);
+      expect(t.starterFrames.length).toBeGreaterThanOrEqual(1);
+    }
+
+    const seqIds = new Set<string>();
+    for (const seq of integrated) {
+      expect(seqIds.has(seq.id)).toBe(false);
+      seqIds.add(seq.id);
+      expect(lisIds.has(seq.listeningLessonId)).toBe(true);
+      expect(Boolean(seq.readingPassageId && readIds.has(seq.readingPassageId))).toBe(true);
+      for (const vid of seq.keyVocabIds) {
+        expect(vocabIds.has(vid)).toBe(true);
+      }
+    }
   });
 });

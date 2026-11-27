@@ -1,8 +1,10 @@
 import type {
   CEFRLevel,
+  ConversationScenario,
   CurriculumMatrixEntry,
   Exercise,
   GrammarTopic,
+  IntegratedSequence,
   LearningResource,
   ListeningContent,
   PronunciationLesson,
@@ -11,6 +13,7 @@ import type {
   SpeakingFrameworkGuide,
   SpeakingLesson,
   ThematicCollection,
+  ThinkInEnglishActivity,
   Vocabulary,
   WritingLesson,
 } from '@english-quest/shared';
@@ -124,15 +127,38 @@ export async function loadSpeakingMindsetGuides(): Promise<SpeakingFrameworkGuid
 }
 
 export async function loadPronunciationLessons(): Promise<PronunciationLesson[]> {
-  const [p1, p2] = await Promise.all([
+  const [p1, p2, p3] = await Promise.all([
     import('./pronunciation/pack1_vowels_consonants').then((m) => m.PRONUNCIATION_PACK_1),
     import('./pronunciation/pack2_stress_rhythm_connected').then((m) => m.PRONUNCIATION_PACK_2),
+    import('./pronunciation/pack3_connected_intonation_advanced').then((m) => m.PRONUNCIATION_PACK_3),
   ]);
-  return [...p1, ...p2];
+  return [...p1, ...p2, ...p3];
 }
 
 export async function loadShadowingSessions(): Promise<ShadowingSession[]> {
-  return import('./shadowing/sessions_batch1').then((m) => m.SHADOWING_SESSIONS_BATCH1);
+  const [b1, b2, b3] = await Promise.all([
+    import('./shadowing/sessions_batch1').then((m) => m.SHADOWING_SESSIONS_BATCH1),
+    import('./shadowing/sessions_batch2').then((m) => m.SHADOWING_SESSIONS_BATCH2),
+    import('./shadowing/sessions_batch3').then((m) => m.SHADOWING_SESSIONS_BATCH3),
+  ]);
+  return [...b1, ...b2, ...b3];
+}
+
+export async function loadAllConversations(): Promise<ConversationScenario[]> {
+  const [c1, c2, c3] = await Promise.all([
+    import('./conversations/everyday_travel').then((m) => m.CONVERSATIONS_EVERYDAY_TRAVEL),
+    import('./conversations/workplace_social').then((m) => m.CONVERSATIONS_WORKPLACE_SOCIAL),
+    import('./conversations/academic_emergency').then((m) => m.CONVERSATIONS_ACADEMIC_EMERGENCY),
+  ]);
+  return [...c1, ...c2, ...c3];
+}
+
+export async function loadThinkInEnglish(): Promise<ThinkInEnglishActivity[]> {
+  return import('./think-in-english/activities').then((m) => m.THINK_IN_ENGLISH_ACTIVITIES);
+}
+
+export async function loadIntegratedSequences(): Promise<IntegratedSequence[]> {
+  return import('./integrated-learning/sequences').then((m) => m.INTEGRATED_LEARNING_SEQUENCES);
 }
 
 const readingLoaders: Record<CEFRLevel, () => Promise<ReadingPassage[]>> = {

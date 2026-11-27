@@ -3,9 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import {
   Bookmark,
   BookOpen,
+  Brain,
   CheckCircle2,
   Clock,
   Lightbulb,
+  MessageSquare,
   Mic,
   Play,
   Repeat,
@@ -29,10 +31,12 @@ import { SPEAKING_LAB_ACTIVITIES, type SpeakingActivityItem } from '@/data/speak
 import { createAttemptKey } from '@/services/idempotency';
 import { getSpeechCapabilities, playFeedbackTone, speakText } from '@/services/speechService';
 import { useQuestStore } from '@/stores/useQuestStore';
+import { ConversationsTab } from './ConversationsTab';
 import { PronunciationTab } from './PronunciationTab';
 import { ShadowingTab } from './ShadowingTab';
+import { ThinkInEnglishTab } from './ThinkInEnglishTab';
 
-type StudioTab = 'speaking' | 'pronunciation' | 'shadowing';
+type StudioTab = 'speaking' | 'conversations' | 'think_english' | 'pronunciation' | 'shadowing';
 type ModelLevelView = 'natural' | 'basic' | 'advanced';
 
 function toUnifiedSpeakingItem(core: SpeakingActivityItem): SpeakingLesson {
@@ -306,7 +310,7 @@ export function SpeakingAcademyPage() {
           </PillBadge>
           <h1 className="mt-2 text-2xl font-black sm:text-3xl">Speak Aloud, Shadow & Master Sounds</h1>
           <p className="mt-1 text-sm font-semibold text-[#666666]">
-            {allActivities.length} structured speaking lessons (A1–C2), 24 IPA pronunciation clinics, and 20 shadowing drills.
+            {allActivities.length} speaking lessons (A1–C2), 60 conversations, 30 think-in-English drills, 48 IPA clinics, and 60 shadowing drills.
           </p>
         </div>
         <div className="rounded-2xl border-2 border-[#E5E5E5] bg-[#F7F8FA] px-4 py-2 text-right">
@@ -315,7 +319,7 @@ export function SpeakingAcademyPage() {
         </div>
       </div>
 
-      {/* Top 3-Academy Switcher */}
+      {/* Top 5-Academy Switcher */}
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Speaking academy modules">
         <button
           type="button"
@@ -334,6 +338,34 @@ export function SpeakingAcademyPage() {
         <button
           type="button"
           role="tab"
+          aria-selected={activeStudio === 'conversations'}
+          onClick={() => setActiveStudio('conversations')}
+          className={`inline-flex items-center gap-2 rounded-2xl border-2 border-b-4 px-4 py-2.5 text-sm font-black ${
+            activeStudio === 'conversations'
+              ? 'border-[#6E26B5] bg-[#8E3FD6] text-white'
+              : 'border-[#E5E5E5] bg-white text-[#555555] hover:bg-[#F7F8FA]'
+          }`}
+        >
+          <MessageSquare className="h-4 w-4" />
+          Conversations (60)
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeStudio === 'think_english'}
+          onClick={() => setActiveStudio('think_english')}
+          className={`inline-flex items-center gap-2 rounded-2xl border-2 border-b-4 px-4 py-2.5 text-sm font-black ${
+            activeStudio === 'think_english'
+              ? 'border-[#6E26B5] bg-[#8E3FD6] text-white'
+              : 'border-[#E5E5E5] bg-white text-[#555555] hover:bg-[#F7F8FA]'
+          }`}
+        >
+          <Brain className="h-4 w-4" />
+          Think in English (30)
+        </button>
+        <button
+          type="button"
+          role="tab"
           aria-selected={activeStudio === 'pronunciation'}
           onClick={() => setActiveStudio('pronunciation')}
           className={`inline-flex items-center gap-2 rounded-2xl border-2 border-b-4 px-4 py-2.5 text-sm font-black ${
@@ -343,7 +375,7 @@ export function SpeakingAcademyPage() {
           }`}
         >
           <Volume2 className="h-4 w-4" />
-          Pronunciation Academy (24)
+          Pronunciation Academy (48)
         </button>
         <button
           type="button"
@@ -357,10 +389,12 @@ export function SpeakingAcademyPage() {
           }`}
         >
           <Repeat className="h-4 w-4" />
-          Shadowing Studio (20)
+          Shadowing Studio (60)
         </button>
       </div>
 
+      {activeStudio === 'conversations' && <ConversationsTab />}
+      {activeStudio === 'think_english' && <ThinkInEnglishTab />}
       {activeStudio === 'pronunciation' && <PronunciationTab />}
       {activeStudio === 'shadowing' && <ShadowingTab />}
 

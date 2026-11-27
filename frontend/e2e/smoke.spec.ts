@@ -142,6 +142,9 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
   await page.goto('./#/learn');
   await page.getByRole('tab', { name: /B2–C2 Roadmap/i }).click();
   await expect(page.getByText(/Complete A1–C2 CEFR Coverage Matrix/i)).toBeVisible();
+  await page.getByRole('tab', { name: /Integrated Loops \(24\)/i }).click();
+  await expect(page.getByText(/Integrated Four-Skill Thematic Loops/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-integrated-learning.png'), fullPage: false });
 
   // Verify Batch 2A Listening Academy & Speaking/Pronunciation/Shadowing Academies
   await page.goto('./#/listening');
@@ -157,10 +160,15 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
   await expect(page.getByText(/Speaking Academy \(47\)/i)).toBeVisible();
   await page.getByRole('button', { name: /Open Fluency Guides \(6\)/i }).click();
   await expect(page.getByText(/PREP Method/i)).toBeVisible();
-  await page.getByRole('tab', { name: /Pronunciation Academy \(24\)/i }).click();
+  await page.getByRole('tab', { name: /Conversations \(60\)/i }).click();
+  await expect(page.getByText(/Register-Aware Branching Dialogue Simulator/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-conversations.png'), fullPage: false });
+  await page.getByRole('tab', { name: /Think in English \(30\)/i }).click();
+  await expect(page.getByText(/Anti-Translation Mental Speed Training/i)).toBeVisible();
+  await page.getByRole('tab', { name: /Pronunciation Academy \(48\)/i }).click();
   await expect(page.getByText(/Vietnamese Learner Breakthrough/i)).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-pronunciation-academy.png'), fullPage: false });
-  await page.getByRole('tab', { name: /Shadowing Studio \(20\)/i }).click();
+  await page.getByRole('tab', { name: /Shadowing Studio \(60\)/i }).click();
   await expect(page.getByText(/Shadowing Self-Check/i)).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-shadowing-studio.png'), fullPage: false });
 
