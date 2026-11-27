@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito", ui-rounded, "Quicksand", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --color-quest-green: #58CC02;
+  --color-quest-green-dark: #46A302;
+  --color-quest-blue: #1CB0F6;
+  --color-quest-blue-dark: #0E8BC9;
+  --color-quest-gold: #FFC800;
+  --color-quest-gold-dark: #D9A600;
+  --color-quest-purple: #CE82FF;
+  --color-quest-purple-dark: #A55EEA;
+  --color-quest-red: #FF4B4B;
+  --color-quest-red-dark: #D32F2F;
+  --color-quest-surface: #F7F8FA;
+  --color-quest-text: #3C3C3C;
+  --color-quest-border: #E5E5E5;
+}
+
+@layer base {
+  html,
+  body {
+    font-family: var(--font-sans);
+    background-color: #ffffff;
+    color: #3c3c3c;
+    overflow-x: clip;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 3px solid #1cb0f6;
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
