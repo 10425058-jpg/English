@@ -1,30 +1,54 @@
-const CACHE_NAME = 'english-quest-v1';
+const CACHE_PREFIX = 'english-quest-';
+const CACHE_NAME = CACHE_PREFIX + 'v2';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './manifest.webmanifest', './icon.svg'])).catch(() => undefined)
-  );
-  self.skipWaiting();
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+        .map((key) => caches.delete(key))
+    );
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
+  const { request } = event;
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || request.mode !== 'navigate' ||
+      url.origin !== self.location.origin ||
+      !url.href.startsWith(self.registration.scope)) return;
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).catch(() => caches.match('./'));
-    })
-  );
+  // Always obtain current HTML online. Hashed JavaScript/CSS assets are
+  // handled by the browser, never by an HTML fallback.
+  event.respondWith((async () => {
+    try {
+      const response = await fetch(request, { cache: 'no-cache' });
+      if (response.ok && response.headers.get('content-type')?.includes('text/html')) {
+        try {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, response.clone());
+        } catch {
+          // A cache quota or storage error must not prevent online startup.
+        }
+      }
+      return response;
+    } catch {
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(request);
+        if (cached) return cached;
+      } catch {
+        // Storage may be unavailable.
+      }
+      return new Response('English Quest is offline. Reconnect and reload.', {
+        status: 503,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      });
+    }
+  })());
 });
