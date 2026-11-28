@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Flame, Gem, Sparkles, User, Zap } from 'lucide-react';
+import { ClipboardCheck, Flame, Gem, Info, Sparkles, User, Zap } from 'lucide-react';
 import { computeUserLevel } from '@english-quest/shared';
 import { PipMascot } from '@/components/mascot/PipMascot';
 import { PillBadge, QuestCard, QuestProgressBar } from '@/components/ui/QuestUI';
@@ -14,6 +14,7 @@ export function ProfilePage() {
   const gems = useQuestStore((s) => s.gems);
   const streak = useQuestStore((s) => s.streak);
   const lessonProgress = useQuestStore((s) => s.lessonProgress);
+  const assessmentHistory = useQuestStore((s) => s.assessmentHistory ?? []);
   const skillStats = useQuestStore((s) => s.skillStats);
   const xpTransactions = useQuestStore((s) => s.xpTransactions);
 
@@ -93,6 +94,63 @@ export function ProfilePage() {
             );
           })}
         </div>
+      </QuestCard>
+
+      <QuestCard className="space-y-3 border-[#BCE7FD] bg-[#F5FBFF]">
+        <div className="flex items-start gap-2.5 text-xs font-bold text-[#3C3C3C]">
+          <Info className="h-4 w-4 shrink-0 text-[#1CB0F6] mt-0.5" />
+          <p>
+            <strong>XP vs. CEFR Mastery:</strong> XP measures consistent practice effort across lessons, flashcards, and skills. Real CEFR path progression is tracked separately via lesson completion and passing accuracy ({'>='}70%–75%) on structured Unit &amp; Level Assessments (internal estimates only).
+          </p>
+        </div>
+      </QuestCard>
+
+      <QuestCard className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <ClipboardCheck className="h-5 w-5 text-[#CE82FF]" />
+            <h2 className="text-lg font-black">Structured Assessments &amp; Exams</h2>
+          </div>
+          <Link to="/learn" className="text-xs font-black text-[#1CB0F6] hover:underline">
+            Explore Assessments →
+          </Link>
+        </div>
+        {assessmentHistory.length === 0 ? (
+          <p className="text-sm font-semibold text-[#666666]">
+            No unit mastery or CEFR level assessments completed yet. Challenge any unit assessment on the Learning Path!
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {assessmentHistory.slice(0, 6).map((item) => (
+              <div
+                key={item.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#E5E5E5] bg-[#F7F8FA] px-3.5 py-2.5 text-sm"
+              >
+                <div>
+                  <span className="font-black text-[#3C3C3C]">{item.title}</span>
+                  <p className="text-xs font-bold text-[#666666]">
+                    {item.cefrLevel} • {item.correctCount}/{item.totalObjectiveCount} correct
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`rounded-lg px-2 py-0.5 text-xs font-black ${
+                      item.passed ? 'bg-[#E9FCD9] text-[#46A302]' : 'bg-[#FFF5CC] text-[#A67800]'
+                    }`}
+                  >
+                    {item.accuracyPercent}% • {item.passed ? 'Passed' : 'Retry Suggested'}
+                  </span>
+                  <Link
+                    to={`/assessment/${item.assessmentId}`}
+                    className="text-xs font-black text-[#1CB0F6] hover:underline"
+                  >
+                    View/Retake
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </QuestCard>
 
       <QuestCard>

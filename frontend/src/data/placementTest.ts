@@ -206,6 +206,87 @@ export const PLACEMENT_QUESTIONS: PlacementQuestion[] = [
       difficulty: 3,
     }),
   },
+  {
+    id: 'pq-11',
+    targetCefr: 'C1',
+    skill: 'grammar',
+    exercise: fill({
+      id: 'pq-11',
+      lessonId: 'placement',
+      instruction: 'Choose the accurate delayed main-clause inversion structure.',
+      prompt: 'Not until independent monitors verified hospital pressure logs ___ the board retract its initial advisory.',
+      options: ['did', 'the board did', 'had done', 'retracted'],
+      correctAnswer: 'did',
+      explanation: 'After opening time clause "Not until...", invert only the main clause ("did the board retract").',
+      explanationVi: 'Với "Not until...", giữ bình thường mệnh đề đầu và chỉ đảo trợ động từ ở mệnh đề chính ("did").',
+      skills: ['grammar'],
+      difficulty: 3,
+    }),
+  },
+  {
+    id: 'pq-12',
+    targetCefr: 'C1',
+    skill: 'vocabulary',
+    exercise: mc({
+      id: 'pq-12',
+      lessonId: 'placement',
+      instruction: 'Select the C1 verb meaning "confirm and strengthen an assertion with independent evidence".',
+      prompt: 'Two external acoustic labs managed to ___ what night dispatchers had logged along the bridge.',
+      options: ['corroborate', 'extrapolate', 'circumvent', 'stagnate'],
+      correctAnswer: 'corroborate',
+      explanation: '"Corroborate" means confirming a statement or finding with independent supporting evidence.',
+      explanationVi: '"Corroborate" = xác nhận củng cố thêm bằng chứng cứ độc lập.',
+      skills: ['vocabulary'],
+      difficulty: 3,
+    }),
+  },
+  {
+    id: 'pq-13',
+    targetCefr: 'C2',
+    skill: 'grammar',
+    exercise: mc({
+      id: 'pq-13',
+      lessonId: 'placement',
+      instruction: 'Select the C2 sentence using summative apposition and faultless proportionality cleanly.',
+      prompt: 'Which closing observation maintains full C2 syntactic precision?',
+      options: [
+        'For all its conciliatory grace, the charter revealed a dearth of clear sanctions—a quiet loophole commensurate with years of lobbying.',
+        'For all its conciliatory grace; the charter revealed paucity, which being commensurate for lobbying.',
+        'The charter had scarcely never corroborated clandestine exemptions despite copious memos.',
+        'Not only did judges demur cleanly, yet also to adjudicating capricious waivers.',
+      ],
+      correctAnswer:
+        'For all its conciliatory grace, the charter revealed a dearth of clear sanctions—a quiet loophole commensurate with years of lobbying.',
+      explanation: 'Demonstrates clean subordinated cataphora ("For all its... the charter") and summative appositive paired with "commensurate with".',
+      explanationVi: 'Kết hợp nhuần nhuyễn cataphora ("For all its...") với đồng vị tổng kết và "commensurate with".',
+      skills: ['grammar'],
+      difficulty: 3,
+    }),
+  },
+  {
+    id: 'pq-14',
+    targetCefr: 'C2',
+    skill: 'reading',
+    exercise: readEx({
+      id: 'pq-14',
+      lessonId: 'placement',
+      instruction: 'Read this C2 stylistic judgment and detect the narrator’s quiet irony.',
+      passage:
+        'Ministry briefs observed immaculate parliamentary decorum on thick stationery; nonetheless, professing total innocence over three prior storm memos while arrogating emergency fee discretion would appear scarcely credible—if not downright disingenuous.',
+      prompt: 'What critique lies beneath the judge’s restrained academic phrasing?',
+      options: [
+        'Smooth formal manners mask deliberate bad-faith excuses and unauthorized overreach.',
+        'Thick stationery caused flooding delays inside parliamentary archives.',
+        'Storm alerts failed to reach regional ministries until three summers later.',
+        'Parliamentary committees praised fee discretion for cutting clerical budgets.',
+      ],
+      correctAnswer: 'Smooth formal manners mask deliberate bad-faith excuses and unauthorized overreach.',
+      explanation: 'Litotes "scarcely credible—if not downright disingenuous" delivers biting yet poised institutional critique.',
+      explanationVi: 'Phép nói giảm nhẹ ("scarcely credible") vạch trần thái độ thiếu thành thật đằng sau vẻ lịch thiệp.',
+      skills: ['reading'],
+      difficulty: 3,
+    }),
+  },
 ];
 
 export function evaluatePlacementLevel(correctCount: number, total: number): {
@@ -213,14 +294,35 @@ export function evaluatePlacementLevel(correctCount: number, total: number): {
   summary: string;
 } {
   const ratio = total > 0 ? correctCount / total : 0;
-  if (ratio >= 0.85) {
+  if (ratio >= 0.9) {
+    return {
+      recommendedCefr: 'C2',
+      summary:
+        'Exceptional C2 Mastery placement! C2 Proficiency plus all A1–C1 levels are unlocked (you can also switch levels freely anytime).',
+    };
+  }
+  if (ratio >= 0.78) {
+    return {
+      recommendedCefr: 'C1',
+      summary:
+        'Strong C1 Advanced placement! C1 Rhetoric & Critical Inquiry plus A1–B2 units are unlocked for immediate training.',
+    };
+  }
+  if (ratio >= 0.64) {
+    return {
+      recommendedCefr: 'B2',
+      summary:
+        'Upper-Intermediate B2 placement! B2 units plus A1–B1 foundations are unlocked to sharpen conditionals, participles, and academic writing.',
+    };
+  }
+  if (ratio >= 0.48) {
     return {
       recommendedCefr: 'B1',
       summary:
-        'Strong intermediate mastery! You are ready for B1 Intermediate units (with A1–A2 unlocked for quick review anytime).',
+        'Strong intermediate B1 placement! You are ready for B1 Intermediate units (with A1–A2 unlocked for quick review anytime).',
     };
   }
-  if (ratio >= 0.5) {
+  if (ratio >= 0.3) {
     return {
       recommendedCefr: 'A2',
       summary:

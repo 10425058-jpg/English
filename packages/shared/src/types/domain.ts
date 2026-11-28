@@ -140,6 +140,24 @@ export interface Unit {
   chestRewardGems: number;
   chestRewardXp: number;
   lessons: Lesson[];
+  prerequisites?: string[];
+  prerequisiteUnitIds?: string[];
+  masteryAssessmentId?: string;
+  targetVocabIds?: string[];
+  targetGrammarIds?: string[];
+  linkedListeningIds?: string[];
+  linkedSpeakingIds?: string[];
+  linkedReadingIds?: string[];
+  linkedWritingIds?: string[];
+  linkedConversationIds?: string[];
+  linkedPronunciationIds?: string[];
+  sourceTier?: 'phase1' | 'milestone3';
+}
+
+export interface ReusedExerciseReference {
+  id: string;
+  sourcePack: 'exercise_bank' | 'listening' | 'reading' | 'writing' | 'pronunciation';
+  label: string;
 }
 
 export interface Lesson {
@@ -154,11 +172,26 @@ export interface Lesson {
   xpReward: number;
   estimatedMinutes: number;
   exercises: Exercise[];
+  primarySkill?: SkillTag | 'pronunciation' | 'review' | 'assessment';
+  instructionalOverview?: string;
+  instructionalOverviewVi?: string;
   learningObjectives?: string[];
   prerequisites?: string[];
+  targetVocabIds?: string[];
+  targetGrammarIds?: string[];
+  contextualExamples?: Array<{ english: string; vietnamese?: string; note?: string }>;
+  guidedPracticeNote?: string;
+  practicalApplication?: {
+    summary: string;
+    route?: string;
+    label?: string;
+    linkedAcademyId?: string;
+  };
+  lessonSummary?: string;
   topicTags?: string[];
   assessmentCriteria?: string[];
   reviewRecommendations?: string[];
+  reusedExerciseRefs?: ReusedExerciseReference[];
 }
 
 export interface MatchingPair {
@@ -772,7 +805,8 @@ export interface XPTransaction {
     | 'vocabulary'
     | 'grammar'
     | 'ielts'
-    | 'mistake_retry';
+    | 'mistake_retry'
+    | 'assessment';
   referenceId: string;
   createdAt: string;
 }
@@ -786,6 +820,61 @@ export interface IELTSPracticeSession {
   maxScore: number;
   estimatedBand: number;
   isUnofficialEstimate: true;
+  durationSeconds: number;
+  completedAt: string;
+}
+
+export type CefrAssessmentKind =
+  | 'placement'
+  | 'unit_mastery'
+  | 'section_review'
+  | 'level_completion'
+  | 'skill_diagnostic'
+  | 'mixed_review';
+
+export interface StructuredAssessment {
+  id: string;
+  kind: CefrAssessmentKind;
+  cefrLevel: CEFRLevel;
+  unitId?: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  descriptionVi?: string;
+  estimatedMinutes: number;
+  passingPercent: number;
+  isUnofficialNotice: string;
+  skillsAssessed: SkillTag[];
+  topicTags: string[];
+  exercises: Exercise[];
+  productivePrompt?: {
+    skill: 'speaking' | 'writing';
+    prompt: string;
+    promptVi?: string;
+    rubricCriteria: Array<{ criterion: string; descriptor: string }>;
+    minRequirement: number;
+  };
+  revisionRecommendations: Array<{
+    condition: string;
+    recommendation: string;
+    route: string;
+  }>;
+}
+
+export interface AssessmentAttemptRecord {
+  id: string;
+  assessmentId: string;
+  kind: CefrAssessmentKind;
+  cefrLevel: CEFRLevel;
+  unitId?: string;
+  title: string;
+  correctCount: number;
+  totalObjectiveCount: number;
+  accuracyPercent: number;
+  passed: boolean;
+  skillBreakdown: Partial<Record<SkillTag, { correct: number; total: number }>>;
+  productiveResponse?: string;
+  productiveSelfCheckDone?: boolean;
   durationSeconds: number;
   completedAt: string;
 }

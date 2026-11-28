@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { evaluateExerciseAnswer } from '@english-quest/shared';
-import { ALL_UNITS } from '@/data/curriculum';
-import { getLessonNodeState, isUnitChestUnlocked } from '@/services/curriculumService';
+import { evaluateExerciseAnswer, type CEFRLevel } from '@english-quest/shared';
+import { loadMergedUnitsByCefr, loadAllMergedUnits, getUnitLockState, computeCefrMasteryProgress, getLessonNodeState, isUnitChestUnlocked } from '@/services/curriculumService';
+import { ALL_UNITS, CURRICULUM_SECTIONS } from '@/data/curriculum';
+import { evaluatePlacementLevel, PLACEMENT_QUESTIONS } from '@/data/placementTest';
 import { useQuestStore } from '@/stores/useQuestStore';
 
 describe('CEFR Curriculum Integrity', () => {
@@ -146,5 +147,83 @@ describe('Quest Store Progression & Idempotency', () => {
     });
     useQuestStore.getState().reviewVocabularySM2(newWordId, 4);
     expect(useQuestStore.getState().vocabularySchedules[newWordId].repetitions).toBe(1);
+  });
+
+  it('activates A1–C2 structured learning progression, assessment recording, and XP-vs-mastery separation', async () => {
+    const activeStatuses = CURRICULUM_SECTIONS.map((s) => s.status);
+    expect(activeStatuses.every((st) => st === 'active')).toBe(true);
+
+    const allMerged = await loadAllMergedUnits();
+    expect(allMerged.length).toBe(48);
+    const totalLessons = allMerged.reduce((sum, u) => sum + u.lessons.length, 0);
+    expect(totalLessons).toBe(264);
+
+    const b2Units = await loadMergedUnitsByCefr('B2');
+    expect(b2Units.length).toBe(8);
+
+    // Placement test extends cleanly through C2
+    expect(PLACEMENT_QUESTIONS.length).toBe(14);
+    expect(evaluatePlacementLevel(14, 14).recommendedCefr).toBe('C2');
+    expect(evaluatePlacementLevel(11, 14).recommendedCefr).toBe('C1');
+    expect(evaluatePlacementLevel(9, 14).recommendedCefr).toBe('B2');
+
+    // Earning high XP without finishing lessons or passing assessments NEVER fakes CEFR Mastery
+    useQuestStore.getState().awardActivityXp({
+      idempotencyKey: 'xp-grind-test',
+      amount: 5000,
+      source: 'vocabulary',
+      referenceId: 'vocab-practice',
+    });
+    expect(useQuestStore.getState().xp).toBe(5000);
+    const beforeMastery = computeCefrMasteryProgress(
+      'B2',
+      b2Units,
+      b2Units.length,
+      useQuestStore.getState().lessonProgress,
+      useQuestStore.getState().unitAssessmentResults,
+      useQuestStore.getState().assessmentHistory,
+    );
+    expect(beforeMastery.masteryPercent).toBe(0);
+
+    // Passing Unit Assessment & unlocking units independently works cleanly
+    useQuestStore.getState().unlockUnitForIndependentPractice('b2-u4');
+    const lockU4 = getUnitLockState(
+      b2Units[3],
+      b2Units,
+      useQuestStore.getState().lessonProgress,
+      'B2',
+      useQuestStore.getState().unitAssessmentResults,
+      useQuestStore.getState().unlockedUnitOverrides,
+    );
+    expect(lockU4.isUnlocked).toBe(true);
+    expect(lockU4.reason).toBe('recommended_tier');
+
+    const { awardedXp, record } = useQuestStore.getState().recordAssessmentAttempt({
+      assessmentId: 'cefr-exam-b2',
+      kind: 'level_completion',
+      cefrLevel: 'B2' as CEFRLevel,
+      title: 'Comprehensive B2 Level Completion Assessment',
+      correctCount: 7,
+      totalObjectiveCount: 8,
+      accuracyPercent: 88,
+      passed: true,
+      skillBreakdown: { grammar: { correct: 2, total: 2 } },
+      durationSeconds: 300,
+    });
+    expect(record.passed).toBe(true);
+    expect(awardedXp).toBe(80);
+    // Passing B2 exam promotes recommendedCefr cleanly to C1
+    expect(useQuestStore.getState().recommendedCefr).toBe('C1');
+
+    const afterMastery = computeCefrMasteryProgress(
+      'B2',
+      b2Units,
+      b2Units.length,
+      useQuestStore.getState().lessonProgress,
+      useQuestStore.getState().unitAssessmentResults,
+      useQuestStore.getState().assessmentHistory,
+    );
+    expect(afterMastery.levelExamPassed).toBe(true);
+    expect(afterMastery.masteryPercent).toBeGreaterThan(beforeMastery.masteryPercent);
   });
 });

@@ -15,6 +15,11 @@ const OnboardingPage = lazy(() =>
 const LessonPlayerPage = lazy(() =>
   import('@/features/learning/LessonPlayerPage').then((m) => ({ default: m.LessonPlayerPage }))
 );
+const AssessmentPlayerPage = lazy(() =>
+  import('@/features/learning/AssessmentPlayerPage').then((m) => ({
+    default: m.AssessmentPlayerPage,
+  }))
+);
 const ReviewPage = lazy(() =>
   import('@/features/learning/ReviewPage').then((m) => ({ default: m.ReviewPage }))
 );
@@ -97,6 +102,7 @@ export function App() {
               {/* Full-screen distraction-free flows */}
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route path="/lesson/:lessonId" element={<LessonPlayerPage />} />
+              <Route path="/assessment/:assessmentId" element={<AssessmentPlayerPage />} />
 
               {/* Main 15-page Application Shell */}
               <Route

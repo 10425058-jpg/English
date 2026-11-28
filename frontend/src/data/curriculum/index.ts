@@ -48,9 +48,9 @@ export const CURRICULUM_SECTIONS: Section[] = [
     courseId: ENGLISH_QUEST_COURSE.id,
     cefrLevel: 'B2',
     title: 'B2 — Upper Intermediate',
-    subtitle: 'Upcoming in Phase 4: nuanced persuasion, academic argumentation, and idioms.',
+    subtitle: 'Mixed conditionals, participles, causatives, projections, hedging & B2 mastery (Units 1–8).',
     orderIndex: 4,
-    status: 'upcoming',
+    status: 'active',
     accentColor: '#FFC800',
   },
   {
@@ -58,9 +58,9 @@ export const CURRICULUM_SECTIONS: Section[] = [
     courseId: ENGLISH_QUEST_COURSE.id,
     cefrLevel: 'C1',
     title: 'C1 — Advanced Mastery',
-    subtitle: 'Upcoming in Phase 4: executive briefings, rhetoric, and complex inference.',
+    subtitle: 'Negative & conditional inversion, nominalization, hindsight, reporting & C1 mastery (Units 1–8).',
     orderIndex: 5,
-    status: 'upcoming',
+    status: 'active',
     accentColor: '#46A302',
   },
   {
@@ -68,10 +68,10 @@ export const CURRICULUM_SECTIONS: Section[] = [
     courseId: ENGLISH_QUEST_COURSE.id,
     cefrLevel: 'C2',
     title: 'C2 — Proficiency',
-    subtitle: 'Upcoming in Phase 4: near-native nuance, literary analysis, and precision.',
+    subtitle: 'Aspect shifts, correlatives, resumptive appositives, cataphora, focus clefts & C2 polish (Units 1–8).',
     orderIndex: 6,
-    status: 'upcoming',
-    accentColor: '#FF4B4B',
+    status: 'active',
+    accentColor: '#CE82FF',
   },
 ];
 

@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { evaluateExerciseAnswer } from '@english-quest/shared';
 import {
   CEFR_LEVELS,
+  loadAllAssessments,
   loadAllConversations,
+  loadAllCurriculumUnits,
   loadAllExercises,
   loadAllGrammar,
   loadAllListening,
@@ -277,5 +279,97 @@ describe('Expanded Milestone 1 Content Integrity & Lazy Modules', () => {
         expect(vocabIds.has(vid)).toBe(true);
       }
     }
+  });
+
+  it('validates all 36 Milestone 3 CEFR units (216 lessons, 648 lesson exercises) and 45 structured assessments (240 exercises)', async () => {
+    const [m3Units, assessments, vocab, grammar, exercises, listening, speaking, reading, writing, conversations, pro] =
+      await Promise.all([
+        loadAllCurriculumUnits(),
+        loadAllAssessments(),
+        loadAllVocabulary(),
+        loadAllGrammar(),
+        loadAllExercises(),
+        loadAllListening(),
+        loadAllSpeaking(),
+        loadAllReading(),
+        loadAllWriting(),
+        loadAllConversations(),
+        loadPronunciationLessons(),
+      ]);
+
+    const unitDist: Record<string, number> = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+    for (const u of m3Units) unitDist[u.cefrLevel] = (unitDist[u.cefrLevel] ?? 0) + 1;
+    expect(m3Units.length).toBe(36);
+    expect(unitDist).toEqual({ A1: 4, A2: 4, B1: 4, B2: 8, C1: 8, C2: 8 });
+
+    const vocabSet = new Set([...SEED_VOCABULARY.map((v) => v.id), ...vocab.map((v) => v.id)]);
+    const grammarSet = new Set([...GRAMMAR_TOPICS.map((g) => g.id), ...grammar.map((g) => g.id)]);
+    const bankSet = new Set(exercises.map((e) => e.id));
+    const lisSet = new Set([...LISTENING_LAB_TRACKS.map((l) => l.id), ...listening.map((l) => l.id)]);
+    const spkSet = new Set([...SPEAKING_LAB_ACTIVITIES.map((s) => s.id), ...speaking.map((s) => s.id)]);
+    const rdSet = new Set([...READING_LIBRARY_PASSAGES.map((r) => r.id), ...reading.map((r) => r.id)]);
+    const wrtSet = new Set([...WRITING_LAB_PROMPTS.map((w) => w.id), ...writing.map((w) => w.id)]);
+    const convSet = new Set(conversations.map((c) => c.id));
+    const proSet = new Set(pro.map((p) => p.id));
+
+    const unitAssessments = assessments.filter((a) => a.kind === 'unit_mastery');
+    const levelExams = assessments.filter((a) => a.kind === 'level_completion');
+    expect(unitAssessments.length).toBe(36);
+    expect(levelExams.length).toBe(6);
+    expect(assessments.length).toBe(45);
+
+    const assessMap = new Map(assessments.map((a) => [a.id, a]));
+    const m3LessonExIds = new Set<string>();
+    const m3AssessExIds = new Set<string>();
+    let totalLessons = 0;
+
+    for (const unit of m3Units) {
+      expect(unit.masteryAssessmentId && assessMap.has(unit.masteryAssessmentId)).toBe(true);
+      expect(unit.lessons.length).toBe(6);
+      for (const vid of unit.targetVocabIds ?? []) expect(vocabSet.has(vid)).toBe(true);
+      for (const gid of unit.targetGrammarIds ?? []) expect(grammarSet.has(gid)).toBe(true);
+      for (const lid of unit.linkedListeningIds ?? []) expect(lisSet.has(lid)).toBe(true);
+      for (const sid of unit.linkedSpeakingIds ?? []) expect(spkSet.has(sid)).toBe(true);
+      for (const rid of unit.linkedReadingIds ?? []) expect(rdSet.has(rid)).toBe(true);
+      for (const wid of unit.linkedWritingIds ?? []) expect(wrtSet.has(wid)).toBe(true);
+      for (const cid of unit.linkedConversationIds ?? []) expect(convSet.has(cid)).toBe(true);
+      for (const pid of unit.linkedPronunciationIds ?? []) expect(proSet.has(pid)).toBe(true);
+
+      for (const lesson of unit.lessons) {
+        totalLessons += 1;
+        expect(Boolean(lesson.instructionalOverview)).toBe(true);
+        expect(lesson.exercises.length).toBeGreaterThanOrEqual(3);
+        for (const ref of lesson.reusedExerciseRefs ?? []) {
+          expect(bankSet.has(ref.id)).toBe(true);
+        }
+        const promptsSeen = new Set<string>();
+        for (const ex of lesson.exercises) {
+          expect(m3LessonExIds.has(ex.id)).toBe(false);
+          expect(bankSet.has(ex.id)).toBe(false);
+          m3LessonExIds.add(ex.id);
+          const pNorm = ex.prompt.toLowerCase().trim();
+          expect(promptsSeen.has(pNorm)).toBe(false);
+          promptsSeen.add(pNorm);
+          expect(evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect).toBe(true);
+        }
+      }
+    }
+    expect(totalLessons).toBe(216);
+    expect(m3LessonExIds.size).toBe(648);
+
+    for (const asmt of assessments) {
+      expect(asmt.isUnofficialNotice.toLowerCase()).toContain('do not constitute official');
+      const promptsSeen = new Set<string>();
+      for (const ex of asmt.exercises) {
+        expect(m3AssessExIds.has(ex.id)).toBe(false);
+        expect(m3LessonExIds.has(ex.id)).toBe(false);
+        m3AssessExIds.add(ex.id);
+        const pNorm = ex.prompt.toLowerCase().trim();
+        expect(promptsSeen.has(pNorm)).toBe(false);
+        promptsSeen.add(pNorm);
+        expect(evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect).toBe(true);
+      }
+    }
+    expect(m3AssessExIds.size).toBe(240);
   });
 });

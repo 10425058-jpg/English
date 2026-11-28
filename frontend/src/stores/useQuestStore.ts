@@ -8,6 +8,7 @@ import {
   updateStreakForActivity,
   type AIConversation,
   type AIMessage,
+  type AssessmentAttemptRecord,
   type CEFRLevel,
   type DailyGoalMinutes,
   type EnglishAccent,
@@ -93,6 +94,9 @@ export interface QuestStoreState {
   writingDrafts: Record<string, { text: string; updatedAt: string }>;
   writingSubmissions: WritingSubmission[];
   ieltsSessions: IELTSPracticeSession[];
+  unitAssessmentResults: Record<string, AssessmentAttemptRecord>;
+  assessmentHistory: AssessmentAttemptRecord[];
+  unlockedUnitOverrides: string[];
   aiConversations: AIConversation[];
   aiMessages: Record<string, AIMessage[]>;
   grammarQuizPassedIds: string[];
@@ -156,6 +160,11 @@ export interface QuestStoreState {
   toggleContentBookmark: (contentId: string) => void;
   markAcademyCompleted: (contentId: string) => void;
   recordIeltsSession: (session: Omit<IELTSPracticeSession, 'id' | 'completedAt'>) => void;
+  recordAssessmentAttempt: (
+    attempt: Omit<AssessmentAttemptRecord, 'id' | 'completedAt'>,
+  ) => { awardedXp: number; record: AssessmentAttemptRecord };
+  unlockUnitForIndependentPractice: (unitId: string) => void;
+  setRecommendedCefr: (level: CEFRLevel) => void;
 
   upsertAiMessage: (
     conversation: Omit<AIConversation, 'createdAt' | 'updatedAt'>,
@@ -263,6 +272,9 @@ function createInitialDataState() {
     writingDrafts: {},
     writingSubmissions: [],
     ieltsSessions: [],
+    unitAssessmentResults: {} as Record<string, AssessmentAttemptRecord>,
+    assessmentHistory: [] as AssessmentAttemptRecord[],
+    unlockedUnitOverrides: [] as string[],
     aiConversations: [],
     aiMessages: {},
     grammarQuizPassedIds: [],
@@ -751,6 +763,101 @@ export const useQuestStore = create<QuestStoreState>()(
         return true;
       },
 
+      recordAssessmentAttempt: (attempt) => {
+        const state = get();
+        const nowIso = new Date().toISOString();
+        const today = toLocalDateKey(new Date(nowIso));
+        const record: AssessmentAttemptRecord = {
+          ...attempt,
+          id: `asmt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          completedAt: nowIso,
+        };
+
+        const prevUnitRes = attempt.unitId ? state.unitAssessmentResults?.[attempt.unitId] : undefined;
+        const updatedUnitResults: Record<string, AssessmentAttemptRecord> = {
+          ...(state.unitAssessmentResults ?? {}),
+          ...(attempt.unitId
+            ? {
+                [attempt.unitId]:
+                  prevUnitRes && prevUnitRes.passed && prevUnitRes.accuracyPercent > record.accuracyPercent
+                    ? prevUnitRes
+                    : prevUnitRes && prevUnitRes.passed && !record.passed
+                      ? prevUnitRes
+                      : record,
+              }
+            : {}),
+        };
+
+        // Award balanced XP ONLY on first passing attempt for an assessment (XP never measures CEFR Mastery itself)
+        const idempotencyKey = `assessment-pass-${attempt.assessmentId}`;
+        const alreadyRewarded = state.xpTransactions.some((t) => t.idempotencyKey === idempotencyKey);
+        const xpByKind =
+          attempt.kind === 'level_completion' ? 80 : attempt.kind === 'unit_mastery' ? 40 : 30;
+        const awardedXp = attempt.passed && !alreadyRewarded ? xpByKind : 0;
+
+        const nextTransactions =
+          awardedXp > 0
+            ? [
+                ...state.xpTransactions,
+                {
+                  id: `xp-${Date.now()}`,
+                  idempotencyKey,
+                  amount: awardedXp,
+                  source: 'assessment' as const,
+                  referenceId: attempt.assessmentId,
+                  createdAt: nowIso,
+                },
+              ]
+            : state.xpTransactions;
+
+        const nextMinutes = Math.max(1, Math.round(attempt.durationSeconds / 60));
+        const cefrRank: Record<CEFRLevel, number> = { A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6 };
+        let nextRecommendedCefr = state.recommendedCefr;
+        if (attempt.kind === 'level_completion' && attempt.passed) {
+          const levelOrder: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+          const passedIdx = levelOrder.indexOf(attempt.cefrLevel);
+          const nextTier = levelOrder[Math.min(levelOrder.length - 1, passedIdx + 1)];
+          if (cefrRank[nextTier] > cefrRank[nextRecommendedCefr]) {
+            nextRecommendedCefr = nextTier;
+          }
+        }
+
+        const nextCompletedAcademyIds =
+          attempt.passed && !state.completedAcademyIds?.includes(attempt.assessmentId)
+            ? [...(state.completedAcademyIds ?? []), attempt.assessmentId]
+            : state.completedAcademyIds ?? [];
+
+        const nextState: QuestStoreState = {
+          ...state,
+          xp: state.xp + awardedXp,
+          streak: updateStreakForActivity(state.streak, today),
+          studyMinutesByDate: {
+            ...state.studyMinutesByDate,
+            [today]: (state.studyMinutesByDate[today] ?? 0) + nextMinutes,
+          },
+          recommendedCefr: nextRecommendedCefr,
+          unitAssessmentResults: updatedUnitResults,
+          assessmentHistory: [record, ...(state.assessmentHistory ?? [])].slice(0, 100),
+          xpTransactions: nextTransactions,
+          completedAcademyIds: nextCompletedAcademyIds,
+        };
+        nextState.achievementsUnlocked = evaluateUnlockedAchievements(nextState);
+        set(nextState);
+        return { awardedXp, record };
+      },
+
+      unlockUnitForIndependentPractice: (unitId) => {
+        set((state) => {
+          const current = state.unlockedUnitOverrides ?? [];
+          if (current.includes(unitId)) return state;
+          return { unlockedUnitOverrides: [...current, unitId] };
+        });
+      },
+
+      setRecommendedCefr: (level) => {
+        set({ recommendedCefr: level });
+      },
+
       exportBackupJson: () => {
         const state = get();
         return JSON.stringify(
@@ -781,6 +888,9 @@ export const useQuestStore = create<QuestStoreState>()(
               writingDrafts: state.writingDrafts,
               writingSubmissions: state.writingSubmissions,
               ieltsSessions: state.ieltsSessions,
+              unitAssessmentResults: state.unitAssessmentResults ?? {},
+              assessmentHistory: state.assessmentHistory ?? [],
+              unlockedUnitOverrides: state.unlockedUnitOverrides ?? [],
               grammarQuizPassedIds: state.grammarQuizPassedIds,
               bookmarkedContentIds: state.bookmarkedContentIds ?? [],
               completedAcademyIds: state.completedAcademyIds ?? [],

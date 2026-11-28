@@ -6,14 +6,17 @@ import type {
   GrammarTopic,
   IntegratedSequence,
   LearningResource,
+  Lesson,
   ListeningContent,
   PronunciationLesson,
   ReadingPassage,
   ShadowingSession,
   SpeakingFrameworkGuide,
   SpeakingLesson,
+  StructuredAssessment,
   ThematicCollection,
   ThinkInEnglishActivity,
+  Unit,
   Vocabulary,
   WritingLesson,
 } from '@english-quest/shared';
@@ -330,4 +333,117 @@ export async function loadWritingByLevel(level: CEFRLevel): Promise<WritingLesso
 export async function loadAllWriting(): Promise<WritingLesson[]> {
   const packs = await Promise.all(CEFR_LEVELS.map((lvl) => writingLoaders[lvl]()));
   return packs.flat();
+}
+
+const curriculumUnitLoaders: Record<CEFRLevel, () => Promise<Unit[]>> = {
+  A1: () => import('./curriculum/a1_advanced').then((m) => m.A1_ADVANCED_UNITS),
+  A2: () => import('./curriculum/a2_advanced').then((m) => m.A2_ADVANCED_UNITS),
+  B1: () => import('./curriculum/b1_advanced').then((m) => m.B1_ADVANCED_UNITS),
+  B2: async () => {
+    const [p1, p2] = await Promise.all([
+      import('./curriculum/b2_part1').then((m) => m.B2_UNITS_PART1),
+      import('./curriculum/b2_part2').then((m) => m.B2_UNITS_PART2),
+    ]);
+    return [...p1, ...p2];
+  },
+  C1: async () => {
+    const [p1, p2] = await Promise.all([
+      import('./curriculum/c1_part1').then((m) => m.C1_UNITS_PART1),
+      import('./curriculum/c1_part2').then((m) => m.C1_UNITS_PART2),
+    ]);
+    return [...p1, ...p2];
+  },
+  C2: async () => {
+    const [p1, p2] = await Promise.all([
+      import('./curriculum/c2_part1').then((m) => m.C2_UNITS_PART1),
+      import('./curriculum/c2_part2').then((m) => m.C2_UNITS_PART2),
+    ]);
+    return [...p1, ...p2];
+  },
+};
+
+export async function loadCurriculumUnitsByLevel(level: CEFRLevel): Promise<Unit[]> {
+  return curriculumUnitLoaders[level]();
+}
+
+export async function loadAllCurriculumUnits(): Promise<Unit[]> {
+  const packs = await Promise.all(CEFR_LEVELS.map((lvl) => curriculumUnitLoaders[lvl]()));
+  return packs.flat();
+}
+
+export async function loadCurriculumLessonById(
+  lessonId: string,
+): Promise<{ unit: Unit; lesson: Lesson } | null> {
+  const match = lessonId.match(/^(a1|a2|b1|b2|c1|c2)-/i);
+  if (match) {
+    const level = match[1].toUpperCase() as CEFRLevel;
+    const units = await loadCurriculumUnitsByLevel(level);
+    for (const unit of units) {
+      const lesson = unit.lessons.find((l) => l.id === lessonId);
+      if (lesson) return { unit, lesson };
+    }
+  }
+  const all = await loadAllCurriculumUnits();
+  for (const unit of all) {
+    const lesson = unit.lessons.find((l) => l.id === lessonId);
+    if (lesson) return { unit, lesson };
+  }
+  return null;
+}
+
+const unitAssessmentLoaders: Record<CEFRLevel, () => Promise<StructuredAssessment[]>> = {
+  A1: () =>
+    import('./assessments/unit_assessments_a1_b1').then((m) =>
+      m.UNIT_ASSESSMENTS_A1_B1.filter((a) => a.cefrLevel === 'A1'),
+    ),
+  A2: () =>
+    import('./assessments/unit_assessments_a1_b1').then((m) =>
+      m.UNIT_ASSESSMENTS_A1_B1.filter((a) => a.cefrLevel === 'A2'),
+    ),
+  B1: () =>
+    import('./assessments/unit_assessments_a1_b1').then((m) =>
+      m.UNIT_ASSESSMENTS_A1_B1.filter((a) => a.cefrLevel === 'B1'),
+    ),
+  B2: () => import('./assessments/unit_assessments_b2').then((m) => m.UNIT_ASSESSMENTS_B2),
+  C1: () => import('./assessments/unit_assessments_c1').then((m) => m.UNIT_ASSESSMENTS_C1),
+  C2: () => import('./assessments/unit_assessments_c2').then((m) => m.UNIT_ASSESSMENTS_C2),
+};
+
+export async function loadUnitAssessmentsByLevel(
+  level: CEFRLevel,
+): Promise<StructuredAssessment[]> {
+  return unitAssessmentLoaders[level]();
+}
+
+export async function loadLevelAndDiagnosticAssessments(): Promise<StructuredAssessment[]> {
+  return import('./assessments/cefr_level_exams').then((m) => m.CEFR_LEVEL_AND_DIAGNOSTIC_EXAMS);
+}
+
+export async function loadAllAssessments(): Promise<StructuredAssessment[]> {
+  const [a1b1, b2, c1, c2, exams] = await Promise.all([
+    import('./assessments/unit_assessments_a1_b1').then((m) => m.UNIT_ASSESSMENTS_A1_B1),
+    import('./assessments/unit_assessments_b2').then((m) => m.UNIT_ASSESSMENTS_B2),
+    import('./assessments/unit_assessments_c1').then((m) => m.UNIT_ASSESSMENTS_C1),
+    import('./assessments/unit_assessments_c2').then((m) => m.UNIT_ASSESSMENTS_C2),
+    import('./assessments/cefr_level_exams').then((m) => m.CEFR_LEVEL_AND_DIAGNOSTIC_EXAMS),
+  ]);
+  return [...a1b1, ...b2, ...c1, ...c2, ...exams];
+}
+
+export async function loadAssessmentById(id: string): Promise<StructuredAssessment | null> {
+  if (id.startsWith('unit-assess-')) {
+    const match = id.match(/^unit-assess-(a1|a2|b1|b2|c1|c2)-/i);
+    if (match) {
+      const lvl = match[1].toUpperCase() as CEFRLevel;
+      const items = await loadUnitAssessmentsByLevel(lvl);
+      const found = items.find((a) => a.id === id);
+      if (found) return found;
+    }
+  }
+  const exams = await loadLevelAndDiagnosticAssessments();
+  const examHit = exams.find((a) => a.id === id);
+  if (examHit) return examHit;
+
+  const all = await loadAllAssessments();
+  return all.find((a) => a.id === id) ?? null;
 }

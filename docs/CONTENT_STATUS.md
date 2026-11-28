@@ -1,29 +1,32 @@
 # English Quest — Current Content Status
 
-> Updated: 2026-11-28 | Batches 2A–2C verified via `npm run validate:content`; Batch 2D authored, typechecked (`tsc`), linted (`eslint`), and logic-validated via Node (`RUN_VAL_EXIT=0`), with Vite/Vitest/Playwright CI verification pending on `ubuntu-latest`
+> Updated: 2026-11-28 | Synchronized with regenerated [CONTENT_QUALITY_REPORT.md](./CONTENT_QUALITY_REPORT.md) (`0` errors, `0` warnings; Batch 3A on `feature/advanced-cefr-ielts-mastery`)
 
-This document records **exact observed repository counts** only—never counting planned Phase 2–4 milestones as finished work.
+This document records **exact observed repository counts** only—never counting planned Phase 4 or unimplemented Batch 3B–3D items as finished work.
 
 ## Cumulative Content Inventory
 
-| Content Category | Baseline (Phase 1) | Milestone 1 + 2 Added | Combined Total | Long-Term Blueprint Target | Completion Status |
-|---|---:|---:|---:|---:|---|
-| Vocabulary & Lexical Entries | 24 | 1,444 | **1,468** | 15,000 | Milestone 1 Complete (~9.8%) |
-| Grammar Lessons & Guides | 7 | 48 | **55** | 200 | Milestone 1 Complete (27.5%) |
-| Thematic Vocabulary Collections | 0 | 30 | **30** | 200 | Milestone 1 Complete (15.0%) |
-| Interactive Exercises & Quizzes | 200 | 744 *(M1)* + 1,830 *(M2: 720 L + 240 P + 600 R + 270 W)* | **2,774** | 20,000 | Milestone 1 + Milestone 2 (~13.9%) |
-| Curated Open Educational Resources | 0 | 36 | **36** | 30+ | **Milestone Target Met** |
-| CEFR Matrix Specifications | 3 active | 6 full A1–C2 | **6 levels** | 6 levels | **Complete (A1–C2)** |
-| Listening Lessons | 6 | 120 *(Batches 2A + 2D)* | **126** | 600 | **Milestone 2 Target Met (120 new)** |
-| Speaking Lessons | 7 | 120 *(Batches 2A + 2D, +6 guides)* | **127** | 600 | **Milestone 2 Target Met (120 new)** |
-| Pronunciation Academy Lessons | 0 | 48 *(Batches 2A + 2C + 2D drills)* | **48** | 150 | **Milestone 2 Target Met (48 new)** |
-| Shadowing Studio Sessions | 0 | 60 *(Batches 2A + 2C)* | **60** | — | **Milestone 2 Target Met (60 new)** |
-| Practical Conversation Scenarios | 0 | 60 *(Batch 2C)* | **60** | 300 | **Milestone 2 Target Met (60 new)** |
-| Think in English Drills | 0 | 30 *(Batch 2C)* | **30** | — | **Milestone 2 Target Met (30 new)** |
-| Integrated 4-Skill Units | 0 | 24 *(Batch 2C)* | **24** | — | **Complete (24 loops)** |
-| Reading Passages | 6 | 120 *(Batch 2B + 2D drills)* | **126** | 600 | **Milestone 2 Target Met (120 new)** |
-| Writing Activities | 7 | 90 *(Batch 2B)* | **97** | 400 | **Milestone 2 Target Met (90 new)** |
-| IELTS Practice Activities | 7 | 0 | **7** | 500 | Baseline Only (Milestone 3+) |
+| Content Category | Baseline (Phase 1) | Milestone 1 + 2 Added | Milestone 3 Added (Batch 3A) | Combined Total | Long-Term Blueprint Target | Completion Status |
+|---|---:|---:|---:|---:|---:|---|
+| Learning Path CEFR Units | 12 *(A1–B1 u1–4)* | 0 | 36 *(A1–B1 u5–8 + B2–C2 u1–8)* | **48** *(8 per level)* | 48+ | **Batch 3A Complete (All A1–C2 Active)** |
+| Learning Path Lessons | 48 | 0 | 216 *(6 per M3 unit)* | **264** | 264+ | **Batch 3A Complete** |
+| Structured Assessments & CEFR Exams | 0 | 0 | 45 *(36 unit + 6 level exams + 3 diag/review)* | **45** | 45+ | **Batch 3A Complete** |
+| Vocabulary & Lexical Entries | 24 | 1,444 | 0 | **1,468** | 15,000 | Milestone 1 Complete (~9.8%) |
+| Grammar Lessons & Guides | 7 | 48 | 0 | **55** | 200 | Milestone 1 Complete (27.5%) |
+| Thematic Vocabulary Collections | 0 | 30 | 0 | **30** | 200 | Milestone 1 Complete (15.0%) |
+| Interactive Exercises & Quizzes | 200 | 744 *(M1)* + 1,830 *(M2)* | 888 *(648 M3 lesson + 240 assessment; +51 reused refs tracked separately)* | **3,662** | 20,000 | Milestone 1 + 2 + Batch 3A (~18.3%) |
+| Curated Open Educational Resources | 0 | 36 | 0 | **36** | 30+ | **Milestone Target Met** |
+| CEFR Matrix Specifications | 3 active | 6 full A1–C2 | All 6 interactive tracks unlocked | **6 levels** | 6 levels | **Complete (A1–C2 Active)** |
+| Listening Lessons | 6 | 120 *(Batches 2A + 2D)* | 0 | **126** | 600 | **Milestone 2 Target Met (120 new)** |
+| Speaking Lessons | 7 | 120 *(Batches 2A + 2D, +6 guides)* | 0 | **127** | 600 | **Milestone 2 Target Met (120 new)** |
+| Pronunciation Academy Lessons | 0 | 48 *(Batches 2A + 2C + 2D drills)* | 0 | **48** | 150 | **Milestone 2 Target Met (48 new)** |
+| Shadowing Studio Sessions | 0 | 60 *(Batches 2A + 2C)* | 0 | **60** | — | **Milestone 2 Target Met (60 new)** |
+| Practical Conversation Scenarios | 0 | 60 *(Batch 2C)* | 0 | **60** | 300 | **Milestone 2 Target Met (60 new)** |
+| Think in English Drills | 0 | 30 *(Batch 2C)* | 0 | **30** | — | **Milestone 2 Target Met (30 new)** |
+| Integrated 4-Skill Units | 0 | 24 *(Batch 2C)* | 0 | **24** | — | **Complete (24 loops)** |
+| Reading Passages | 6 | 120 *(Batch 2B + 2D drills)* | 0 | **126** | 600 | **Milestone 2 Target Met (120 new)** |
+| Writing Activities | 7 | 90 *(Batch 2B)* | 0 | **97** | 400 | **Milestone 2 Target Met (90 new)** |
+| IELTS Practice Activities | 7 | 0 | 0 | **7** | 500 | Baseline Only (Pending Batches 3B–3C) |
 
 ## Milestone 1 Breakdown by CEFR Level
 
