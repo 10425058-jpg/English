@@ -141,22 +141,35 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
 
   await page.goto('./#/learn');
   await page.getByRole('tab', { name: /B2/i }).click();
-  await expect(page.getByText(/Counterfactual Thinking & Mixed Conditionals/i)).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: /Counterfactual Thinking & Mixed Conditionals/i })
+  ).toBeVisible();
   await page.getByRole('tab', { name: /C1/i }).click();
-  await expect(page.getByText(/Emphatic Inversion & Rhetorical Authority/i)).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: /Emphatic Inversion & Rhetorical Authority/i })
+  ).toBeVisible();
   await page.getByRole('tab', { name: /C2/i }).click();
-  await expect(page.getByText(/Subtle Aspectual Shifts & Executive Acumen/i)).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: /Subtle Aspectual Shifts & Executive Acumen/i })
+  ).toBeVisible();
   await page.getByRole('tab', { name: /Assessments & Matrix/i }).click();
-  await expect(page.getByText(/Complete A1–C2 CEFR Coverage Matrix/i)).toBeVisible();
-  await expect(page.getByText(/Comprehensive CEFR Level Completion Exams/i)).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: /Complete A1–C2 CEFR Coverage Matrix/i })
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: /Comprehensive CEFR Level Completion Exams/i })
+  ).toBeVisible();
   await page.getByRole('tab', { name: /Integrated Loops \(24\)/i }).click();
   await expect(page.getByText(/Integrated Four-Skill Thematic Loops/i)).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-integrated-learning.png'), fullPage: false });
 
   // Verify structured Unit Mastery Assessment player opens cleanly
   await page.goto('./#/assessment/unit-assess-b2-u1');
-  await expect(page.getByText(/B2 Unit 1 Mastery/i)).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: /B2 Unit 1 Mastery/i })
+  ).toBeVisible();
   await expect(page.getByText(/Internal Practice Assessment/i)).toBeVisible();
+  await expect(page.getByRole('button', { name: /Check Answer/i })).toBeVisible();
 
   // Verify Milestone 2 Listening Academy & Speaking/Pronunciation/Shadowing Academies
   await page.goto('./#/listening');

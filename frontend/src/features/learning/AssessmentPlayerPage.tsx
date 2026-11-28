@@ -587,7 +587,7 @@ function AssessmentSession({ assessment }: { assessment: StructuredAssessment })
             {!feedback?.checked ? (
               <>
                 <p className="text-sm font-bold text-[#777777]">
-                  {assessment.title} • Pass Target {assessment.passingPercent}%
+                  Question {exIndex + 1} of {exercises.length} • Pass Target {assessment.passingPercent}%
                 </p>
                 <TactileButton
                   size="lg"
