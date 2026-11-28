@@ -1,6 +1,6 @@
 # English Quest — Milestone 2: Four-Skill Intensive Training Progress
 
-> Updated: 2026-11-28 | Branch: `feature/four-skill-intensive-training` | Typecheck + ESLint + validator logic checked (`RUN_VAL_EXIT=0` via `tsc`+Node); `vite`/`vitest`/`playwright` CI execution on `ubuntu-latest` pending due to local Windows Application Control blocking `rolldown-binding.win32-x64-msvc.node` (`CONTENT_QUALITY_REPORT.md` remains at the Batch 2C `--write-report` snapshot).
+> Updated: 2026-11-28 | Branch: `main` (`54b5ee5`, PR #4 merged) | Verified via `scripts/validate-content.ts` (`0` errors, `0` warnings; `CONTENT_QUALITY_REPORT.md` synchronized).
 
 ## Batch Delivery Status
 
@@ -9,7 +9,7 @@
 | **Batch 2A** | **Listening, Speaking, Pronunciation & Shadowing Foundations** | **40 Listening** (`160` ex), **40 Speaking** + **6 Guides**, **24 Pronunciation** (`72` ex), **20 Shadowing** | **Complete & Verified** |
 | **Batch 2B** | **Reading Academy (120) + Writing Academy (90)** | **120 Reading** (`480` ex) + **90 Writing** (`270` ex) integrated into `ReadingAcademyPage` & `WritingAcademyPage` | **Complete & Verified** |
 | **Batch 2C** | **Pronunciation (48) + Shadowing (60) + Conversations (60) + Think in English (30) + Integrated Loops (24)** | **+24 Pronunciation** (`144` ex total), **+40 Shadowing** (`60` total), **60 Conversations**, **30 Think in English**, **24 Integrated Units** | **Complete & Verified** |
-| **Batch 2D** | **Final Scale to `120` Listening, `120` Speaking, `1,830` M2 Exercises + QA/Test Updates** | **+80 Listening** (`120` total, `720` ex), **+80 Speaking** (`120` total), **+96 Pronunciation drills** (`240` ex total), **+120 Reading questions** (`600` ex total) | **Authored & Typechecked (CI Pending)** |
+| **Batch 2D** | **Final Scale to `120` Listening, `120` Speaking, `1,830` M2 Exercises + QA/Test Updates** | **+80 Listening** (`120` total, `720` ex), **+80 Speaking** (`120` total), **+96 Pronunciation drills** (`240` ex total), **+120 Reading questions** (`600` ex total) | **Complete & Merged (PR #4)** |
 
 ## Exact Cumulative Milestone 2 Inventory (Batch 2A–2D)
 

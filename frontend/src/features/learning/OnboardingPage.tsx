@@ -326,12 +326,12 @@ export function OnboardingPage() {
               <div className="flex flex-wrap gap-2">
                 <TactileButton
                   variant="outline"
-                  onClick={() => handleManualFinish(selfAssessedLevel === 'A1' || selfAssessedLevel === 'A2' || selfAssessedLevel === 'B1' ? selfAssessedLevel : 'B1')}
+                  onClick={() => handleManualFinish(selfAssessedLevel)}
                 >
                   Skip Test & Start at {selfAssessedLevel}
                 </TactileButton>
                 <TactileButton onClick={() => setStep('placement')}>
-                  Take 10-Question Placement Check
+                  Take {PLACEMENT_QUESTIONS.length}-Question Placement Check
                   <ArrowRight className="h-4 w-4" />
                 </TactileButton>
               </div>

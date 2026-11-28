@@ -1,6 +1,6 @@
 # English Quest — Implementation Status
 
-> Updated: 2026-11-28 | Active Branch: `feature/four-skill-intensive-training`
+> Updated: 2026-11-28 | Active Branch: `feature/advanced-cefr-ielts-mastery` (Milestone 3 Batch 3A)
 
 ## Milestone Summary
 
@@ -21,13 +21,17 @@
   - **36** verified open educational resources integrated into `ReadingPage`, plus the **6-level A1–C2 Curriculum Matrix** visible in `LearnPage`.
   - Automated validation suite (`npm run validate:content`) + Vitest integration tests enforcing zero duplicate IDs, zero broken references, and 100% evaluator round-trip verification (`docs/CONTENT_QUALITY_REPORT.md`).
 
-- **Milestone 2 — Four-Skill Intensive Training (Batches 2A–2C Verified; Batch 2D Authored & Typechecked, CI Pending):**
+- **Milestone 2 — Four-Skill Intensive Training (Complete & Merged via PR #4):**
   - Expanded `ListeningAcademyPage` (`126` lessons across A1–C2 = 120 new + 6 core) with **0.5x–2.0x** speed presets (`speechService.ts`), multi-speaker Web Speech dialogue synthesis (`speakDialogueLine`), loop replay, dictation mode toggle, connected speech notes, bookmarking, and **720** new listening comprehension & dictation exercises.
   - Expanded `SpeakingAcademyPage` with **Speaking Academy (`127` lessons = 120 new + 7 core)**, **Conversations Studio (`60` branching scenarios across 6 domains)**, **Think in English (`30` timed anti-translation & circumlocution sprints)**, **Pronunciation Academy (`48` IPA/Vietnamese trap lessons, `240` discrimination exercises)**, **Shadowing Studio (`60` progressive sessions)**, and **6 Speaking Mindset & Framework guides** (`PREP`, `STAR`, `Past-Present-Future`, `Circumlocution`, etc.).
   - Expanded `LearnPage` with **Integrated Loops (`24` thematic L -> R -> S -> W pathways)** connecting matched Listening, Reading, Speaking, Writing, and SM-2 vocabulary items cleanly across A1–C2.
   - Expanded `ReadingAcademyPage` (`126` leveled passages across A1–C2 = 120 new + 6 core, **600** new comprehension/IELTS-style questions, interactive SM-2 click-to-save glossaries, WPM dwell indicator, paragraph highlighter, summary check, plus all **36** Curated Open Resources).
   - Expanded `WritingAcademyPage` (`97` lessons across A1–C2 = 90 new + 7 core, **270** interactive pre-draft drills, model outlines, clickable vocab/sentence-frame banks, rubrics, common mistakes, annotated model samples, autosave drafts, and side-by-side **Revision Compare** alongside local heuristic feedback).
   - See [MILESTONE_2_PROGRESS.md](./MILESTONE_2_PROGRESS.md) for live batch-by-batch tracking and verification status.
+
+- **Milestone 3 — Advanced CEFR Learning Path & IELTS Mastery Center (Batch 3A Active on `feature/advanced-cefr-ielts-mastery`):**
+  - **Batch 3A (Complete & Verified Locally):** Activated full A1–C2 CEFR Learning Path (`36` new units + `12` core = `48` total units across `A1–C2`, `216` new structured lessons + `48` core = `264` lessons), **`45` structured assessments** (`36` Unit Mastery + `6` CEFR Level Completion Exams + `3` diagnostic/section/mixed review packs), **`888` newly authored interactive exercises** (`+51` reused drill references tracked separately -> `3,662` total combined exercises), upgraded `placementTest.ts` across A1–C2 (`14` items), added dedicated `/assessment/:assessmentId` Assessment Player, separated non-XP CEFR Mastery metrics, flexible level unlocking, and collapsible lesson briefing panels. See [MILESTONE_3_PROGRESS.md](./MILESTONE_3_PROGRESS.md).
+  - **Batches 3B–3D (Planned Next):** Comprehensive IELTS Academic/GT academies (`80` Listening, `100` Speaking, `60` Reading, `60` Writing, Idea & Vocab banks), `60` Strategy Lessons + `12` Timed Mock Exams (`8` Academic, `4` GT), real analytics, adaptive study planner, and mistake breakdown.
 
 - **Phase 2 — Backend & Cloud Persistence:** **Schema & Contracts Drafted**
   - 28 normalized PostgreSQL Prisma models defined in `backend/prisma/schema.prisma`.
@@ -38,8 +42,8 @@
   - *Current fallback:* Local deterministic rule-based tutor & heuristic writing checks; Web Speech API synthesis & `MediaRecorder` local audio playback.
   - *Upcoming:* Server-side OpenAI-compatible streaming proxy, token budgets, cloud STT/TTS, and dedicated pronunciation scoring provider.
 
-- **Phase 4 — Advanced Curriculum & Full IELTS Mock Suite:** **Upcoming**
-  - B2, C1, and C2 unit authoring and expanded IELTS timed multi-section mock tests.
+- **Phase 4 — Platform Scale & Full Exam Content:** **In Progress via Milestone 3**
+  - Expanded B2, C1, and C2 learning path tracks delivered cleanly in Milestone 3 Batch 3A; expanded IELTS timed multi-section mock tests queued for Batches 3B–3D.
 
 ## Known Limitations (Phase 1)
 1. Progress is persisted locally in browser `localStorage`; cross-device cloud sync awaits Phase 2 backend deployment.

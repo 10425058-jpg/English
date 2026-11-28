@@ -11,7 +11,9 @@ import type {
 import { evaluateExerciseAnswer } from '../packages/shared/src/utils/sm2';
 import {
   CEFR_LEVELS,
+  loadAllAssessments,
   loadAllConversations,
+  loadAllCurriculumUnits,
   loadAllExercises,
   loadAllGrammar,
   loadAllListening,
@@ -714,6 +716,200 @@ export async function runValidation(writeReport = false): Promise<number> {
     3,
   );
 
+  // 17. Milestone 3 Batch 3A: Advanced CEFR Learning Path (36 new units, 216 lessons) & 45 Structured Assessments
+  const [m3Units, m3Assessments] = await Promise.all([
+    loadAllCurriculumUnits(),
+    loadAllAssessments(),
+  ]);
+
+  const expectedM3UnitDist: Record<CEFRLevel, number> = {
+    A1: 4,
+    A2: 4,
+    B1: 4,
+    B2: 8,
+    C1: 8,
+    C2: 8,
+  };
+  const m3UnitCountsByLevel: Record<CEFRLevel, number> = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+  const m3LessonCountsByLevel: Record<CEFRLevel, number> = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+  const m3ExerciseCountsByLevel: Record<CEFRLevel, number> = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+
+  const allPathUnitIds = new Set<string>(ALL_UNITS.map((u) => u.id));
+  const m3UnitIds = new Set<string>();
+  const m3LessonIds = new Set<string>(ALL_UNITS.flatMap((u) => u.lessons.map((l) => l.id)));
+  const m3AssessmentById = new Map(m3Assessments.map((a) => [a.id, a]));
+  const m3AssessmentIds = new Set<string>();
+
+  let m3LessonCount = 0;
+  let m3LessonExercisesCount = 0;
+  let m3AssessExercisesCount = 0;
+  let m3ReusedRefCount = 0;
+
+  for (const unit of m3Units) {
+    if (m3UnitIds.has(unit.id) || ALL_UNITS.some((u) => u.id === unit.id)) {
+      errors.push(`Duplicate Milestone 3 unit ID: ${unit.id}`);
+    }
+    m3UnitIds.add(unit.id);
+    allPathUnitIds.add(unit.id);
+    m3UnitCountsByLevel[unit.cefrLevel] += 1;
+
+    if (unit.lessons.length !== 6) {
+      errors.push(`Milestone 3 unit ${unit.id} has ${unit.lessons.length} lessons (expected 6)`);
+    }
+    if (!unit.masteryAssessmentId || !m3AssessmentById.has(unit.masteryAssessmentId)) {
+      errors.push(`Milestone 3 unit ${unit.id} references missing masteryAssessmentId: ${unit.masteryAssessmentId ?? 'none'}`);
+    }
+    for (const vid of unit.targetVocabIds ?? []) {
+      if (!vocabById.has(vid) && !SEED_VOCABULARY.some((v) => v.id === vid)) {
+        errors.push(`Unit ${unit.id} targetVocabId not found: ${vid}`);
+      }
+    }
+    for (const gid of unit.targetGrammarIds ?? []) {
+      if (!grammarById.has(gid) && !GRAMMAR_TOPICS.some((g) => g.id === gid)) {
+        errors.push(`Unit ${unit.id} targetGrammarId not found: ${gid}`);
+      }
+    }
+    for (const lid of unit.linkedListeningIds ?? []) {
+      if (!listeningIds.has(lid)) errors.push(`Unit ${unit.id} missing linkedListeningId: ${lid}`);
+    }
+    for (const sid of unit.linkedSpeakingIds ?? []) {
+      if (!speakingIds.has(sid)) errors.push(`Unit ${unit.id} missing linkedSpeakingId: ${sid}`);
+    }
+    for (const rid of unit.linkedReadingIds ?? []) {
+      if (!readingIds.has(rid)) errors.push(`Unit ${unit.id} missing linkedReadingId: ${rid}`);
+    }
+    for (const wid of unit.linkedWritingIds ?? []) {
+      if (!writingIds.has(wid)) errors.push(`Unit ${unit.id} missing linkedWritingId: ${wid}`);
+    }
+    for (const cid of unit.linkedConversationIds ?? []) {
+      if (!convIds.has(cid)) errors.push(`Unit ${unit.id} missing linkedConversationId: ${cid}`);
+    }
+    for (const pid of unit.linkedPronunciationIds ?? []) {
+      if (!proIds.has(pid)) errors.push(`Unit ${unit.id} missing linkedPronunciationId: ${pid}`);
+    }
+
+    for (const lesson of unit.lessons) {
+      if (m3LessonIds.has(lesson.id)) {
+        errors.push(`Duplicate Milestone 3 lesson ID: ${lesson.id}`);
+      }
+      m3LessonIds.add(lesson.id);
+      m3LessonCount += 1;
+      m3LessonCountsByLevel[unit.cefrLevel] += 1;
+
+      if (!lesson.instructionalOverview || !lesson.instructionalOverview.trim()) {
+        errors.push(`Lesson ${lesson.id} missing instructionalOverview`);
+      }
+      if (!lesson.learningObjectives || lesson.learningObjectives.length < 1) {
+        errors.push(`Lesson ${lesson.id} missing learningObjectives`);
+      }
+      if (!lesson.lessonSummary || !lesson.lessonSummary.trim()) {
+        errors.push(`Lesson ${lesson.id} missing lessonSummary`);
+      }
+      if (lesson.exercises.length < 3) {
+        errors.push(`Milestone 3 lesson ${lesson.id} has ${lesson.exercises.length} exercises (expected >= 3)`);
+      }
+
+      for (const ref of lesson.reusedExerciseRefs ?? []) {
+        if (!exerciseIds.has(ref.id)) {
+          errors.push(`Lesson ${lesson.id} reusedExerciseRef ${ref.id} does not exist in bank`);
+        }
+        m3ReusedRefCount += 1;
+      }
+
+      const lessonPromptsSeen = new Set<string>();
+      for (const ex of lesson.exercises) {
+        if (exerciseIds.has(ex.id)) {
+          errors.push(`Duplicate Milestone 3 lesson exercise ID: ${ex.id}`);
+        }
+        exerciseIds.add(ex.id);
+        m3LessonExercisesCount += 1;
+        m3ExerciseCountsByLevel[unit.cefrLevel] += 1;
+
+        const norm = ex.prompt.toLowerCase().trim();
+        if (lessonPromptsSeen.has(norm)) {
+          errors.push(`Duplicate prompt inside M3 lesson ${lesson.id}: "${ex.prompt}"`);
+        }
+        lessonPromptsSeen.add(norm);
+
+        if (ex.options && !Array.isArray(ex.correctAnswer) && !ex.options.includes(ex.correctAnswer)) {
+          errors.push(`Exercise ${ex.id} correctAnswer missing from options`);
+        }
+        if (!ex.explanation || !ex.explanation.trim()) {
+          errors.push(`Exercise ${ex.id} missing explanation`);
+        }
+        const evalCheck = evaluateExerciseAnswer(ex, ex.correctAnswer);
+        if (!evalCheck.isCorrect) {
+          errors.push(`Self-evaluation failed for M3 lesson exercise ${ex.id}`);
+        }
+      }
+    }
+  }
+
+  // Validate prerequisiteUnitIds after collecting all unit IDs
+  for (const unit of m3Units) {
+    for (const pid of unit.prerequisiteUnitIds ?? []) {
+      if (!allPathUnitIds.has(pid)) {
+        errors.push(`Unit ${unit.id} prerequisiteUnitId not found: ${pid}`);
+      }
+    }
+  }
+
+  for (const lvl of CEFR_LEVELS) {
+    if (m3UnitCountsByLevel[lvl] !== expectedM3UnitDist[lvl]) {
+      errors.push(`M3 ${lvl} unit count mismatch: expected ${expectedM3UnitDist[lvl]}, got ${m3UnitCountsByLevel[lvl]}`);
+    }
+  }
+  if (m3Units.length !== 36) errors.push(`Expected 36 new M3 units, got ${m3Units.length}`);
+  if (m3LessonCount !== 216) errors.push(`Expected 216 new M3 lessons, got ${m3LessonCount}`);
+
+  let m3UnitAssessCount = 0;
+  let m3LevelExamCount = 0;
+  for (const asmt of m3Assessments) {
+    if (m3AssessmentIds.has(asmt.id)) errors.push(`Duplicate assessment ID: ${asmt.id}`);
+    m3AssessmentIds.add(asmt.id);
+    if (!asmt.isUnofficialNotice.toLowerCase().includes('do not constitute official')) {
+      errors.push(`Assessment ${asmt.id} lacks explicit unofficial notice disclaimer`);
+    }
+    if (asmt.kind === 'unit_mastery') {
+      m3UnitAssessCount += 1;
+      if (!asmt.unitId || !m3UnitIds.has(asmt.unitId)) {
+        errors.push(`Unit assessment ${asmt.id} links missing unitId: ${asmt.unitId ?? 'none'}`);
+      }
+    } else if (asmt.kind === 'level_completion') {
+      m3LevelExamCount += 1;
+    }
+
+    const asmtPrompts = new Set<string>();
+    for (const ex of asmt.exercises) {
+      if (exerciseIds.has(ex.id)) {
+        errors.push(`Duplicate Milestone 3 assessment exercise ID: ${ex.id}`);
+      }
+      exerciseIds.add(ex.id);
+      m3AssessExercisesCount += 1;
+      m3ExerciseCountsByLevel[asmt.cefrLevel] += 1;
+
+      const norm = ex.prompt.toLowerCase().trim();
+      if (asmtPrompts.has(norm)) {
+        errors.push(`Duplicate prompt inside assessment ${asmt.id}: "${ex.prompt}"`);
+      }
+      asmtPrompts.add(norm);
+
+      if (ex.options && !Array.isArray(ex.correctAnswer) && !ex.options.includes(ex.correctAnswer)) {
+        errors.push(`Assessment exercise ${ex.id} correctAnswer missing from options`);
+      }
+      if (!ex.explanation || !ex.explanation.trim()) {
+        errors.push(`Assessment exercise ${ex.id} missing explanation`);
+      }
+      const evalCheck = evaluateExerciseAnswer(ex, ex.correctAnswer);
+      if (!evalCheck.isCorrect) {
+        errors.push(`Self-evaluation failed for M3 assessment exercise ${ex.id}`);
+      }
+    }
+  }
+  if (m3UnitAssessCount !== 36) errors.push(`Expected 36 unit_mastery assessments, got ${m3UnitAssessCount}`);
+  if (m3LevelExamCount !== 6) errors.push(`Expected 6 level_completion exams, got ${m3LevelExamCount}`);
+  const m3NewExercises = m3LessonExercisesCount + m3AssessExercisesCount;
+
   const totalVocab = SEED_VOCABULARY.length + expandedVocab.length;
   const totalGrammarTopics = GRAMMAR_TOPICS.length + expandedGrammar.length;
   const legacyPathExercises = ALL_UNITS.reduce(
@@ -734,7 +930,8 @@ export async function runValidation(writeReport = false): Promise<number> {
     legacyGrammarQuizzes +
     grammarQuizCount +
     expandedExercises.length +
-    m2NewExercises;
+    m2NewExercises +
+    m3NewExercises;
 
   console.log('\n=== ENGLISH QUEST CONTENT VALIDATION REPORT ===');
   console.log(`Expanded Vocabulary: ${expandedVocab.length} (+ ${SEED_VOCABULARY.length} core seed = ${totalVocab})`);
@@ -775,6 +972,15 @@ export async function runValidation(writeReport = false): Promise<number> {
   console.log(`Milestone 2 Conversation Scenarios: ${conversations.length} (${JSON.stringify(convCountsByDomain)})`);
   console.log(`Milestone 2 Think in English Drills: ${thinkInEnglish.length}`);
   console.log(`Milestone 2 Integrated 4-Skill Units: ${integratedSequences.length}`);
+  console.log(
+    `Milestone 3 CEFR Units: ${m3Units.length} (+ ${ALL_UNITS.length} core = ${m3Units.length + ALL_UNITS.length}) | Lessons: ${m3LessonCount} (+ ${ALL_UNITS.reduce((s, u) => s + u.lessons.length, 0)} core = ${m3LessonCount + ALL_UNITS.reduce((s, u) => s + u.lessons.length, 0)})`
+  );
+  console.log(
+    `Milestone 3 Structured Assessments: ${m3Assessments.length} (${m3UnitAssessCount} unit + ${m3LevelExamCount} level exams + ${m3Assessments.length - m3UnitAssessCount - m3LevelExamCount} diag/review)`
+  );
+  console.log(
+    `Milestone 3 Newly Authored Exercises: ${m3NewExercises} (${m3LessonExercisesCount} lesson + ${m3AssessExercisesCount} assessment) [Reused refs tracked separately: ${m3ReusedRefCount}]`
+  );
   console.log(`Curated Learning Resources: ${resources.length}`);
   console.log(`Curriculum Matrix Levels: ${matrix.length}`);
   console.log(`Warnings: ${warnings.length}`);
@@ -800,7 +1006,7 @@ Generated automatically by \`npm run validate:content\`.
 
 ## Verified Live Content Counts
 
-| Category | Core Seed / Phase 1 | Curriculum Expansion (M1 + M2) | Total Verified |
+| Category | Core Seed / Phase 1 | Curriculum Expansion (M1 + M2 + M3) | Total Verified |
 |---|---:|---:|---:|
 | Vocabulary & Lexical Entries | ${SEED_VOCABULARY.length} | ${expandedVocab.length} | ${totalVocab} |
 | Grammar Academy Lessons | ${GRAMMAR_TOPICS.length} | ${expandedGrammar.length} | ${totalGrammarTopics} |
@@ -808,8 +1014,12 @@ Generated automatically by \`npm run validate:content\`.
 | Interactive Practice Bank Exercises | 0 | ${expandedExercises.length} | ${expandedExercises.length} |
 | Grammar Academy Mini-Quizzes | ${legacyGrammarQuizzes} | ${grammarQuizCount} | ${legacyGrammarQuizzes + grammarQuizCount} |
 | Milestone 2 Academy Interactive Exercises | 0 | ${m2NewExercises} | ${m2NewExercises} |
+| Milestone 3 Curriculum & Assessment Exercises (Newly Authored) | 0 | ${m3NewExercises} | ${m3NewExercises} |
 | Core Learning Path Exercises | ${legacyPathExercises} | 0 | ${legacyPathExercises} |
-| **Combined Interactive Exercises** | **${legacyPathExercises + legacyGrammarQuizzes}** | **${expandedExercises.length + grammarQuizCount + m2NewExercises}** | **${totalExercises}** |
+| **Combined Interactive Exercises** | **${legacyPathExercises + legacyGrammarQuizzes}** | **${expandedExercises.length + grammarQuizCount + m2NewExercises + m3NewExercises}** | **${totalExercises}** |
+| Learning Path CEFR Units | ${ALL_UNITS.length} | ${m3Units.length} | ${ALL_UNITS.length + m3Units.length} |
+| Learning Path Lessons | ${ALL_UNITS.reduce((s, u) => s + u.lessons.length, 0)} | ${m3LessonCount} | ${ALL_UNITS.reduce((s, u) => s + u.lessons.length, 0) + m3LessonCount} |
+| Structured Assessments & CEFR Exams | 0 | ${m3Assessments.length} | ${m3Assessments.length} |
 | Listening Academy Lessons | ${LISTENING_LAB_TRACKS.length} | ${expandedListening.length} | ${LISTENING_LAB_TRACKS.length + expandedListening.length} |
 | Speaking Academy Lessons | ${SPEAKING_LAB_ACTIVITIES.length} | ${expandedSpeaking.length} | ${SPEAKING_LAB_ACTIVITIES.length + expandedSpeaking.length} |
 | Reading Academy Passages | ${READING_LIBRARY_PASSAGES.length} | ${expandedReading.length} | ${READING_LIBRARY_PASSAGES.length + expandedReading.length} |
@@ -821,7 +1031,7 @@ Generated automatically by \`npm run validate:content\`.
 | Integrated 4-Skill Units | 0 | ${integratedSequences.length} | ${integratedSequences.length} |
 | Speaking Mindset Guides | 0 | ${speakingGuides.length} | ${speakingGuides.length} |
 | Curated Open Educational Resources | 0 | ${resources.length} | ${resources.length} |
-| CEFR Coverage Matrix Levels | 3 active + 3 upcoming | 6 full A1–C2 specifications | ${matrix.length} |
+| CEFR Coverage Matrix Levels | 6 active A1–C2 tracks | 6 full A1–C2 specifications | ${matrix.length} |
 
 ## Breakdown by CEFR Level (Milestone 1 Expansion Packs)
 
@@ -856,13 +1066,27 @@ ${Object.entries(exerciseTypeCounts)
   .map(([fmt, cnt]) => `| \`${fmt}\` | ${cnt} |`)
   .join('\n')}
 
+## Breakdown by CEFR Level (Milestone 3 Learning Path Expansion)
+
+| CEFR Level | New Units Added | New Lessons Added | New Exercises (Lessons + Assessments) |
+|---|---:|---:|---:|
+| A1 | ${m3UnitCountsByLevel.A1} | ${m3LessonCountsByLevel.A1} | ${m3ExerciseCountsByLevel.A1} |
+| A2 | ${m3UnitCountsByLevel.A2} | ${m3LessonCountsByLevel.A2} | ${m3ExerciseCountsByLevel.A2} |
+| B1 | ${m3UnitCountsByLevel.B1} | ${m3LessonCountsByLevel.B1} | ${m3ExerciseCountsByLevel.B1} |
+| B2 | ${m3UnitCountsByLevel.B2} | ${m3LessonCountsByLevel.B2} | ${m3ExerciseCountsByLevel.B2} |
+| C1 | ${m3UnitCountsByLevel.C1} | ${m3LessonCountsByLevel.C1} | ${m3ExerciseCountsByLevel.C1} |
+| C2 | ${m3UnitCountsByLevel.C2} | ${m3LessonCountsByLevel.C2} | ${m3ExerciseCountsByLevel.C2} |
+| **Total New M3** | **${m3Units.length}** | **${m3LessonCount}** | **${m3NewExercises}** |
+
+Note: Milestone 3 units additionally link **${m3ReusedRefCount} reused drill references** from the Exercise Bank (\`reusedExerciseRefs\`), tracked separately and never double-counted inside newly authored totals.
+
 ## Automated Invariants Verified
 
-1. **Zero duplicate IDs** across all vocabulary entries, grammar topics, collections, exercises, Milestone 2 academies, and external resources.
+1. **Zero duplicate IDs** across all vocabulary entries, grammar topics, collections, exercises, Milestone 2 academies, Milestone 3 units/lessons/assessments, and external resources.
 2. **Zero duplicate headwords** (normalized \`word + senseLabel\`) in expanded vocabulary packs.
-3. **Zero duplicate prompts** inside any expanded level exercise bank or within any Listening, Reading, Pronunciation, or Writing academy lesson.
-4. **100% referential integrity**: every \`vocabularyIds\` reference inside all ${collections.length} thematic collections exists, every \`relatedKnowledgeId\` inside all ${expandedExercises.length} practice exercises resolves to a real vocabulary item or grammar topic, and every \`IntegratedSequence\` links valid listening, reading, and vocabulary IDs.
-5. **100% evaluator round-trip check**: every expanded quiz, bank, and Milestone 2 academy exercise (${expandedExercises.length + grammarQuizCount + m2NewExercises} total) passes \`evaluateExerciseAnswer(ex, ex.correctAnswer) === true\`.
+3. **Zero duplicate prompts** inside any expanded level exercise bank, within any Listening/Reading/Pronunciation/Writing lesson, or within any Milestone 3 learning-path lesson or assessment.
+4. **100% referential integrity**: every \`vocabularyIds\` reference inside all ${collections.length} thematic collections exists, every \`relatedKnowledgeId\` inside all ${expandedExercises.length} practice exercises resolves, every \`IntegratedSequence\` links valid assets, and every Milestone 3 \`prerequisiteUnitIds\`, \`masteryAssessmentId\`, \`targetVocabIds\`, \`targetGrammarIds\`, \`reusedExerciseRefs\`, and \`linked*Ids\` reference resolves.
+5. **100% evaluator round-trip check**: every expanded quiz, bank, Milestone 2 academy, and Milestone 3 exercise (${expandedExercises.length + grammarQuizCount + m2NewExercises + m3NewExercises} total) passes \`evaluateExerciseAnswer(ex, ex.correctAnswer) === true\`.
 6. **100% valid external resource URLs**: all ${resources.length} resource URLs parse cleanly over HTTPS/HTTP with zero placeholder domains.
 `;
     fs.writeFileSync(reportPath, md, 'utf8');
