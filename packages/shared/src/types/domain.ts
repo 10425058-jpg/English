@@ -814,7 +814,7 @@ export interface XPTransaction {
 export interface IELTSPracticeSession {
   id: string;
   pathway: IELTSPathway;
-  skill: 'listening' | 'reading' | 'writing' | 'speaking' | 'mini_mock';
+  skill: 'listening' | 'reading' | 'writing' | 'speaking' | 'mini_mock' | 'full_mock';
   title: string;
   score: number;
   maxScore: number;
@@ -1019,4 +1019,92 @@ export interface IELTSIdeaVocabTopic {
     example: string;
   }>;
   exercises: Exercise[];
+}
+
+export type IELTSStrategyCategory =
+  | 'listening'
+  | 'reading'
+  | 'writing'
+  | 'speaking'
+  | 'exam_day';
+
+export interface IELTSStrategyLesson {
+  id: string;
+  category: IELTSStrategyCategory;
+  title: string;
+  cefrTarget: CEFRLevel;
+  skillFocus: string;
+  corePrinciple: string;
+  stepByStepMethod: string[];
+  trapPatterns: Array<{
+    trapName: string;
+    howItTricks: string;
+    counterMove: string;
+  }>;
+  timingAllocationNote: string;
+  exampleBox: {
+    snippet: string;
+    breakdown: string;
+  };
+  exercises: Exercise[];
+}
+
+export interface IELTSMockExamManifest {
+  id: string;
+  number: number;
+  pathway: IELTSPathway;
+  title: string;
+  subtitle: string;
+  estimatedMinutes: number;
+  listeningIds: [string, string, string, string];
+  readingIds: [string, string, string];
+  writingTask1Id: string;
+  writingTask2Id: string;
+  speakingPartIds: [string, string, string];
+  isUnofficialNotice: string;
+}
+
+export interface AssembledIELTSMockExam {
+  manifest: IELTSMockExamManifest;
+  listeningParts: IELTSListeningActivity[];
+  readingPassages: IELTSReadingPassage[];
+  writingTask1: IELTSWritingTask;
+  writingTask2: IELTSWritingTask;
+  speakingParts: IELTSSpeakingActivity[];
+}
+
+export interface IELTSMockAttemptDraft {
+  mockId: string;
+  pathway: IELTSPathway;
+  currentSection: 'listening' | 'reading' | 'writing' | 'speaking';
+  sectionRemainingSeconds: number;
+  listeningAnswers: Record<string, string | string[]>;
+  readingAnswers: Record<string, string | string[]>;
+  writingTask1Draft: string;
+  writingTask2Draft: string;
+  speakingSelfBand: number;
+  speakingNotes: string;
+  startedAt: string;
+  updatedAt: string;
+}
+
+export interface IELTSMockAttemptResult {
+  id: string;
+  mockId: string;
+  title: string;
+  pathway: IELTSPathway;
+  listeningRaw: number;
+  listeningMax: number;
+  listeningBand: number;
+  readingRaw: number;
+  readingMax: number;
+  readingBand: number;
+  writingBand: number;
+  writingTask1Words: number;
+  writingTask2Words: number;
+  speakingBand: number;
+  overallBand: number;
+  durationSeconds: number;
+  isUnofficialEstimate: true;
+  completedAt: string;
 }

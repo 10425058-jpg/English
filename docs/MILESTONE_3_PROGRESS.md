@@ -8,8 +8,8 @@
 |---|---|---|---|
 | **Audit & Baseline** | Repository count audit & official IELTS spec reconciliation | **Done** | [MILESTONE_3_AUDIT.md](./MILESTONE_3_AUDIT.md) + reconciled M1/M2 baseline (`2,774` baseline exercises) |
 | **Batch 3A** | Complete A1–C2 CEFR Learning Path & Structured Assessments | **Done (CI Passed `358b7dd`)** | `36` new CEFR units (`48` total), `216` new lessons (`264` total), `45` assessments (`36` unit + `6` level exams + `3` diagnostic/review), `888` newly authored exercises (`51` reused refs tracked separately) |
-| **Batch 3B** | IELTS Mastery Center Academies & Idea/Lexis Banks | **Done (Local Validated; CI Pending Push)** | `310` IELTS entries (`80` Listening, `100` Speaking, `60` Reading [40 Ac / 20 GT], `60` Writing [20 Ac T1 w/ Recharts visuals / 10 GT Letters / 30 T2 Essays], `10` Topic Idea Banks) + `600` new IELTS exercises + Academic/GT scoring scaling |
-| **Batch 3C** | IELTS Strategy Academy & 12 Timed Mock Examinations | **Planned** | `60` strategy lessons + distraction-free exam runner + `8` Academic & `4` GT full 4-skill mocks |
+| **Batch 3B** | IELTS Mastery Center Academies & Idea/Lexis Banks | **Done (CI Passed `e945f1c`)** | `310` IELTS entries (`80` Listening, `100` Speaking, `60` Reading [40 Ac / 20 GT], `60` Writing [20 Ac T1 w/ Recharts visuals / 10 GT Letters / 30 T2 Essays], `10` Topic Idea Banks) + `600` new IELTS exercises + Academic/GT scoring scaling |
+| **Batch 3C** | IELTS Strategy Academy & 12 Timed Mock Examinations | **Done (Local Validated; CI Pending Push)** | `60` IELTS strategy lessons (`120` new exercises) + distraction-free `/mock-exam/:mockId` engine (timers, split-screen Reading, Task 1 visuals, local recorder, autosave) + `8` Academic & `4` GT full 4-skill mocks |
 | **Batch 3D** | Real Analytics, Study Planner, Mistake Diagnostic & Release Verification | **Planned** | Real study metrics, rule-based planner, mistake clustering, full CI verification & open PR |
 
 ---
@@ -56,3 +56,13 @@
   - **Topic Idea & Lexis Bank (`10` packs / `20` exercises):** Deep argument pairs, counterpoints, academic collocations, and natural spoken expressions.
 - **UI & Lazy Chunking (`frontend/src/features/ielts/`):**
   - `IeltsPage.tsx`, `IeltsVisualRenderer.tsx`, `IeltsListeningSpeakingTabs.tsx`, and `IeltsReadingWritingIdeaTabs.tsx` dynamically import chunks per tab via `content/index.ts`.
+
+---
+
+## Batch 3C Verified Inventory & Architecture
+
+- **IELTS Strategy & Methodology Academy (`content/ielts/strategy_lessons.ts`):**
+  - `60` lessons across 5 pillars (`listening`, `reading`, `writing`, `speaking`, `exam_day` — `12` each), featuring step-by-step tactical breakdowns, Trap Pattern & Counter-Move modules, pacing allocations, annotated snippets, and **`120` interactive strategy application checks**.
+- **Timed 4-Skill Mock Examination Suite (`content/ielts/mock_exams.ts` & `MockExamPlayerPage.tsx`):**
+  - `12` distinct non-overlapping mock bundles (`8` Academic `ielts-mock-ac-01..08`, `4` General Training `ielts-mock-gt-01..04`) assembled dynamically via `assembleIeltsMockExamById`.
+  - Dedicated distraction-free `/mock-exam/:mockId` simulator with per-section countdown clocks (`30m`/`60m`/`60m`/`14m`), automatic crash-recovery autosave (`inProgressMockExam`), split-screen Reading reader, Task 1 visuals/letters, live Writing counters & heuristic self-practice band estimate, Speaking prep/turn timers + local `MediaRecorder` playback, Mistake Notebook sync, and unofficial overall `.25/.75` rounded reporting.

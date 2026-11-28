@@ -24,8 +24,10 @@ import {
   loadCurriculumMatrix,
   loadIeltsIdeaBanks,
   loadIeltsListening,
+  loadIeltsMockManifests,
   loadIeltsReading,
   loadIeltsSpeaking,
+  loadIeltsStrategies,
   loadIeltsWriting,
   loadIntegratedSequences,
   loadLearningResources,
@@ -75,6 +77,8 @@ export async function runValidation(writeReport = false): Promise<number> {
     ieltsReading,
     ieltsWriting,
     ieltsIdeaBanks,
+    ieltsStrategies,
+    ieltsMocks,
   ] = await Promise.all([
     loadAllVocabulary(),
     loadAllGrammar(),
@@ -97,6 +101,8 @@ export async function runValidation(writeReport = false): Promise<number> {
     loadIeltsReading(),
     loadIeltsWriting(),
     loadIeltsIdeaBanks(),
+    loadIeltsStrategies(),
+    loadIeltsMockManifests(),
   ]);
 
   // 1. Vocabulary integrity
@@ -1001,9 +1007,92 @@ export async function runValidation(writeReport = false): Promise<number> {
     ieltsSpeaking.length +
     ieltsReading.length +
     ieltsWriting.length +
-    ieltsIdeaBanks.length;
+    ieltsIdeaBanks.length +
+    ieltsStrategies.length +
+    ieltsMocks.length;
 
-  const m3NewExercises = m3LessonExercisesCount + m3AssessExercisesCount + m3IeltsExercisesCount;
+  // 19. Milestone 3 Batch 3C IELTS Strategy Lessons (60 / 120 ex) & Mock Exams (12: 8 Ac + 4 GT)
+  let m3StrategyExercisesCount = 0;
+  if (ieltsStrategies.length !== 60) {
+    errors.push(`Expected 60 IELTS Strategy Lessons, got ${ieltsStrategies.length}`);
+  }
+  const stratCats = new Set<string>();
+  const stratPromptBank = new Set<string>();
+  for (const st of ieltsStrategies) {
+    stratCats.add(st.category);
+    if (ieltsItemIds.has(st.id)) errors.push(`Duplicate IELTS strategy ID: ${st.id}`);
+    ieltsItemIds.add(st.id);
+    if (st.stepByStepMethod.length < 3 || st.trapPatterns.length < 1) {
+      errors.push(`Strategy lesson ${st.id} lacks full steps or trap pattern`);
+    }
+    for (const ex of st.exercises) {
+      if (exerciseIds.has(ex.id)) errors.push(`Duplicate strategy exercise ID: ${ex.id}`);
+      exerciseIds.add(ex.id);
+      m3StrategyExercisesCount += 1;
+      const pNorm = ex.prompt.toLowerCase().trim();
+      if (stratPromptBank.has(pNorm)) {
+        errors.push(`Duplicate IELTS strategy prompt in ${st.id}: "${ex.prompt}"`);
+      }
+      stratPromptBank.add(pNorm);
+      if (ex.options && !Array.isArray(ex.correctAnswer) && !ex.options.includes(ex.correctAnswer)) {
+        errors.push(`Strategy exercise ${ex.id} correctAnswer missing from options`);
+      }
+      checkNonEmpty(`Strategy ${ex.id}.explanation`, ex.explanation, errors);
+      if (!evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect) {
+        errors.push(`Self-evaluation failed for strategy exercise ${ex.id}`);
+      }
+    }
+  }
+  if (stratCats.size !== 5) {
+    errors.push(`Expected all 5 IELTS strategy categories, got ${stratCats.size}`);
+  }
+
+  if (ieltsMocks.length !== 12) {
+    errors.push(`Expected 12 complete IELTS Mock Exams, got ${ieltsMocks.length}`);
+  }
+  const acMockCount = ieltsMocks.filter((m) => m.pathway === 'academic').length;
+  const gtMockCount = ieltsMocks.filter((m) => m.pathway === 'general_training').length;
+  if (acMockCount !== 8) errors.push(`Expected 8 Academic Mock Exams, got ${acMockCount}`);
+  if (gtMockCount !== 4) errors.push(`Expected 4 General Training Mock Exams, got ${gtMockCount}`);
+
+  const listeningSet = new Set(ieltsListening.map((x) => x.id));
+  const readingMap = new Map(ieltsReading.map((x) => [x.id, x]));
+  const writingMap = new Map(ieltsWriting.map((x) => [x.id, x]));
+  const speakingSet = new Set(ieltsSpeaking.map((x) => x.id));
+
+  for (const mock of ieltsMocks) {
+    if (ieltsItemIds.has(mock.id)) errors.push(`Duplicate mock ID: ${mock.id}`);
+    ieltsItemIds.add(mock.id);
+    if (!mock.isUnofficialNotice.toLowerCase().includes('unofficial')) {
+      errors.push(`Mock ${mock.id} lacks unofficial practice disclaimer`);
+    }
+    for (const lid of mock.listeningIds) {
+      if (!listeningSet.has(lid)) errors.push(`Mock ${mock.id} invalid listening ref ${lid}`);
+    }
+    for (const rid of mock.readingIds) {
+      const rObj = readingMap.get(rid);
+      if (!rObj || rObj.pathway !== mock.pathway) {
+        errors.push(`Mock ${mock.id} (${mock.pathway}) invalid/mismatched reading ref ${rid}`);
+      }
+    }
+    const w1 = writingMap.get(mock.writingTask1Id);
+    const w2 = writingMap.get(mock.writingTask2Id);
+    if (!w1 || (w1.pathway !== 'shared' && w1.pathway !== mock.pathway)) {
+      errors.push(`Mock ${mock.id} invalid Task 1 ref ${mock.writingTask1Id}`);
+    }
+    if (!w2 || w2.taskType !== 'task_2') {
+      errors.push(`Mock ${mock.id} invalid Task 2 ref ${mock.writingTask2Id}`);
+    }
+    for (const sid of mock.speakingPartIds) {
+      if (!speakingSet.has(sid)) errors.push(`Mock ${mock.id} invalid speaking ref ${sid}`);
+    }
+  }
+
+  const m3NewExercises =
+    m3LessonExercisesCount +
+    m3AssessExercisesCount +
+    m3IeltsExercisesCount +
+    m3StrategyExercisesCount;
 
   const totalVocab = SEED_VOCABULARY.length + expandedVocab.length;
   const totalGrammarTopics = GRAMMAR_TOPICS.length + expandedGrammar.length;
@@ -1074,10 +1163,10 @@ export async function runValidation(writeReport = false): Promise<number> {
     `Milestone 3 Structured Assessments: ${m3Assessments.length} (${m3UnitAssessCount} unit + ${m3LevelExamCount} level exams + ${m3Assessments.length - m3UnitAssessCount - m3LevelExamCount} diag/review)`
   );
   console.log(
-    `Milestone 3 Newly Authored Exercises: ${m3NewExercises} (${m3LessonExercisesCount} lesson + ${m3AssessExercisesCount} assessment + ${m3IeltsExercisesCount} IELTS) [Reused refs tracked separately: ${m3ReusedRefCount}]`
+    `Milestone 3 Newly Authored Exercises: ${m3NewExercises} (${m3LessonExercisesCount} lesson + ${m3AssessExercisesCount} assessment + ${m3IeltsExercisesCount} IELTS academies + ${m3StrategyExercisesCount} strategy) [Reused refs tracked separately: ${m3ReusedRefCount}]`
   );
   console.log(
-    `Milestone 3 IELTS Mastery Center: ${ieltsTotalEntries} items (Listening ${ieltsListening.length}, Speaking ${ieltsSpeaking.length}, Reading ${ieltsReading.length} [Ac:${acReadingCount}/GT:${gtReadingCount}], Writing ${ieltsWriting.length}, Ideas ${ieltsIdeaBanks.length}) [${m3IeltsExercisesCount} ex]`
+    `Milestone 3 IELTS Mastery Center: ${ieltsTotalEntries} items (Listening ${ieltsListening.length}, Speaking ${ieltsSpeaking.length}, Reading ${ieltsReading.length} [Ac:${acReadingCount}/GT:${gtReadingCount}], Writing ${ieltsWriting.length}, Ideas ${ieltsIdeaBanks.length}, Strategy ${ieltsStrategies.length}, Mocks ${ieltsMocks.length}) [${m3IeltsExercisesCount + m3StrategyExercisesCount} ex]`
   );
   console.log(`Curated Learning Resources: ${resources.length}`);
   console.log(`Curriculum Matrix Levels: ${matrix.length}`);

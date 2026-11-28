@@ -3,18 +3,22 @@ import { Link } from 'react-router-dom';
 import {
   BookOpen,
   Clock,
+  Compass,
   Headphones,
   Lightbulb,
   Mic,
   PenTool,
+  Play,
   ShieldCheck,
   Target,
 } from 'lucide-react';
 import type {
   IELTSIdeaVocabTopic,
   IELTSListeningActivity,
+  IELTSMockExamManifest,
   IELTSReadingPassage,
   IELTSSpeakingActivity,
+  IELTSStrategyLesson,
   IELTSWritingTask,
 } from '@english-quest/shared';
 import {
@@ -25,8 +29,10 @@ import {
 import {
   loadIeltsIdeaBanks,
   loadIeltsListening,
+  loadIeltsMockManifests,
   loadIeltsReading,
   loadIeltsSpeaking,
+  loadIeltsStrategies,
   loadIeltsWriting,
 } from '@content/index';
 import { HonestNotice, PillBadge, QuestCard } from '@/components/ui/QuestUI';
@@ -41,8 +47,9 @@ import { playFeedbackTone, speakText } from '@/services/speechService';
 import { useQuestStore } from '@/stores/useQuestStore';
 import { IeltsListeningTab, IeltsSpeakingTab } from './IeltsListeningSpeakingTabs';
 import { IeltsIdeaBankTab, IeltsReadingTab, IeltsWritingTab } from './IeltsReadingWritingIdeaTabs';
+import { IeltsMockHubTab, IeltsStrategyTab } from './IeltsStrategyMockTabs';
 
-type IeltsTab = 'overview' | 'listening' | 'speaking' | 'reading' | 'writing' | 'ideas';
+type IeltsTab = 'overview' | 'listening' | 'speaking' | 'reading' | 'writing' | 'strategy' | 'mocks' | 'ideas';
 
 export function IeltsPage() {
   const ieltsPathway = useQuestStore((s) => s.ieltsPathway);
@@ -64,6 +71,8 @@ export function IeltsPage() {
   const [speakingItems, setSpeakingItems] = useState<IELTSSpeakingActivity[] | null>(null);
   const [readingItems, setReadingItems] = useState<IELTSReadingPassage[] | null>(null);
   const [writingItems, setWritingItems] = useState<IELTSWritingTask[] | null>(null);
+  const [strategyItems, setStrategyItems] = useState<IELTSStrategyLesson[] | null>(null);
+  const [mockManifests, setMockManifests] = useState<IELTSMockExamManifest[] | null>(null);
   const [ideaItems, setIdeaItems] = useState<IELTSIdeaVocabTopic[] | null>(null);
   const [loadingTab, setLoadingTab] = useState(false);
 
@@ -81,6 +90,8 @@ export function IeltsPage() {
       if (activeTab === 'speaking' && speakingItems) return;
       if (activeTab === 'reading' && readingItems) return;
       if (activeTab === 'writing' && writingItems) return;
+      if (activeTab === 'strategy' && strategyItems) return;
+      if (activeTab === 'mocks' && mockManifests) return;
       if (activeTab === 'ideas' && ideaItems) return;
 
       setLoadingTab(true);
@@ -97,6 +108,12 @@ export function IeltsPage() {
         } else if (activeTab === 'writing') {
           const data = await loadIeltsWriting();
           if (active) setWritingItems(data);
+        } else if (activeTab === 'strategy') {
+          const data = await loadIeltsStrategies();
+          if (active) setStrategyItems(data);
+        } else if (activeTab === 'mocks') {
+          const data = await loadIeltsMockManifests();
+          if (active) setMockManifests(data);
         } else if (activeTab === 'ideas') {
           const data = await loadIeltsIdeaBanks();
           if (active) setIdeaItems(data);
@@ -109,7 +126,7 @@ export function IeltsPage() {
     return () => {
       active = false;
     };
-  }, [activeTab, listeningItems, speakingItems, readingItems, writingItems, ideaItems]);
+  }, [activeTab, listeningItems, speakingItems, readingItems, writingItems, strategyItems, mockManifests, ideaItems]);
 
   const pathwayQuestions = IELTS_MINI_MOCK_QUESTIONS.filter(
     (q) => q.pathway === 'both' || q.pathway === ieltsPathway
@@ -157,6 +174,8 @@ export function IeltsPage() {
     { id: 'speaking', label: 'Speaking (100)', icon: Mic },
     { id: 'reading', label: 'Reading (60)', icon: BookOpen },
     { id: 'writing', label: 'Writing (60)', icon: PenTool },
+    { id: 'strategy', label: 'Strategy (60)', icon: Compass },
+    { id: 'mocks', label: 'Mock Exams (12)', icon: Play },
     { id: 'ideas', label: 'Idea & Lexis (10)', icon: Lightbulb },
   ];
 
@@ -166,13 +185,13 @@ export function IeltsPage() {
         <div>
           <PillBadge tone="purple">
             <Target className="h-3.5 w-3.5" />
-            IELTS Mastery Center ({ieltsDoneCount}/310 Completed)
+            IELTS Mastery Center ({ieltsDoneCount}/382 Completed)
           </PillBadge>
           <h1 className="mt-2 text-2xl font-black sm:text-3xl">
             Academic & General Training Practice Hub
           </h1>
           <p className="mt-1 text-sm font-semibold text-[#666666]">
-            Original IELTS-aligned training across Listening (80), Speaking (100), Reading (60), Writing (60), and Topic Idea Packs (10).
+            Original IELTS-aligned training across Listening (80), Speaking (100), Reading (60), Writing (60), Strategy (60), Timed Mocks (12), and Topic Idea Packs (10).
           </p>
         </div>
 
@@ -290,6 +309,21 @@ export function IeltsPage() {
         />
       )}
 
+      {!loadingTab && activeTab === 'strategy' && strategyItems && (
+        <IeltsStrategyTab
+          lessons={strategyItems}
+          accent={preferences.preferredAccent}
+          soundEffects={preferences.soundEffects}
+        />
+      )}
+
+      {!loadingTab && activeTab === 'mocks' && mockManifests && (
+        <IeltsMockHubTab
+          manifests={mockManifests}
+          pathway={ieltsPathway}
+        />
+      )}
+
       {!loadingTab && activeTab === 'ideas' && ideaItems && (
         <IeltsIdeaBankTab
           packs={ideaItems}
@@ -301,7 +335,25 @@ export function IeltsPage() {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Interactive IELTS Academies Grid */}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <button
+              type="button"
+              onClick={() => setActiveTab('mocks')}
+              className="rounded-2xl border-2 border-[#8E3FD6] bg-[#FAF4FF] p-4 text-left hover:bg-[#F3E6FF]"
+            >
+              <Play className="h-6 w-6 text-[#8E3FD6]" />
+              <p className="mt-2 font-black text-[#8E3FD6]">Mock Exams (12)</p>
+              <p className="text-xs font-semibold text-[#555555]">8 Academic + 4 GT Timed Tests</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('strategy')}
+              className="rounded-2xl border-2 border-[#1CB0F6] bg-[#F2FAFF] p-4 text-left hover:bg-[#E1F4FF]"
+            >
+              <Compass className="h-6 w-6 text-[#0E8BC9]" />
+              <p className="mt-2 font-black text-[#0E8BC9]">Strategy Academy (60)</p>
+              <p className="text-xs font-semibold text-[#555555]">Exam traps, timing & rubrics</p>
+            </button>
             <button
               type="button"
               onClick={() => setActiveTab('listening')}
@@ -341,11 +393,11 @@ export function IeltsPage() {
             <button
               type="button"
               onClick={() => setActiveTab('ideas')}
-              className="rounded-2xl border-2 border-[#E5E5E5] bg-white p-4 text-left hover:bg-[#F7F8FA]"
+              className="rounded-2xl border-2 border-[#E5E5E5] bg-white p-4 text-left hover:bg-[#F7F8FA] sm:col-span-2"
             >
               <Lightbulb className="h-6 w-6 text-[#8E3FD6]" />
-              <p className="mt-2 font-black">Idea Packs (10)</p>
-              <p className="text-xs font-semibold text-[#666666]">Arguments & high lexis</p>
+              <p className="mt-2 font-black">Topic Idea & Lexis Packs (10)</p>
+              <p className="text-xs font-semibold text-[#666666]">Thesis + counterpoints & Band 8 academic collocations</p>
             </button>
           </div>
 

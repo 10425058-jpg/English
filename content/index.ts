@@ -1,4 +1,5 @@
 import type {
+  AssembledIELTSMockExam,
   CEFRLevel,
   ConversationScenario,
   CurriculumMatrixEntry,
@@ -6,9 +7,11 @@ import type {
   GrammarTopic,
   IELTSIdeaVocabTopic,
   IELTSListeningActivity,
+  IELTSMockExamManifest,
   IELTSPathway,
   IELTSReadingPassage,
   IELTSSpeakingActivity,
+  IELTSStrategyLesson,
   IELTSWritingTask,
   IntegratedSequence,
   LearningResource,
@@ -500,5 +503,50 @@ export async function loadIeltsWriting(pathway?: IELTSPathway): Promise<IELTSWri
 
 export async function loadIeltsIdeaBanks(): Promise<IELTSIdeaVocabTopic[]> {
   return import('./ielts/vocabulary_ideas').then((m) => m.IELTS_TOPIC_IDEA_BANKS);
+}
+
+/**
+ * Lazy loaders for Milestone 3 Batch 3C IELTS Strategy Academy & Timed Mock Exams.
+ */
+export async function loadIeltsStrategies(): Promise<IELTSStrategyLesson[]> {
+  return import('./ielts/strategy_lessons').then((m) => m.IELTS_STRATEGY_LESSONS);
+}
+
+export async function loadIeltsMockManifests(): Promise<IELTSMockExamManifest[]> {
+  return import('./ielts/mock_exams').then((m) => m.IELTS_MOCK_EXAMS);
+}
+
+export async function assembleIeltsMockExamById(mockId: string): Promise<AssembledIELTSMockExam | null> {
+  const manifests = await loadIeltsMockManifests();
+  const manifest = manifests.find((m) => m.id === mockId);
+  if (!manifest) return null;
+
+  const [listening, reading, writing, speaking] = await Promise.all([
+    loadIeltsListening(),
+    loadIeltsReading(manifest.pathway),
+    loadIeltsWriting(manifest.pathway),
+    loadIeltsSpeaking(),
+  ]);
+
+  const lMap = new Map(listening.map((x) => [x.id, x]));
+  const rMap = new Map(reading.map((x) => [x.id, x]));
+  const wMap = new Map(writing.map((x) => [x.id, x]));
+  const sMap = new Map(speaking.map((x) => [x.id, x]));
+
+  const listeningParts = manifest.listeningIds.map((id) => lMap.get(id)).filter(Boolean) as IELTSListeningActivity[];
+  const readingPassages = manifest.readingIds.map((id) => rMap.get(id)).filter(Boolean) as IELTSReadingPassage[];
+  const writingTask1 = wMap.get(manifest.writingTask1Id);
+  const writingTask2 = wMap.get(manifest.writingTask2Id);
+  const speakingParts = manifest.speakingPartIds.map((id) => sMap.get(id)).filter(Boolean) as IELTSSpeakingActivity[];
+
+  if (!writingTask1 || !writingTask2) return null;
+  return {
+    manifest,
+    listeningParts,
+    readingPassages,
+    writingTask1,
+    writingTask2,
+    speakingParts,
+  };
 }
 

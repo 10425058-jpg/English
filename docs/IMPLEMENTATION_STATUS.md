@@ -1,6 +1,6 @@
 # English Quest — Implementation Status
 
-> Updated: 2026-11-28 | Active Branch: `feature/advanced-cefr-ielts-mastery` (Milestone 3 Batches 3A–3B)
+> Updated: 2026-11-28 | Active Branch: `feature/advanced-cefr-ielts-mastery` (Milestone 3 Batches 3A–3C)
 
 ## Milestone Summary
 
@@ -31,8 +31,9 @@
 
 - **Milestone 3 — Advanced CEFR Learning Path & IELTS Mastery Center (Batches 3A–3B Active on `feature/advanced-cefr-ielts-mastery`):**
   - **Batch 3A (Complete & CI Passed `358b7dd`):** Activated full A1–C2 CEFR Learning Path (`36` new units + `12` core = `48` total units across `A1–C2`, `216` new structured lessons + `48` core = `264` lessons), **`45` structured assessments** (`36` Unit Mastery + `6` CEFR Level Completion Exams + `3` diagnostic/section/mixed review packs), **`888` newly authored interactive exercises** (`+51` reused drill references tracked separately), upgraded `placementTest.ts` across A1–C2 (`14` items), added dedicated `/assessment/:assessmentId` Assessment Player, separated non-XP CEFR Mastery metrics, flexible level unlocking, and collapsible lesson briefing panels. See [MILESTONE_3_PROGRESS.md](./MILESTONE_3_PROGRESS.md).
-  - **Batch 3B (Complete & Local Validated):** Upgraded `IeltsPage.tsx` into the full IELTS Mastery Center with Academic vs. General Training separation (`ieltsScoring.ts` 40-mark curves & `.25/.75` rounding), **`80` Listening** items (`160` ex), **`100` Speaking** sets (Cue Cards w/ 1m/2m timers, mic recorder, Band 6 vs Band 8 comparisons), **`60` Reading** passages (`40` Academic + `20` GT, `300` ex), **`60` Writing** prompts (`20` Academic Task 1 w/ Recharts `line`/`bar`/`pie`/Table/Process/Map visuals, `10` GT Letters, `30` Task 2 essays, `120` ex), and **`10` Topic Idea & Lexis Packs** (`20` ex) -> **`4,262` combined interactive exercises**.
-  - **Batches 3C–3D (Planned Next):** `60` IELTS Strategy Lessons + `12` Timed Mock Exams (`8` Academic, `4` GT), real analytics, adaptive study planner, and mistake breakdown.
+  - **Batch 3B (Complete & CI Passed `e945f1c`):** Upgraded `IeltsPage.tsx` into the full IELTS Mastery Center with Academic vs. General Training separation (`ieltsScoring.ts` 40-mark curves & `.25/.75` rounding), **`80` Listening** items (`160` ex), **`100` Speaking** sets (Cue Cards w/ 1m/2m timers, mic recorder, Band 6 vs Band 8 comparisons), **`60` Reading** passages (`40` Academic + `20` GT, `300` ex), **`60` Writing** prompts (`20` Academic Task 1 w/ Recharts `line`/`bar`/`pie`/Table/Process/Map visuals, `10` GT Letters, `30` Task 2 essays, `120` ex), and **`10` Topic Idea & Lexis Packs** (`20` ex).
+  - **Batch 3C (Complete & Local Validated):** Authored **`60` IELTS Strategy & Methodology Lessons** (`120` new interactive checks) plus **`12` Complete Timed 4-Skill Mock Exams** (`8` Academic + `4` General Training) running in distraction-free `/mock-exam/:mockId` (`MockExamPlayerPage.tsx`) with section timers, split-screen Reading, local Speaking capture, autosave crash recovery, and unofficial band reports -> **`4,382` combined interactive exercises**.
+  - **Batch 3D (Planned Next):** Real analytics visualization, adaptive study planner, mistake breakdown refinements, and final release regression + PR.
 
 - **Phase 2 — Backend & Cloud Persistence:** **Schema & Contracts Drafted**
   - 28 normalized PostgreSQL Prisma models defined in `backend/prisma/schema.prisma`.
