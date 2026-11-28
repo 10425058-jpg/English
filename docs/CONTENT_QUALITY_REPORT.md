@@ -18,9 +18,10 @@ Generated automatically by `npm run validate:content`.
 | Interactive Practice Bank Exercises | 0 | 600 | 600 |
 | Grammar Academy Mini-Quizzes | 8 | 144 | 152 |
 | Milestone 2 Academy Interactive Exercises | 0 | 1830 | 1830 |
-| Milestone 3 Curriculum & Assessment Exercises (Newly Authored) | 0 | 888 | 888 |
+| Milestone 3 Curriculum, Assessment & IELTS Exercises (Newly Authored) | 0 | 1488 | 1488 |
+| IELTS Mastery Center Activities & Banks | 7 | 310 | 317 |
 | Core Learning Path Exercises | 192 | 0 | 192 |
-| **Combined Interactive Exercises** | **200** | **3462** | **3662** |
+| **Combined Interactive Exercises** | **200** | **4062** | **4262** |
 | Learning Path CEFR Units | 12 | 36 | 48 |
 | Learning Path Lessons | 48 | 216 | 264 |
 | Structured Assessments & CEFR Exams | 0 | 45 | 45 |
@@ -89,7 +90,7 @@ Generated automatically by `npm run validate:content`.
 | B2 | 8 | 48 | 196 |
 | C1 | 8 | 48 | 192 |
 | C2 | 8 | 48 | 196 |
-| **Total New M3** | **36** | **216** | **888** |
+| **Total New M3** | **36** | **216** | **1488** |
 
 Note: Milestone 3 units additionally link **51 reused drill references** from the Exercise Bank (`reusedExerciseRefs`), tracked separately and never double-counted inside newly authored totals.
 
@@ -99,5 +100,5 @@ Note: Milestone 3 units additionally link **51 reused drill references** from th
 2. **Zero duplicate headwords** (normalized `word + senseLabel`) in expanded vocabulary packs.
 3. **Zero duplicate prompts** inside any expanded level exercise bank, within any Listening/Reading/Pronunciation/Writing lesson, or within any Milestone 3 learning-path lesson or assessment.
 4. **100% referential integrity**: every `vocabularyIds` reference inside all 30 thematic collections exists, every `relatedKnowledgeId` inside all 600 practice exercises resolves, every `IntegratedSequence` links valid assets, and every Milestone 3 `prerequisiteUnitIds`, `masteryAssessmentId`, `targetVocabIds`, `targetGrammarIds`, `reusedExerciseRefs`, and `linked*Ids` reference resolves.
-5. **100% evaluator round-trip check**: every expanded quiz, bank, Milestone 2 academy, and Milestone 3 exercise (3462 total) passes `evaluateExerciseAnswer(ex, ex.correctAnswer) === true`.
+5. **100% evaluator round-trip check**: every expanded quiz, bank, Milestone 2 academy, and Milestone 3 exercise (4062 total) passes `evaluateExerciseAnswer(ex, ex.correctAnswer) === true`.
 6. **100% valid external resource URLs**: all 36 resource URLs parse cleanly over HTTPS/HTTP with zero placeholder domains.

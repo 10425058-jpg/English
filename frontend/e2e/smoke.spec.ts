@@ -197,6 +197,18 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
   await expect(page.getByText(/Shadowing Self-Check/i)).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-shadowing-studio.png'), fullPage: false });
 
+  // Verify Batch 3B IELTS Mastery Center tabs, Academic vs GT filter, and Recharts visual rendering
+  await page.goto('./#/ielts');
+  await expect(page.getByText(/IELTS Mastery Center/i)).toBeVisible();
+  await page.getByRole('tab', { name: /Listening \(80\)/i }).click();
+  await expect(page.getByText(/IELTS Listening Distractor Lab/i)).toBeVisible();
+  await page.getByRole('tab', { name: /Reading \(60\)/i }).click();
+  await expect(page.getByText(/IELTS Reading Academy/i)).toBeVisible();
+  await page.getByRole('tab', { name: /Writing \(60\)/i }).click();
+  await expect(page.getByText(/IELTS Writing Task 1 & Task 2 Studio/i)).toBeVisible();
+  await expect(page.locator('[data-testid="ielts-task1-chart"]').first()).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-ielts-mastery.png'), fullPage: false });
+
   // Also check Onboarding page
   await page.goto('./#/onboarding');
   await expect(page.getByText(/Welcome to English Quest/i)).toBeVisible();

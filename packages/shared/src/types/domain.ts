@@ -878,3 +878,145 @@ export interface AssessmentAttemptRecord {
   durationSeconds: number;
   completedAt: string;
 }
+
+export type IELTSListeningPart = 'part_1' | 'part_2' | 'part_3' | 'part_4';
+export type IELTSSpeakingPart = 'part_1' | 'part_2' | 'part_3';
+export type IELTSWritingSubtype =
+  | 'bar_chart'
+  | 'line_graph'
+  | 'pie_chart'
+  | 'table'
+  | 'process'
+  | 'map'
+  | 'formal_letter'
+  | 'semi_formal_letter'
+  | 'informal_letter'
+  | 'opinion'
+  | 'discussion'
+  | 'advantages_disadvantages'
+  | 'problem_solution'
+  | 'two_part';
+
+export interface IELTSListeningActivity {
+  id: string;
+  part: IELTSListeningPart;
+  pathway: 'shared';
+  title: string;
+  topic: string;
+  accent: EnglishAccent;
+  cefrTarget: CEFRLevel;
+  contextDescription: string;
+  wordLimitNote: string;
+  scriptLines: Array<{ speaker: string; text: string }>;
+  distractorTraps: string[];
+  exercises: Exercise[];
+}
+
+export interface IELTSSpeakingActivity {
+  id: string;
+  part: IELTSSpeakingPart;
+  title: string;
+  topic: string;
+  cefrTarget: CEFRLevel;
+  activityType?: SpeakingActivityType;
+  category?: SpeakingCategory;
+  prompt?: string;
+  promptVi?: string;
+  objectives?: string[];
+  preparationQuestions?: string[];
+  cueCard?: {
+    prompt: string;
+    bullets: string[];
+    prepSeconds: 60;
+    speakSeconds: 120;
+  };
+  questions: string[];
+  followUpProbes?: string[];
+  vocabularyCollocations: Array<{ phrase: string; meaning: string; vietnamese: string }>;
+  bandModels: {
+    band6: string;
+    band8: string;
+  };
+  examinerNotes: string[];
+  modelText?: string;
+  alternativeResponses?: string[];
+  vocabularyBank?: Array<{ term: string; meaning: string; vietnamese: string }>;
+  naturalExpressions?: string[];
+  sentenceStructures?: Array<{ frame: string; example: string }>;
+  suggestedOrganization?: string[];
+  commonMistakes?: Array<{ mistake: string; correction: string; why: string }>;
+  followUpQuestions?: string[];
+  improvementStrategies?: string[];
+  tips?: string[];
+  selfChecklist?: string[];
+  keyVocabulary?: string[];
+  suggestedSeconds?: number;
+}
+
+export interface IELTSReadingPassage {
+  id: string;
+  pathway: 'academic' | 'general_training';
+  sectionLabel: string;
+  title: string;
+  topic: string;
+  cefrTarget: CEFRLevel;
+  paragraphs: Array<{ label: string; text: string }>;
+  questionTypesCovered: string[];
+  exercises: Exercise[];
+}
+
+export interface IELTSVisualSpec {
+  type: 'line' | 'bar' | 'pie' | 'table' | 'process' | 'map';
+  title: string;
+  unitLabel: string;
+  categories?: string[];
+  series?: Array<{ name: string; values: number[] }>;
+  tableRows?: string[][];
+  processSteps?: string[];
+  mapChanges?: Array<{ zone: string; before: string; after: string }>;
+}
+
+export interface IELTSWritingTask {
+  id: string;
+  taskType: 'task_1_academic' | 'task_1_gt' | 'task_2';
+  pathway: 'academic' | 'general_training' | 'shared';
+  questionSubtype: IELTSWritingSubtype;
+  title: string;
+  topic: string;
+  cefrTarget: CEFRLevel;
+  prompt: string;
+  minWords: 150 | 250;
+  recommendedMinutes: 20 | 40;
+  visualSpec?: IELTSVisualSpec;
+  letterContext?: {
+    recipientType: string;
+    tone: 'formal' | 'semi_formal' | 'informal';
+    bulletPoints: string[];
+  };
+  bandDescriptors: Array<{ criterion: string; targetNote: string }>;
+  outlineSteps: string[];
+  keyCollocations: Array<{ phrase: string; note: string; vietnamese: string }>;
+  band6Model: string;
+  band8Model: string;
+  commonPitfalls: string[];
+  exercises: Exercise[];
+}
+
+export interface IELTSIdeaVocabTopic {
+  id: string;
+  topic: string;
+  cefrTarget: CEFRLevel;
+  coreArguments: Array<{ thesis: string; support: string; counterPoint: string }>;
+  academicCollocations: Array<{
+    term: string;
+    registerNote: string;
+    example: string;
+    vietnamese: string;
+  }>;
+  speakingNaturalExpressions: Array<{
+    phrase: string;
+    nuance: string;
+    example: string;
+  }>;
+  exercises: Exercise[];
+}

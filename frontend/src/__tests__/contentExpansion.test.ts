@@ -13,6 +13,11 @@ import {
   loadAllVocabulary,
   loadAllWriting,
   loadCurriculumMatrix,
+  loadIeltsIdeaBanks,
+  loadIeltsListening,
+  loadIeltsReading,
+  loadIeltsSpeaking,
+  loadIeltsWriting,
   loadIntegratedSequences,
   loadLearningResources,
   loadPronunciationLessons,
@@ -371,5 +376,51 @@ describe('Expanded Milestone 1 Content Integrity & Lazy Modules', () => {
       }
     }
     expect(m3AssessExIds.size).toBe(240);
+  });
+
+  it('Milestone 3 Batch 3B IELTS Mastery Center validates 310 entries and 600 unique exercises cleanly', async () => {
+    const [listening, speaking, readingAc, readingGt, writingAc, writingGt, ideas] = await Promise.all([
+      loadIeltsListening(),
+      loadIeltsSpeaking(),
+      loadIeltsReading('academic'),
+      loadIeltsReading('general_training'),
+      loadIeltsWriting('academic'),
+      loadIeltsWriting('general_training'),
+      loadIeltsIdeaBanks(),
+    ]);
+
+    expect(listening).toHaveLength(80);
+    expect(speaking).toHaveLength(100);
+    expect(readingAc).toHaveLength(40);
+    expect(readingGt).toHaveLength(20);
+    expect(ideas).toHaveLength(10);
+
+    const allWriting = [...new Map([...writingAc, ...writingGt].map((w) => [w.id, w])).values()];
+    expect(allWriting).toHaveLength(60);
+    expect(allWriting.filter((w) => w.taskType === 'task_1_academic')).toHaveLength(20);
+    expect(allWriting.filter((w) => w.taskType === 'task_1_gt')).toHaveLength(10);
+    expect(allWriting.filter((w) => w.taskType === 'task_2')).toHaveLength(30);
+
+    for (const ac1 of allWriting.filter((w) => w.taskType === 'task_1_academic')) {
+      expect(ac1.visualSpec).toBeDefined();
+    }
+    for (const gt1 of allWriting.filter((w) => w.taskType === 'task_1_gt')) {
+      expect(gt1.letterContext?.bulletPoints.length).toBeGreaterThanOrEqual(3);
+    }
+
+    const ieltsExIds = new Set<string>();
+    const checkList = [
+      ...listening.flatMap((x) => x.exercises),
+      ...readingAc.flatMap((x) => x.exercises),
+      ...readingGt.flatMap((x) => x.exercises),
+      ...allWriting.flatMap((x) => x.exercises),
+      ...ideas.flatMap((x) => x.exercises),
+    ];
+    for (const ex of checkList) {
+      expect(ieltsExIds.has(ex.id)).toBe(false);
+      ieltsExIds.add(ex.id);
+      expect(evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect).toBe(true);
+    }
+    expect(ieltsExIds.size).toBe(600);
   });
 });

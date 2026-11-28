@@ -4,6 +4,12 @@ import type {
   CurriculumMatrixEntry,
   Exercise,
   GrammarTopic,
+  IELTSIdeaVocabTopic,
+  IELTSListeningActivity,
+  IELTSPathway,
+  IELTSReadingPassage,
+  IELTSSpeakingActivity,
+  IELTSWritingTask,
   IntegratedSequence,
   LearningResource,
   Lesson,
@@ -447,3 +453,52 @@ export async function loadAssessmentById(id: string): Promise<StructuredAssessme
   const all = await loadAllAssessments();
   return all.find((a) => a.id === id) ?? null;
 }
+
+/**
+ * Lazy loaders for Milestone 3 Batch 3B IELTS Mastery Center Academies.
+ */
+export async function loadIeltsListening(): Promise<IELTSListeningActivity[]> {
+  const [p12, p34] = await Promise.all([
+    import('./ielts/listening_p1_p2').then((m) => m.IELTS_LISTENING_P1_P2),
+    import('./ielts/listening_p3_p4').then((m) => m.IELTS_LISTENING_P3_P4),
+  ]);
+  return [...p12, ...p34];
+}
+
+export async function loadIeltsSpeaking(): Promise<IELTSSpeakingActivity[]> {
+  const [p1, p23] = await Promise.all([
+    import('./ielts/speaking_p1').then((m) => m.IELTS_SPEAKING_PART1),
+    import('./ielts/speaking_p2_p3').then((m) => m.IELTS_SPEAKING_PART2_PART3),
+  ]);
+  return [...p1, ...p23];
+}
+
+export async function loadIeltsReading(pathway?: IELTSPathway): Promise<IELTSReadingPassage[]> {
+  if (pathway === 'general_training') {
+    return import('./ielts/reading_gt').then((m) => m.IELTS_READING_GT);
+  }
+  const [acA, acB] = await Promise.all([
+    import('./ielts/reading_academic_a').then((m) => m.IELTS_READING_ACADEMIC_A),
+    import('./ielts/reading_academic_b').then((m) => m.IELTS_READING_ACADEMIC_B),
+  ]);
+  if (pathway === 'academic') {
+    return [...acA, ...acB];
+  }
+  const gt = await import('./ielts/reading_gt').then((m) => m.IELTS_READING_GT);
+  return [...acA, ...acB, ...gt];
+}
+
+export async function loadIeltsWriting(pathway?: IELTSPathway): Promise<IELTSWritingTask[]> {
+  const [t1, t2] = await Promise.all([
+    import('./ielts/writing_task1').then((m) => m.IELTS_WRITING_TASK1),
+    import('./ielts/writing_task2').then((m) => m.IELTS_WRITING_TASK2),
+  ]);
+  const all = [...t1, ...t2];
+  if (!pathway) return all;
+  return all.filter((w) => w.pathway === 'shared' || w.pathway === pathway);
+}
+
+export async function loadIeltsIdeaBanks(): Promise<IELTSIdeaVocabTopic[]> {
+  return import('./ielts/vocabulary_ideas').then((m) => m.IELTS_TOPIC_IDEA_BANKS);
+}
+

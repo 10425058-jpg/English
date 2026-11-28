@@ -7,8 +7,8 @@
 | Batch | Focus | Status | Verified Highlights |
 |---|---|---|---|
 | **Audit & Baseline** | Repository count audit & official IELTS spec reconciliation | **Done** | [MILESTONE_3_AUDIT.md](./MILESTONE_3_AUDIT.md) + reconciled M1/M2 baseline (`2,774` baseline exercises) |
-| **Batch 3A** | Complete A1–C2 CEFR Learning Path & Structured Assessments | **Done (Local Validated; CI Pending Push)** | `36` new CEFR units (`48` total), `216` new lessons (`264` total), `45` assessments (`36` unit + `6` level exams + `3` diagnostic/review), `888` newly authored exercises (`51` reused refs tracked separately) |
-| **Batch 3B** | IELTS Mastery Center Academies & Idea/Lexis Banks | **Planned Next** | `80` Listening, `100` Speaking, `60` Reading, `60` Writing, Academic/GT separation |
+| **Batch 3A** | Complete A1–C2 CEFR Learning Path & Structured Assessments | **Done (CI Passed `358b7dd`)** | `36` new CEFR units (`48` total), `216` new lessons (`264` total), `45` assessments (`36` unit + `6` level exams + `3` diagnostic/review), `888` newly authored exercises (`51` reused refs tracked separately) |
+| **Batch 3B** | IELTS Mastery Center Academies & Idea/Lexis Banks | **Done (Local Validated; CI Pending Push)** | `310` IELTS entries (`80` Listening, `100` Speaking, `60` Reading [40 Ac / 20 GT], `60` Writing [20 Ac T1 w/ Recharts visuals / 10 GT Letters / 30 T2 Essays], `10` Topic Idea Banks) + `600` new IELTS exercises + Academic/GT scoring scaling |
 | **Batch 3C** | IELTS Strategy Academy & 12 Timed Mock Examinations | **Planned** | `60` strategy lessons + distraction-free exam runner + `8` Academic & `4` GT full 4-skill mocks |
 | **Batch 3D** | Real Analytics, Study Planner, Mistake Diagnostic & Release Verification | **Planned** | Real study metrics, rule-based planner, mistake clustering, full CI verification & open PR |
 
@@ -41,3 +41,18 @@
 
 - Local validation (`tsc` + `runValidation(true)`), monorepo `npm run typecheck`, and frontend `npm run lint` all passed (`0` errors, `0` warnings).
 - Local Vitest/Vite rollup execution remains blocked by Windows Application Control on `rolldown-binding.win32-x64-msvc.node`; full Vite production build, Vitest unit suite, `validate:content`, and Playwright E2E smoke tests run on `ubuntu-latest` GitHub Actions CI upon push.
+
+---
+
+## Batch 3B Verified Inventory & Architecture
+
+- **Scoring & Domain Helpers (`packages/shared/src/utils/ieltsScoring.ts`):**
+  - Implements 40-mark raw-to-band conversion differentiating `'academic'` vs `'general_training'` Reading curves (`convertReadingRawToBand`), `convertListeningRawToBand`, official `.25/.75` half-band rounding (`roundIeltsOverallBand`), and `UNOFFICIAL_IELTS_NOTICE` practice banner text.
+- **IELTS Academies (`content/ielts/`):**
+  - **Listening (`80` items / `160` exercises):** `20` per Part 1–4 across accents with multi-speaker scripts, distractor trap notes, audio controls, and one-word/phrase checks.
+  - **Speaking (`100` sets):** `40` Part 1 interviews + `30` Part 2 Cue Cards (60s prep / 120s long turn timers) + `30` Part 3 abstract analytical discussions, each featuring collocations and Band 6 vs Band 8 comparisons.
+  - **Reading (`60` passages / `300` exercises):** `40` multi-paragraph Academic texts (`ielts-rd-ac-01..40`) + `20` authentic General Training texts across Section 1 Everyday Survival, Section 2 Workplace Policy, and Section 3 Feature Articles (`ielts-rd-gt-01..20`).
+  - **Writing (`60` tasks / `120` exercises):** `20` Academic Task 1 visuals (`line`, `bar`, `pie`, `table`, `process`, `map` rendered interactively via `IeltsVisualRenderer` using Recharts) + `10` GT Task 1 Letters (`formal`, `semi_formal`, `informal`) + `30` Task 2 essays across all 5 IELTS Task 2 genres, with autosaved timed drafting and Band 6 vs Band 8 comparisons.
+  - **Topic Idea & Lexis Bank (`10` packs / `20` exercises):** Deep argument pairs, counterpoints, academic collocations, and natural spoken expressions.
+- **UI & Lazy Chunking (`frontend/src/features/ielts/`):**
+  - `IeltsPage.tsx`, `IeltsVisualRenderer.tsx`, `IeltsListeningSpeakingTabs.tsx`, and `IeltsReadingWritingIdeaTabs.tsx` dynamically import chunks per tab via `content/index.ts`.

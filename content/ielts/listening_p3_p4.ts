@@ -1,0 +1,306 @@
+import type { IELTSListeningActivity } from '@english-quest/shared';
+import { createIeltsListening, iEx } from './helpers';
+
+interface SeedP34 {
+  id: string;
+  part: 'part_3' | 'part_4';
+  title: string;
+  topic: string;
+  accent: 'british' | 'american' | 'australian' | 'international';
+  cefrTarget: 'B2' | 'C1' | 'C2';
+  contextDescription: string;
+  wordLimitNote: string;
+  scriptLines: Array<{ speaker: string; text: string }>;
+  distractorTraps: string[];
+  q1Prompt: string;
+  q1Options: string[];
+  q1Ans: string;
+  q1Exp: string;
+  q1ExpVi: string;
+  q2Prompt: string;
+  q2Ans: string;
+  q2Accept?: string[];
+  q2Exp: string;
+  q2ExpVi: string;
+}
+
+const PART3_DATA: Array<[string, string, SeedP34['accent'], string, string, string, string, string[], string, string, string, string, string, string, string]> = [
+  ['Seminar: Coastal Mangrove Wave Models', 'Marine Ecology', 'british',
+    'Maya, look at Professor Lee’s salinity tank table—do wave heights drop solely when mangrove root density passes eighty percent?',
+    'Wait—I first thought eighty too, yet check Column Four! Once dense roots pair smoothly with gradual mudflat slopes, small twenty-centimeter ridges cut swell cleanly even earlier.',
+    'Fair point—let’s flag that dual terrain factor prominently when we trim slides tomorrow rather than over-hyping isolated dense planting alone!',
+    'What methodological refinement do Maya and her partner agree on for tomorrow’s presentation?',
+    ['Claim roots alone absorb waves only past eighty percent thresholds', 'Highlight how gentle mudflat slope shape interacts alongside root density', 'Remove Professor Lee’s salinity numbers from tomorrow’s slides', 'Test concrete sea barriers inside marine tanks instead'],
+    'Highlight how gentle mudflat slope shape interacts alongside root density',
+    'Maya corrects the 80% hypothesis ("Wait—I first thought..."), and both agree to highlight terrain slope + roots together.',
+    'Hai sinh viên thống nhất sửa slide để nhấn mạnh tương tác giữa độ dốc bãi bùn và mật độ rễ thay vì chỉ mật độ 80%.',
+    'Complete the slide note using STRICTLY ONE WORD: gradual mudflat ___',
+    'slopes', 'Maya highlights "gradual mudflat slopes" reducing wave swell.', 'Độ dốc ("slopes") bãi bùn thoai thoải.',
+  ],
+  ['Tutorial: Medieval Millstone Quarry Sourcing', 'Archaeology', 'australian',
+    'Wait—weren’t those round sandstone discs hauled uphill from Northern Chalk Ridges along pack-horse tracks?',
+    'Initially we trusted nineteenth-century parish letters too, Liam! Yet petrographic grain slicing uncovered dark mica flecks unique exclusively to Riverbend Gorge three miles south.',
+    'Fascinating—so northern trails likely hauled lime kilns later, whereas true flour millstones floated down barge slips straight from Riverbend!',
+    'What disproved parish letters regarding where the millstones originated?',
+    ['Steeper pack-horse bridges broken along Northern Chalk Ridges', 'Microscopic mineral slicing revealing distinct Riverbend mica grains', 'Nineteenth-century parish librarians retracing stone routes', 'River barges sinking sandstone blocks south of town'],
+    'Microscopic mineral slicing revealing distinct Riverbend mica grains',
+    'Petrographic grain slicing surfaced "dark mica flecks unique exclusively to Riverbend Gorge".',
+    'Phân tích lát cắt khoáng vật lộ hạt mica chỉ có ở hẻm núi Riverbend.',
+    'Enter ONE WORD naming the distinctive sparkling mineral trace inside southern stone: dark ___ flecks',
+    'mica', 'Grain slices contained distinctive "mica" flecks.', 'Vảy khoáng vật "mica".',
+  ],
+  ['Project Planning: Bilingual Transit Signage Study', 'Urban Linguistics', 'american',
+    'Before printing four hundred platform exit interviews, should we swap text-heavy paper Likert scales for color icon cards?',
+    'Hmm—color cards look friendly cleanly, yet pilot commuters commuting briskly misread yellow arrows as danger zones rather than quiet transfer loops! Short four-word clarity prompts beat icons fast.',
+    'True—plus elder riders told testers high-contrast navy serif font reads far easier under dim subway bulbs than sleek gray lettering.',
+    'Why do the researchers reject yellow arrow icon cards for station interviews?',
+    ['Cards cost twice as much as sleek gray paper pamphlets', 'Hasty riders mistook yellow icon marks for hazard warnings instead of transfer directions', 'Elder passengers refused completely to check platform schedules', 'Subway printers only accept navy blue ink cleanly'],
+    'Hasty riders mistook yellow icon marks for hazard warnings instead of transfer directions',
+    'Pilot riders "misread yellow arrows as danger zones" so concise plain wording replaces yellow icons.',
+    'Hành khách đi vội hiểu nhầm mũi tên vàng là biển cảnh báo nguy hiểm nên nhóm chọn chữ ngắn rõ ràng.',
+    'Write ONE WORD identifying the legible dark ink hue favored under dim subway bulbs: ___ serif',
+    'navy', 'Testers proved "high-contrast navy serif" stayed readable.', 'Màu xanh tím than tương phản cao ("navy").',
+  ],
+  ['Lab Calibration: Acoustic Classroom Reverberation', 'Architectural Acoustics', 'british',
+    'Did draping heavy felt curtains behind smartboards drop mid-vowel echo times sufficiently during Year Five phonics lessons?',
+    'Barely half a tenth of a second, Sam—mostly echo bounced off smooth linoleum hallways straight through open transoms! Sealing hollow overhead ceiling voids with perforated pine strips delivered real crisp consonant separation.',
+    'Right—teachers immediately dropped microphone gain cleanly once pine ceiling baffles caught upper reverberations.',
+    'What upgrade solved echo distortion in Year Five classrooms most decisively?',
+    ['Hanging thicker felt drapes directly over smartboards', 'Fitting perforated pine baffles across open overhead ceilings', 'Removing linoleum hallway tiles outside classrooms permanently', 'Doubling vocal speaker microphone amplification levels'],
+    'Fitting perforated pine baffles across open overhead ceilings',
+    'Felt drapes barely changed decay times; "perforated pine strips" in ceiling voids fixed clarity.',
+    'Tấm gỗ thông đục lỗ tiêu âm trên trần mới là giải pháp dứt điểm tiếng vang.',
+    'Enter ONE WORD specifying the soft wood used in effective acoustic baffles: perforated ___',
+    'pine', 'Ceiling voids received perforated "pine" strips.', 'Gỗ thông đục lỗ ("pine").',
+  ],
+  ['Literature Review: Nineteenth-Century Weather Diaries', 'Climate History', 'international',
+    'Look at merchant shipping logs around 1840—can we treat handwritten gale labels directly as modern Beaufort equivalents?',
+    'Carefully hedged yes for sea logs, yet land parish diaries exaggerate winter snow depths subjectively—what anchor lets cross-checking stay reliable is comparing ice-thaw harvest dates across rival monastery farms!',
+    'Genius—pairing qualitative diary adjectives against frozen-canal cargo tolls cancels poetic exaggeration cleanly!',
+    'How do the thesis partners verify subjective countryside diary descriptions objectively?',
+    ['Replacing old shipping logs entirely with coastal newspaper ads', 'Triangulating harvest ice-thaw records and canal cargo dates against prose notes', 'Treating every village frost adjective as scientific thermometer data', 'Ignoring nineteenth-century monastery manuscripts completely'],
+    'Triangulating harvest ice-thaw records and canal cargo dates against prose notes',
+    'Comparing "ice-thaw harvest dates" and cargo tolls calibrates subjective diary exaggerations.',
+    'Đối chiếu ngày tan băng mùa vụ và sổ thu phí xà lan để loại bỏ cảm tính trong nhật ký.',
+    'Write ONE WORD naming the agricultural benchmark records used to verify winter thaw dates cleanly: ___ dates',
+    'harvest', 'Authors pair "ice-thaw harvest dates" across neighboring monasteries.', 'Ngày thu hoạch mùa vụ ("harvest").',
+  ],
+  ['Dissertation Critique: Micro-Mobility Helmet Attitudes', 'Transport Sociology', 'australian',
+    'Did student respondents avoid shared e-scooters primarily out of rental cost per minute?',
+    'Unexpectedly no—survey rankings placed shared foam-liner hygiene concerns ahead of fares! Wait, didn’t engineering students prioritize braking light visibility just beneath hygiene?',
+    'Spot check Table Three: yes, bright handlebar turn signals topped speed bumps cleanly across engineering cohorts, whereas fine-arts majors stressed collapsible storage baskets.',
+    'What single factor deterred shared rider adoption most strongly across general survey respondents?',
+    ['Minute-by-minute app subscription fees', 'Shared helmet foam-liner hygiene worries', 'Absence of paved campus cycling bumps', 'Small rubber tires along gravel paths'],
+    'Shared helmet foam-liner hygiene worries',
+    'General survey answers unexpectedly placed "helmet foam-liner hygiene concerns" ahead of cost.',
+    'Mối lo vệ sinh mút lót mũ bảo hiểm chung đứng trên cả yếu tố giá thuê.',
+    'ONE WORD naming the requested accessory prioritized specially by fine-arts riders cleanly: collapsible ___',
+    'baskets', 'Fine-arts majors uniquely prioritized "collapsible storage baskets".', 'Giỏ đựng đồ gập gọn ("baskets").',
+  ],
+  ['Botany Pairings: Lichen Air-Quality Bio-Mapping', 'Environmental Science', 'british',
+    'Should first-year field crews log green leafy lichens solely around main highway cloverleafs?',
+    'Look at Protocol Two, Jin—acidic nitrogen exhaust wipes delicate leafy species out right beside highways! Sampling shaded brick churchyard walls fifty meters inward charts clearer subtle sensitivity gradients.',
+    'Oh good catch—plus sandstone gravestones leach mild alkaline dust slightly distorting clean bark baselines unless trainees separate stone from ash bark carefully.',
+    'Why do supervisors tell first-year trainees to inspect shaded walls fifty meters away from roads?',
+    ['Highway exhaust eliminates sensitive leafy lichen near lanes leaving minimal contrast', 'Suburban brick fences lack lichen completely across summer', 'Ash bark trees grow exclusively along paved highway ramps', 'Traffic sensors prevent trainees carrying sampling clipboards near curbs'],
+    'Highway exhaust eliminates sensitive leafy lichen near lanes leaving minimal contrast',
+    'Exhaust wipes them out near roads cleanly, masking subtle exposure gradients found inland.',
+    'Khí thải sát cao tốc làm chết hết loài nhạy cảm nên lùi vào 50m mới đo được dải biến thiên tinh tế.',
+    'Type ONE WORD naming the dust-leaching cemetery rock distorting plain bark baselines smoothly: ___',
+    'sandstone', 'Notice trainees watch out for alkaline dust from "sandstone".', 'Đá sa thạch ("sandstone").',
+  ],
+  ['App Design Seminar: Dyslexia Reading Aids', 'EdTech Research', 'american',
+    'Aren’t serif display fonts universally faster than crisp sans-serif text across youth trials?',
+    'Careful—our reading telemetry refuted uniform superiority cleanly! Widened inter-letter spacing plus gentle cream matte paper backgrounds cut skipping errors markedly regardless whether sans or slab shapes displayed.',
+    'Right—and high-gloss white screens doubled eye-blink fatigue within twelve minutes compared against warm cream matte presets.',
+    'Which typographic and background combination lowered reading skips reliably across groups?',
+    ['Narrow serif spacing set on pure white glossy panels', 'Generous character spacing paired with soft matte cream backdrops', 'Bold neon flashing captions synchronized every paragraph', 'Monospaced grey fonts printed over shiny brochures'],
+    'Generous character spacing paired with soft matte cream backdrops',
+    'Data showed "widened inter-letter spacing plus gentle cream matte" eased reading regardless of serif debate.',
+    'Giãn khoảng cách chữ cái rộng cùng nền kem nhám giúp giảm lỗi nhảy dòng hiệu quả nhất.',
+    'ONE WORD naming the distracting shiny glare screen finish triggering faster eye-blink strain cleanly: ___',
+    'white', 'Speaker faults "high-gloss white screens" doubling eye fatigue (glossy also logical—test "white").', 'Màn hình nền trắng ("white") chói gắt.',
+  ],
+  ...Array.from({ length: 12 }, (_, j): [string, string, SeedP34['accent'], string, string, string, string, string[], string, string, string, string, string, string, string] => {
+    const cases: Array<[string, string, SeedP34['accent'], string, string, string, string, string[], string, string, string, string, string, string, string]> = [
+      ['Hydrology Check: Urban Pervious Asphalt Cores', 'Civil Engineering', 'british', 'Didn’t porous tarmac clog entirely after one autumn leaf drop?', 'Early blocks did—yet pressurized water vacuum sweepers run twice yearly kept void drainage at eighty-six percent capacity smoothly.', 'Clean maintenance beats thick overlays cleanly!', 'What restores porous pavement drainage efficiently across seasonal runs?', ['Replacing tarmac completely every winter', 'Biannual pressurized water vacuum sweeps', 'Leaving dry leaves untouched across storm drains', 'Sealing concrete voids cleanly in spring'], 'Biannual pressurized water vacuum sweeps', 'Pressurized water vacuuming twice a year sustains 86% drainage.', 'Máy hút chân không nước áp lực hai lần/năm giữ hiệu suất thoát nước 86%.', 'ONE WORD stating the natural tree debris clogging unmaintained pores fast cleanly: autumn ___', 'leaf', 'Unmaintained pores clog specifically from autumn "leaf" drop.', 'Lá rụng mùa thu ("leaf").'],
+      ['Economics Tutorial: Local Complementary Currencies', 'Civic Economics', 'australian', 'Why did printed harbor paper vouchers circulate faster inside bakeries than big supermarkets?', 'Big grocery chains lacked accounting macros for paper slips—whereas local bakers quickly paid millers cleanly using shared co-op ledgers.', 'Smart local circulation multiplier!', 'What blocked giant supermarkets from embracing local paper trade vouchers?', ['Bakers kept paper vouchers locked behind counters', 'Corporate point-of-sale software lacked custom co-op accounting setup', 'Shoppers spent harbor tokens exclusively online', 'Local millers stopped buying wholesale wheat'], 'Corporate point-of-sale software lacked custom co-op accounting setup', 'Corporate supermarket accounting macros could not track co-op slips seamlessly.', 'Hệ thống kế toán siêu thị lớn không hỗ trợ hạch toán phiếu hợp tác xã địa phương.', 'ONE WORD naming the regional wholesale grain suppliers happily taking local co-op vouchers cleanly: ___', 'millers', 'Bakers passed vouchers onward directly to local "millers".', 'Thợ xay bột địa phương ("millers").'],
+      ['Food Science Lab: Cold-Brew Coffee Acidity', 'Food Chemistry', 'american', 'Wait—does twenty-four-hour steeping extract stronger harsh quinic acids than brief hot pour-over?', 'No—cold extraction leaves oil-soluble bitters behind inside coarse grounds, keeping crisp chocolate clarity smooth while cutting perceived sourness noticeably!', 'Wait—don’t dark roasts flatten delicate floral jasmine notes anyway?', 'Why does slow cold infusion taste noticeably smoother than hot drip?', ['Warm grinders break fine beans unevenly overnight', 'Low water temperature leaves biting sour compounds unextracted inside grounds', 'Cold glass flasks add sweet cane essence', 'Hot filters dissolve espresso caffeine completely'], 'Low water temperature leaves biting sour compounds unextracted inside grounds', 'Cool brewing skips heat-extracted acids and bitter oils.', 'Nhiệt độ nước lạnh không chiết xuất hết các hợp chất chua gắt từ bã.', 'ONE WORD specifying the pleasant aromatic cocoa note highlighted cleanly in cold extract: ___', 'chocolate', 'Cold steeping highlights smooth "chocolate" notes.', 'Hương sô-cô-la ("chocolate").'],
+      ['Psycholinguistics: Gesture & Working Memory Speed', 'Cognitive Science', 'international', 'Did prohibiting hand gestures speed children’s silent mental arithmetic?', 'Quite opposite! Restrained wrists overloaded working memory cleanly when multi-step borrowing puzzles scaled—unhindered palm pacing offloaded spatial placeholders effortlessly!', 'Physical hand cues scaffold invisible arithmetic steps!', 'What happened when researchers prevented pupils moving hands during complex math?', ['Accuracy spiked swiftly across multi-step sums', 'Restraining gestures strained mental working memory and slowed solving', 'Children memorized rhymes twice as quickly', 'Pupils preferred chalkboards over pencils'], 'Restraining gestures strained mental working memory and slowed solving', 'Holding hands still stripped away natural spatial cognitive offloading.', 'Giữ cố định tay làm quá tải trí nhớ ngắn hạn khi nhẩm phép tính nhiều bước.', 'ONE WORD naming the specific body joint immobilized in memory control tests cleanly: ___', 'wrists', 'Study specifically immobilized "wrists" during recall tasks.', 'Cổ tay ("wrists").'],
+      ['Robotics Review: Warehouse Soft-Silicone Grippers', 'Robotics Engineering', 'british', 'Rigid steel clamps cracked fragile ripe mangoes constantly during trial packing—did pneumatic pressure valves solve bruises cleanly?', 'Partly—yet textured silicone fingers mimicking gentle fingertip ridges lifted uneven fruit weights reliably without heavy vacuum suction tubes!', 'Biomimetic skin ridges distribute grip gently!', 'How do upgraded silicone grippers avoid crushing soft fruit shapes?', ['Cooling mangoes firmly before shipping sorting', 'Flexible textured skin ridges spreading balanced light contact cleanly', 'Doubling rigid metal suction air force cleanly', 'Handling only uniform spherical canned tins'], 'Flexible textured skin ridges spreading balanced light contact cleanly', 'Biomimetic textured silicone balances distributed soft contact.', 'Ngón silicon tạo vân mô phỏng vân tay phân bố lực cầm dịu nhẹ đều khắp.', 'ONE WORD specifying the fragile tropical harvest fruit tested smoothly in trials cleanly: ___', 'mangoes', 'Rigid clamps had cracked ripe "mangoes" earlier.', 'Trái xoài chín ("mangoes").'],
+      ['Marine Archaeology: Copper Hull Sheathing Oxidation', 'Maritime History', 'australian', 'Did thin zinc bolts simply strengthen copper plates mechanically against dock collisions?', 'No—copper hulls silently ate cheap iron nails fast via saltwater galvanic currents until zinc-rich yellow metal bolts resisted electrochemical decay across decades!', 'Galvanic corrosion explained centuries of leaky timber!', 'Why did early copper-plated wooden ships lose nails dangerously fast at sea?', ['Weak wooden mallets cracked soft copper tacks on piers', 'Saltwater electrolytic reaction corroded mismatched iron fasteners rapidly', 'Harbor worms chewed straight through solid zinc bolts', 'Cold seas froze copper hulls solidly every January'], 'Saltwater electrolytic reaction corroded mismatched iron fasteners rapidly', 'Galvanic reaction in seawater rapidly dissolved incompatible iron nails.', 'Phản ứng điện hóa trong nước biển làm rỉ nhanh đinh sắt tiếp xúc tấm đồng.', 'ONE WORD naming the protective brass alloy color resisting saltwater reaction cleanly: ___ metal', 'yellow', 'Shipwrights moved onward to zinc-rich "yellow" metal bolts.', 'Hợp kim đồng thau vàng ("yellow" metal).'],
+      ['Soil Ecology Seminar: Mycorrhizal Woodland Links', 'Forest Biology', 'british', 'Wait—do towering canopy oaks hoard carbon sugars exclusively down for deep anchor taproots?', 'Tracking isotope trails reveals young shaded saplings actually absorb slight carbon pulses straight through underground fungal thread bridges during dim spring canopies!', 'Understory seedlings survive winter shade via underground sharing!', 'What enables shadowed seedlings to survive low sunlight under mature oaks?', ['Rapid upward leaf stretching across bare fields', 'Underground fungal filaments routing subtle carbon reserves from canopy roots', 'Removing top leaf litter completely every March', 'Dense grass shoots pumping water downhill'], 'Underground fungal filaments routing subtle carbon reserves from canopy roots', 'Isotopes track carbon shifting through subterranean "fungal thread bridges".', 'Hệ sợi nấm cộng sinh dưới đất dẫn nguồn đường carbon cho cây con dưới tán râm.', 'ONE WORD identifying scientific atomic-label method used tracking tree transfers cleanly: ___ trails', 'isotope', 'Researchers tracked subtle fluxes using carbon "isotope" trails.', 'Đồng vị phóng xạ ("isotope").'],
+      ['Museum Textile Lab: Historic Silk Dyes Light Test', 'Conservation', 'american', 'Isn’t bright UV-filtered LED spotlighting safe permanently for fragile crimson banners?', 'Caution! Filtering invisible UV waves stops brittle fibers fast, yet even visible blue wavelength photons gradually fade bright cochineal crimson unless overall lux levels drop under fifty!', 'Visible spectrum flux counts alongside UV shielding!', 'Why do museum textile conservators keep visible lux illumination dim even under UV-free LEDs?', ['LED bulbs melt dry iron tapestry looms rapidly', 'Visible high-energy light photons still bleach fragile red dyes over time', 'Visitors struggle viewing tapestries softly indoors', 'Silk fibers darken pitch black under green bulbs'], 'Visible high-energy light photons still bleach fragile red dyes over time', 'Blue visible light still fades cochineal reds slowly if total lux sits high.', 'Ngay cả ánh sáng thấy được cường độ cao vẫn làm phai sắc đỏ tự nhiên qua thời gian.', 'ONE WORD identifying the bright natural crimson insect dye fading steadily under light cleanly: ___ crimson', 'cochineal', 'Conservators track fading specifically on "cochineal" reds.', 'Thuốc nhuộm đỏ yên chi ("cochineal").'],
+      ['Renewable Grid Tutorial: Flywheel Frequency Stability', 'Energy Systems', 'international', 'Can dense steel flywheels replace overnight chemical city batteries cleanly across cloudy weeks?', 'No—chemical banks handle hours cleanly, whereas spinning carbon-fiber flywheels inject instant millisecond power bursts stopping sudden substation flicker during turbine switching!', 'Divide millisecond momentum from multi-hour energy reserve cleanly!', 'What unique grid grid-balancing role suits high-speed flywheels over chemical batteries?', ['Storing three wintry months of residential heating energy cleanly', 'Delivering immediate sub-second inertia balancing sudden power frequency dips', 'Running uncooled overhead lines without substations', 'Charging coastal ferry engines completely overnight'], 'Delivering immediate sub-second inertia balancing sudden power frequency dips', 'Flywheels specialize in instant millisecond stabilization rather than marathon multi-hour storage.', 'Bánh đà đáp ứng tức thời trong mili-giây để ổn định tần số lưới điện.', 'ONE WORD stating lighter high-speed rotor casing composite material cleanly: ___-fiber', 'carbon', 'Modern flywheels use spinning "carbon"-fiber drums cleanly.', 'Sợi carbon ("carbon"-fiber).'],
+      ['Urban Planning Critique: Acoustic Pocket-Park Design', 'Landscape Architecture', 'british', 'Simply dropping leafy shrubs beside ring roads lowers truck rumble decibels directly, doesn’t it?', 'Not physically—thin hedges shave barely one decibel! Yet burbling stepped stone fountains plus visual green cover trick human ears delightfully into perceiving busy traffic far quieter!', 'Psychological masking shapes acoustic comfort beyond raw meters!', 'Why do stepped stone waterfalls make compact city pocket parks feel markedly quieter?', ['Moving cold water absorbs heavy diesel bass physically like foam', 'Pleasant water texture masks steady road hum psychologically alongside leafy sightlines', 'Thin tree leaves deflect seventy percent of highway soundwaves', 'Traffic inspectors reroute diesel lorries past parks automatically'], 'Pleasant water texture masks steady road hum psychologically alongside leafy sightlines', 'Water sound + visual green mask stress perceptually even when meters show minimal dB drop.', 'Âm thanh dòng nước róc rách giúp não người bớt chú ý tiếng ồn giao thông (hiệu ứng che âm tâm lý).', 'ONE WORD stating the stone sound-masking garden centerpiece highlighted cleanly: stone ___', 'fountains', 'Installations feature burbling stepped "stone fountains".', 'Đài phun nước đá ("fountains").'],
+      ['Behavioral Finance Pair: Subscription Friction & Nudge', 'Behavioral Economics', 'american', 'If fitness clubs allow instant one-click web cancellation, won’t winter dropouts destroy stable revenues?', 'Surprising trial finding across six Nordic cities: one-click honesty boosted nervous first-time sign-ups enough that twelve-month membership retention slightly beat tricky paper-mail traps!', 'Transparency defeats short-term churn panic cleanly!', 'How did instant online cancellation affect Nordic gym memberships long-term?', ['Shut down regional studios within two snowy months', 'Attracted enough confident new joiners that annual retention outperformed deceptive lock-ins', 'Cut average monthly workouts per member down in half', 'Forced members mailing physical letters to counter desks'], 'Attracted enough confident new joiners that annual retention outperformed deceptive lock-ins', 'Removing fear of hidden traps boosted initial trust and overall net sign-ups.', 'Sự minh bạch hủy dễ dàng giúp xóa rào cản ngại đăng ký và giữ tổng lượng hội viên ổn định hơn.', 'ONE WORD specifying the confusing sluggish obstacle rival gyms relied on previously cleanly: ___ traps', 'paper-mail', 'Old gyms relied on cumbersome "paper-mail" traps.', 'Bẫy hủy qua thư giấy ("paper-mail").'],
+      ['Applied Musicology: Choir Tuning Drift & Vowels', 'Vocal Acoustics', 'australian', 'Do unaccompanied choirs slide flat mainly because tired singers drop breath support by measure forty?', 'Sometimes—yet acoustic recordings exposed narrow unrounded "ee" vowels shifting half-step intervals down systematically unless directors cue open upper palate resonance around minor thirds!', 'Exact articulatory vowel brightness keeps unaccompanied pitch true!', 'What phonetic adjustment prevents unaccompanied choirs slipping gradually off pitch?', ['Louder piano foot-pedal volume underneath measures', 'Brightening vowel resonance and spacing upper palate lift across narrow intervals', 'Singing fifty percent slower past measure forty', 'Replacing tight minor-third chords permanently'], 'Brightening vowel resonance and spacing upper palate lift across narrow intervals', 'Vocal resonance shaping around narrow intervals prevents downward harmonic drift.', 'Mở vòm khẩu cái và làm sáng nguyên âm hẹp ở quãng ba thứ giúp giữ vững cao độ không bị phô xuống.', 'ONE WORD naming the anatomical roof chamber lifted cleanly to brighten choral pitch: upper ___', 'palate', 'Choral coaches cue open "upper palate" resonance.', 'Vòm miệng trên ("palate").'],
+    ];
+    const d = cases[j];
+    return [d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d[9], d[10], d[11], d[12], d[13], d[14]];
+  }),
+];
+
+const PART4_TOPICS: Array<[string, string, SeedP34['accent'], string[], string, string[], string, string, string, string, string, string, string]> = [
+  ['Lecture: Roman Concrete Self-Healing Chemistry', 'Materials Science', 'british',
+    [
+      'Turning now to Roman harbor breakwaters—engineers spent decades assuming white limestone specks sitting inside ancient piers reflected sloppy artisan mixing.',
+      'Re-examining fractured pier cores at high heat reveals intentional "hot mixing" quicklime clasts: whenever coastal seawater seeps into hairline cracks, reactive calcium pockets crystallize instantly—sealing leaks over millennia far outlasting inert modern slabs.',
+    ],
+    'Why do hot-mixed quicklime specks make Roman sea walls unusually durable?',
+    [
+      'Artisans painted sleek outer coats every sunny winter',
+      'Reactive calcium chunks dissolve upon cracking and re-crystallize cleanly to bridge gaps',
+      'Saltwater dissolves all white lime nodules leaving smooth dry gaps',
+      'Modern cement mixes double quicklime mixing heat unintentionally',
+    ],
+    'Reactive calcium chunks dissolve upon cracking and re-crystallize cleanly to bridge gaps',
+    'White quicklime clasts react with intruding water to self-seal micro-cracks autonomously.',
+    'Hạt vôi sống phản ứng với nước biển rò rỉ tạo tinh thể tự hàn kín vết nứt qua hàng thiên niên kỷ.',
+    'Complete the engineering note (ONE WORD ONLY): seawater seeps into ___ cracks',
+    'hairline', 'Lecturer pinpoints moisture entering "hairline" cracks.', 'Các vết nứt mảnh ("hairline" cracks).',
+  ],
+  ['Lecture: Honeybee Vector Dance Geometry', 'Entomology', 'american',
+    [
+      'Let us move away from floral scent alone onto gravity-calibrated vector communication inside pitch-dark beehives.',
+      'When foragers vibrate vertically up honeycomb frames at fifteen degrees right of twelve o’clock, sister scouts immediately map foraging azimuth fifteen degrees clockwise relative to sun elevation outside—while brisk waggle-run duration encodes distance after factoring crosswind calorie effort.',
+    ],
+    'How does a scouting honeybee signal both compass angle and distance inside a dark hive?',
+    [
+      'Sound pitch louder near noon translates exclusively wind direction',
+      'Vertical honeycomb angle maps direction vs. the sun while vibration duration signals effort-adjusted distance',
+      'Flower pollen scents tell scouts exact kilometer distance accurately without shaking',
+      'Sisters fly straight upward past roof skylights following visible sunbeams',
+    ],
+    'Vertical honeycomb angle maps direction vs. the sun while vibration duration signals effort-adjusted distance',
+    'Frame inclination encodes solar angle cleanly while run duration measures effort-weighted travel length.',
+    'Góc chạy trên sáp so với phương thẳng đứng chỉ hướng theo mặt trời; thời lượng rung lắc mã hóa quãng đường theo mức tốn sức gió.',
+    'Complete the lecture bullet (ONE WORD): inside pitch-dark honey___ frames',
+    'honeycomb', 'Scouts orient along vertical "honeycomb" surfaces inside dark nests.', 'Tổ sáp ong ("honeycomb").',
+  ],
+  ...Array.from({ length: 18 }, (_, k): [string, string, SeedP34['accent'], string[], string, string[], string, string, string, string, string, string, string] => {
+    const bank4: Array<[string, string, SeedP34['accent'], string, string, string, string[], string, string, string, string, string, string, string]> = [
+      ['Lecture: Urban Heat Island Canyon Asymmetry', 'Climatology', 'international', 'Notice how concrete skyscrapers trap short-wave sunlight cleanly inside narrow north-south alleys—creating steep twilight thermal delays.', 'Pairing bright reflective roofs ONLY helps slightly unless narrow lower canopies plant deciduous shade rows freeing trapped long-wave heat upward by midnight.', 'Why might ultra-white reflective road paint backfire inside tall pedestrian canyons?', ['Night frost freezes white pavement instantly past six', 'Downward sunlight reflection heats surrounding pedestrians and glass storefronts at street level', 'White silica paint dissolves steadily inside rainwater runoff', 'Alleys never receive daytime sunlight between office towers'], 'Downward sunlight reflection heats surrounding pedestrians and glass storefronts at street level', 'Light bounce inside narrow deep canyons redirects solar heat directly onto eye-level passersby and storefronts.', 'Ánh nắng phản xạ từ mặt đường trắng lại hắt thẳng vào người đi bộ và mặt kính tầng trệt trong hẻm nhà cao tầng.', 'ONE WORD specifying beneficial seasonal tree type releasing cooled midnight heat upward cleanly: ___ trees', 'deciduous', 'Planting "deciduous" leafing rows preserves night radiation.', 'Cây rụng lá theo mùa ("deciduous").'],
+      ['Lecture: Deep-Sea Hydrothermal Chemosynthesis', 'Oceanography', 'british', 'For over a century biology textbooks tied all food chains cleanly to golden surface photosynthesis.', 'Discovering towering sulfide vents three kilometers down revealed specialized bacterial enzymes splitting hydrogen sulfide bonds directly inside blind shrimp gills cleanly without a single sun photon.', 'What chemical compound replaces solar energy at the base of vent ecosystems?', ['Dissolved golden calcium dust', 'Hydrogen sulfide gas oxidizing via vent bacterial chemistry', 'Drifting upper ocean seaweed leaves cleanly', 'Undersea moonlight scattered down ridges'], 'Hydrogen sulfide gas oxidizing via vent bacterial chemistry', 'Vent microbes derive chemical metabolic energy from oxidizing hydrogen sulfide bonds cleanly.', 'Vi khuẩn cộng sinh oxy hóa khí hydro sunfua thay hoàn toàn ánh sáng mặt trời.', 'ONE WORD naming light particles wholly absent around ocean floor smokers: sun ___', 'photons', 'Systems thrive cleanly without any "photons".', 'Hạt ánh sáng ("photons").'],
+      ['Lecture: Ink Iron-Gall Acid Decay in Archives', 'Library Science', 'american', 'Ever spot delicate Renaissance scores where black cursive script literally chewed tiny lace holes clean through stout linen rag sheets?', 'Medieval oak-gall ink mixed iron sulfate cleanly for sharp blackness; over damp decades spare acidic iron catalyzed gentle cellulose oxidation—turning vibrant letters crisp rust-brown while leaving un-inked parchment crisp!', 'Why did iron-gall inks eat away written lines preferentially over blank page margins?', ['Harbor paper moths solely favored sour black oak flavor cleanly', 'Spare corrosive iron compounds catalyzed slow oxidation exclusively inside inked cellulose strands', 'Scribes trimmed razor margins aggressively ahead of binding looms', 'Ink wells held melted pine rosin dripping softly overnight'], 'Spare corrosive iron compounds catalyzed slow oxidation exclusively inside inked cellulose strands', 'Free iron + acidity locally oxidized paper fibers strictly beneath ink trails cleanly.', 'Sắt dư có tính axit trong mực xúc tác phản ứng oxy hóa phá hủy sợi giấy đúng theo đường nét viết.', 'ONE WORD naming natural tree gallnut ingredient blended with iron sulfate cleanly: ___', 'oak-gall', 'Medieval ink blended specifically "oak-gall" tannin with iron (also accept oak).', 'Mực u sồi ("oak-gall").'],
+      ['Lecture: Circadian Blue-Cone Melanopsin Shifts', 'Neurobiology', 'australian', 'Until twenty years ago anatomists dismissed non-visual eye circuits assuming human retinas served solely rods and color cones.', 'Isolating dim melanopsin ganglion sensors revealed subtle 480-nanometer cyan waves direct pituitary sleep hormones cleanly—meaning cold tablet glare past nine tricks midnight biology into lingering dawn alertness.', 'What unique non-visual signal triggers suppressed late-night melatonin?', ['Warm amber fireplace flicker inside quiet bedrooms', 'Narrow blue-cyan 480nm screen glow signaling daylight cues cleanly', 'Reading paperback ink lines smoothly beside dim table lamps', 'Gentle hallway acoustic hum past dusk'], 'Narrow blue-cyan 480nm screen glow signaling daylight cues cleanly', 'Melanopsin sensors react keenly to 480nm sky-blue glow, suppressing drowsiness.', 'Cảm biến võng mạc phản ứng mạnh với dải sóng xanh lục-lam 480nm từ màn hình làm ức chế hormone ngủ.', 'ONE WORD naming deep eye layer housing specialized light-timing sensors cleanly: human ___', 'retinas', 'Discovery reshaped modern anatomy inside human "retinas".', 'Võng mạc mắt ("retinas").'],
+      ['Lecture: Polynesians Stick Charts & Swell Interference', 'Anthropology', 'international', 'Before brass compasses sailed Pacific outriggers, Marshallese navigators wove curved coconut-frond lattice maps recording subtle island wave refraction lines rather than fixed visual miles.', 'Trained apprentices lay belly-down feeling calm hull pitch oscillations blindfolded cleanly—distinguishing reflected undersea reef waves from smooth deep ocean currents miles ahead.', 'What physical ocean clue did braided stick charts actually map out?', ['Monthly trade wind speed tables along atoll piers', 'Intersecting swell ripples curving cleanly around unseen submerged reefs and islands', 'Exact depth measurements logged cleanly beside coral rocks', 'Star brightness changes cleanly measured per winter'], 'Intersecting swell ripples curving cleanly around unseen submerged reefs and islands', 'Reeds mapped swell refraction wave crossings pointing cleanly to hidden land.', 'Các thanh dừa uốn cong mô phỏng giao thoa sóng biển bị khúc xạ khi đập vào đảo và rạn san hô.', 'ONE WORD naming curved palm-frond boat posture apprentices used sensing delicate pitch swells cleanly: outrigger ___', 'hull', 'Trainees sensed motion vibrations directly along the canoe "hull".', 'Thân vỏ thuyền ("hull").'],
+      ['Lecture: Micro-Grid DC Coupling in Rural Clinics', 'Electrical Engineering', 'british', 'Traditional solar setups invert rooftop direct current upward into messy grid alternating current—only to step volts straight back downward inside clinic vaccine refrigerators!', 'Eliminating redundant double conversion hops cleanly directly over low-voltage DC buses stretches evening cold-chain battery stamina nearly eighteen percent longer without adding extra rooftop wafers.', 'Why does removing redundant AC-to-DC conversions extend clinic battery storage?', ['Alternating current wires freeze cleanly in humid rains', 'Each back-and-forth inverter step sheds unavoidable heat waste cleanly', 'Low-voltage refrigerators work solely under rainy sky covers', 'Solar silicon cells double noon voltage naturally'], 'Each back-and-forth inverter step sheds unavoidable heat waste cleanly', 'Avoiding two conversion hops trims resistive heat losses by ~18%.', 'Bỏ được hai chặng chuyển đổi AC/DC giúp tránh thất thoát năng lượng thành nhiệt thừa.', 'ONE WORD identifying critical temperature-sensitive hospital cargo saved by extra cold stamina cleanly: ___', 'vaccine', 'Longer battery stamina guards "vaccine" refrigerators safely overnight.', 'Vắc-xin y tế ("vaccine").'],
+      ['Lecture: Linguistic Evidentiality Grammars', 'Linguistics', 'american', 'In English, speakers optionally hedge sources via "apparently" or "allegedly"; yet in Tuyuca or Quechua grammar, every finite verb carries mandatory evidential suffixes.', 'Skipping whether a statement traces directly to visual sight, audible rumor, or logical inference turns normal assertions literally ungrammatical—forcing tight civic separation between witnessed facts and secondhand whispers cleanly.', 'How does mandatory verbal evidentiality reshape everyday speech duties cleanly?', ['Speakers omit verb tense markers completely during court tales', 'Speakers cannot construct valid sentences without declaring exact evidence source per claim', 'Every story remains limited exclusively to personal visual proof cleanly', 'Translators remove adjectives cleanly from oral legends'], 'Speakers cannot construct valid sentences without declaring exact evidence source per claim', 'Obligatory verb morphology binds speaker claims directly to proof type.', 'Hậu tố bắt buộc gắn trực tiếp lên động từ buộc người nói phải xác nhận nguồn chứng cứ (tận mắt thấy, nghe kể hay suy luận).', 'ONE WORD specifying which exact part-of-speech carries mandatory source suffixes cleanly: finite ___', 'verb', 'Grammar attaches markers squarely onto every "finite verb".', 'Động từ chia ngôi ("verb").'],
+      ['Lecture: Acoustic Bat Echolocation Doppler Tracking', 'Zoology', 'australian', 'As horseshoe bats close onto fluttering moths downtown, outgoing ultrasonic calls shift steadily higher in reflected frequency off closing wings cleanly.', 'To preserve ultra-sharp ear hair tuning inside narrow sweet-spot thresholds cleanly, hunting bats intentionally drop call pitches smoothly downward—canceling speed distortion in real time!', 'Why do flying horseshoe bats actively lower call pitch mid-chase?', ['Low pitches stun fluttering moths cleanly in night dew', 'Compensating forward Doppler compression keeps returning echoes tuned sharply cleanly', 'Wind pushes crisp high whistles cleanly off limestone caves', 'Slower moth speeds vanish cleanly beneath lower noise'], 'Compensating forward Doppler compression keeps returning echoes tuned sharply cleanly', 'Active frequency compensation locks reflected sound squarely onto sensitive auditory hairs.', 'Dơi chủ động hạ tần số tiếng phát ra để bù trừ hiệu ứng Doppler giúp tiếng vọng dội về khớp đúng dải nhạy của tai.', 'ONE WORD specifying flying nocturnal insect prey tracked precisely mid-flight cleanly: fluttering ___', 'moths', 'Bats dynamically adjust Doppler tracking specifically onto fluttering "moths".', 'Bướm đêm / ngài ("moths").'],
+      ['Lecture: Historic Tidal Tide-Mill Hydro Mechanics', 'Hydraulic Engineering', 'british', 'Unlike river waterwheels relying strictly on seasonal hillside snowmelt, medieval estuary tide-mills banked rising ocean floodwater behind sluice flaps cleanly at high slack.', 'Closing wooden sea gates trapped massive six-hour millpond reservoirs cleanly above receding ebb currents—letting crisp iron millstones grind grain continuously regardless if summer rivers shrank completely dry!', 'What reliability advantage lifted coastal tide-mills above inland hillside stream wheels?', ['Ocean salt naturally sharpened dull wheat millstones cleanly', 'Predictable twice-daily ocean lunar tides operated evenly throughout dry summer droughts', 'Wooden sea flaps lasted indefinitely without harbor upkeep', 'Tidal estuaries ran uphill past mountain grain silos'], 'Predictable twice-daily ocean lunar tides operated evenly throughout dry summer droughts', 'Astronomical tidal cycles ran dependably even when inland rain streams dried out.', 'Thủy triều lên xuống đều đặn hai lần mỗi ngày bất chấp suối nội địa cạn khô mùa hạ.', 'ONE WORD naming thick hinged timber gate trapping high reservoir waters cleanly: ___ flaps', 'sluice', 'Tide-mills sealed flood water behind heavy "sluice" gates/flaps.', 'Cửa cống đập triều ("sluice").'],
+      ['Lecture: Geothermal District Loop Heat Pumps', 'Sustainable Infrastructure', 'international', 'Unlike burning volatile gas boilers per building, fifth-generation ambient water rings circulate cool fifteen-degree brine silently beneath city blocks cleanly.', 'Simultaneous data-server cooling rooms dump spare warmth straight into loop pipes while frosty clinics extract warmth cleanly downward—canceling dual waste cleanly at neighborhood scale.', 'Why does connecting warm offices cleanly beside cold supermarkets raise loop efficiency drastically?', ['Cold chillers share spare waste exhaust heat straight to sunny apartments needing warmth simultaneously', 'Brine loops double underground sewer speed continuously', 'Ambient water pipes glow neatly under sidewalk glass', 'Air-conditioners consume zero grid electricity in summer'], 'Cold chillers share spare waste exhaust heat straight to sunny apartments needing warmth simultaneously', 'Waste heat from cooling clients supplies heating loads directly through shared ambient water.', 'Nhiệt thải từ hệ thống làm mát được bơm thẳng sang sưởi ấm cho khu cần nhiệt trên cùng vòng tuần hoàn.', 'ONE WORD naming circulated moderate brine liquid looping underground cleanly: fifteen-degree ___', 'brine', 'District rings pump gentle cool "brine" between nodes.', 'Dung dịch nước muối dẫn nhiệt ("brine").'],
+      ['Lecture: Ceramic Aniline Glaze Firing Reduction', 'Art History', 'american', 'Ever wondered why fiery oxblood copper ceramic glazes shine lush jewel-red out of ancient wood kilns cleanly, yet surface pale minty-green inside sloppy electric boxes?', 'Starving top kiln vents late in firing forces hungry flames pulling clean oxygen atoms straight off melted surface copper oxide cleanly—transforming matte blue-green coats instantly into glistening colloidal ruby crystals!', 'What triggers dramatic green-to-crimson copper transformation cleanly at kiln peak?', ['Pouring chilly brook water directly over blazing ceramic mugs', 'Oxygen-starved reduction flame chemistry stripping oxygen off surface copper ions cleanly', 'Double glazing mugs neatly with cheap pine tar soot', 'Raising wood combustion times softly under mild temperatures'], 'Oxygen-starved reduction flame chemistry stripping oxygen off surface copper ions cleanly', 'Closing top air dampers creates reducing atmospheres stripping oxygen off copper glaze.', 'Môi trường lò khử thiếu oxy buộc ngọn lửa rút oxy khỏi oxit đồng tạo ánh đỏ huyết bồ câu.', 'ONE WORD naming the atmospheric gas atoms stripped off copper compounds cleanly: ___ atoms', 'oxygen', 'Flames pull clean "oxygen" atoms smoothly off melted glazes.', 'Nguyên tử oxy ("oxygen").'],
+      ['Lecture: Salt-Marsh Cordgrass Heavy-Metal Sequestration', 'Environmental Chemistry', 'british', 'Industrial foundry runoffs leave trace cadmium and zinc buried persistently along tidal mudflats long after smokestacks close down.', 'Far from digging poisoned mud up expensively, hardy Spartina cordgrasses draw soluble metals subtly upward and anchor compounds calmly into inert root plaque minerals—preventing shellfish reefs swallowing free toxins downstream cleanly.', 'Why does phytostabilization beat raw dredging along muddy industrial bays?', ['Spartina leaves convert toxic zinc cleanly into crisp edible lettuce', 'Deep fibrous roots lock trace metals solidly in silt without churning toxic sediment downstream cleanly', 'Tidal barges evaporate heavy river metals silently outdoors', 'Salt marshes dissolve shell reefs automatically over winters'], 'Deep fibrous roots lock trace metals solidly in silt without churning toxic sediment downstream cleanly', 'Living plant stabilization avoids disturbing poisoned silt plumes via excavators.', 'Rễ cỏ Spartina cố định kim loại nặng ngay trong bùn sâu tránh làm khuấy đục phát tán độc tố như nạo vét cơ học.', 'ONE WORD identifying dense estuary mollusks cleanly shielded by steady root plaque traps: ___ reefs', 'shellfish', 'Traps keep toxic mud away from neighboring "shellfish" beds cleanly.', 'Rạn nhuyễn thể vỏ cứng ("shellfish").'],
+      ['Lecture: Acoustic Origami Space-Telescope Shields', 'Aerospace Design', 'american', 'Launching massive sunlit spacecraft optics poses an unforgiving cylinder bottleneck cleanly inside narrow rocket payload fairings!', 'Adapting centuries-old Japanese Miura-ori rigid fold creases lets flexible silvered polymer membranes blossom out into razor-flat tennis-court sunshades smoothly from one crisp motorized tension pull cleanly in orbit.', 'Why do aerospace deployers rely explicitly on rigid Miura-ori crease geometry?', ['Creases harden soft liquid mirrors cleanly during launch shaking', 'Single linear motor tugs unfurl multi-axis membranes simultaneously without snagging fragile foils', 'Paper folds block harsh cosmic debris permanently outdoors', 'Miura creases eliminate rocket fuel pumps automatically'], 'Single linear motor tugs unfurl multi-axis membranes simultaneously without snagging fragile foils', 'Miura patterns unfold cleanly in synchronized motion under single motor actuation.', 'Cấu trúc gấp Miura-ori cho phép tấm chắn mở bung đồng thời theo một lực kéo động cơ duy nhất không bị rối.', 'ONE WORD specifying silvered shiny spacecraft shield fabric cleanly: polymer ___', 'membranes', 'Folds expand broad silvered "polymer membranes".', 'Tấm màng polymer ("membranes").'],
+      ['Lecture: Subterranean Ice Cellars vs Cryo-Preservation', 'Historical Geography', 'australian', 'Prior to noisy ammonia compressors, stepped town ice-houses insulated massive winter river blocks deep inside packed rye-straw wells beneath shaded hillside vaults cleanly.', 'Strict slope drainage tubes prevented warm meltwater pooling beneath stacked cakes—allowing August hospital surgeons crisp cold ice blocks cleanly five months beyond spring thaw.', 'What ruined poorly designed rural ice pits faster than summer noon heat?', ['Rye straw soaking river ice salt unevenly outside vaults', 'Trapped stagnant bottom meltwater accelerating deep thermal conduction melt quickly', 'Wind blowing cleanly across shaded grass vault mounds', 'Heavy wooden roof bars reflecting noon sunlight smoothly'], 'Trapped stagnant bottom meltwater accelerating deep thermal conduction melt quickly', 'Pooled water melted stacked ice cleanly unless fast sub-floor drains stayed clear.', 'Nước tan ứ đọng ở đáy hầm dẫn nhiệt nhanh làm tan băng nếu thiếu ống thoát nước dốc.', 'ONE WORD identifying packed dried agricultural grain stem insulation layering ice blocks cleanly: rye-___', 'straw', 'Vaults lined cakes tightly using packed "rye-straw".', 'Rơm lúa mạch đen ("straw").'],
+      ['Lecture: Acoustic Pacing in Legal Jury Comprehension', 'Forensic Linguistics', 'british', 'Critics frequently urge attorneys replacing technical legal statutes solely with casual everyday prose before complex fraud hearings.', 'Controlled court readability audits reveal nuanced nuance stays accurate—provided counsel strip out sprawling stacked nested parentheses and read key statutory hinges twenty percent slower cleanly!', 'What boosts lay juror precision most reliably without sacrificing exact legal scope?', ['Abandoning statutory wording for informal campfire metaphors', 'Unnesting sprawling embedded sub-clauses and pacing key verbal hinges measurably slower', 'Skipping silent jury checklists until final closing nights', 'Doubling written statutory pages into legal footnotes'], 'Unnesting sprawling embedded sub-clauses and pacing key verbal hinges measurably slower', 'Untangling nested clauses + clear vocal pacing protects both clarity and statutory rigor cleanly.', 'Gỡ bỏ các mệnh đề lồng ghép chồng chéo và nói chậm lại 20% ở các điểm nút pháp lý giúp bồi thẩm đoàn hiểu chuẩn mà không mất tính chính xác.', 'ONE WORD naming stacked embedded grammar barriers clouding hurried legal trials cleanly: nested ___', 'parentheses', 'Audits specifically cut confusing "nested parentheses".', 'Cụm chêm lồng ghép ("parentheses").'],
+      ['Lecture: Ancient Stepwell Evaporation Microclimates', 'Sustainable Architecture', 'international', 'Looking inside soaring sandstone stepwells across arid northwestern valleys reveals temperatures cooling nearly six degrees below dusty surface squares cleanly.', 'Evaporative moisture sinking calmly off deep submerged pools chills shaded stone tiers uniformly—offering civic travelers both drinking wells and cool midday social vaults cleanly free of electric chillers!', 'How do traditional stone stepwells lower deep inner air temperatures organically?', ['Mirror shutters reflect hot noon sky waves downward softly', 'Deep sheltered pool evaporation cools dense shaded masonry walls silently downward', 'Steep staircases funnel dusty hot street breezes faster indoors', 'Whitewash plaster absorbs underground water humidity dryly'], 'Deep sheltered pool evaporation cools dense shaded masonry walls silently downward', 'Shaded subterranean moisture evaporation cools heavy stone blocks passively.', 'Bề mặt nước sâu kết hợp bóng râm tầng đá tạo cơ chế làm mát bay hơi tự nhiên giảm tới 6 độ.', 'ONE WORD specifying dense sedimentary quarry block cooling arched stairs cleanly: ___', 'sandstone', 'Stepwells rely strictly upon cool shaded "sandstone".', 'Đá sa thạch ("sandstone").'],
+      ['Lecture: Autonomous Harbor Tug Swarm Coordination', 'Maritime Control', 'american', 'Docking towering twenty-thousand-container freighters under choppy crosswinds traditionally taxes human captains yelling radio tweaks across diesel engines.', 'Distributed autonomous tug software assigns independent hull thrust vectors cleanly without central choke cables—if one wave knocks Tug Four sideways, neighboring crafts rebalance bow pressure instantly cleanly in harmony.', 'Why do decentralized peer-to-peer tug controls outperform one central deck radio tower?', ['Small tugs skip installing marine hull rudders cleanly', 'Real-time autonomous peer balancing shifts bow thrust immediately when crosswaves jar one unit', 'Central towers disable harbor diesel engines automatically past dusk', 'Container ships push small tug boats sideways safely offline'], 'Real-time autonomous peer balancing shifts bow thrust immediately when crosswaves jar one unit', 'Peer thrust coordination recovers instantly from unexpected local wave shocks smoothly.', 'Điều khiển phân tán cho phép các tàu kéo hàng xóm bù lực đẩy ngay lập tức khi một tàu bị sóng đánh lệch.', 'ONE WORD naming strong sideways harbor gale stresses challenging docking cleanly: ___', 'crosswinds', 'Software counters unpredictable choppy "crosswinds" cleanly.', 'Gió thổi ngang thân tàu ("crosswinds").'],
+      ['Lecture: Reclaimed Urban Rail-Bed Pollinator Strips', 'Urban Ecology', 'british', 'Converting abandoned freight rail corridors strictly into unbroken paved bike paths leaves sun-baked heat islands stretched narrow across districts cleanly.', 'Sowing hardy drought-tolerant meadow clover shoulders beside asphalt tracks builds unbroken floral stepping-stone bridges—allowing native solitary bees to link isolated city garden islands safely without dodging concrete blocks.', 'How do narrow wildflower rail strips protect declining urban bee populations cleanly?', ['Continuous gravel corridors replace sunny city parks completely', 'Narrow connected meadow blooms act as unbroken foraging highways uniting fragmented neighborhood parks', 'Paved bicycle asphalt preserves nectar pools inside cracks', 'Freight trains carry native wildflowers seasonally across docks'], 'Narrow connected meadow blooms act as unbroken foraging highways uniting fragmented neighborhood parks', 'Connected flowering shoulders bridge separated garden habitats safely for short-range native bees.', 'Dải hoa dại dọc tuyến đường sắt cũ tạo hành lang liên hoàn kết nối các vườn hoa rời rạc cho ong bản địa di chuyển.', 'ONE WORD naming hardy drought-tolerant flowering groundcover sown cleanly along corridors: meadow ___', 'clover', 'Planners sow drought-resilient meadow "clover" shoulders cleanly.', 'Cỏ ba lá ("clover").'],
+    ];
+    const b = bank4[k];
+    return [b[0], b[1], b[2], [b[3], b[4]], b[5], b[6], b[7], b[8], b[9], b[10], b[11], b[12], b[13]];
+  }),
+];
+
+const SEEDS_P34: SeedP34[] = [
+  ...PART3_DATA.map((d, idx): SeedP34 => ({
+    id: `ielts-lis-p3-${String(idx + 1).padStart(2, '0')}`,
+    part: 'part_3',
+    title: d[0],
+    topic: d[1],
+    accent: d[2],
+    cefrTarget: idx >= 10 ? 'C1' : 'B2',
+    contextDescription: `Academic seminar dialogue Part 3 weighing methodology, evidence, and student consensus on ${d[1].toLowerCase()}.`,
+    wordLimitNote: 'ONE WORD ONLY',
+    scriptLines: [
+      { speaker: 'Student A', text: d[3] },
+      { speaker: 'Student B', text: d[4] },
+      { speaker: 'Student A', text: d[5] },
+    ],
+    distractorTraps: [
+      'Student B explicitly revises or refutes Student A’s opening hunch—track consensus conclusion!',
+    ],
+    q1Prompt: d[6],
+    q1Options: d[7],
+    q1Ans: d[8],
+    q1Exp: d[9],
+    q1ExpVi: d[10],
+    q2Prompt: d[11],
+    q2Ans: d[12],
+    q2Accept: [d[12].toLowerCase()],
+    q2Exp: d[13],
+    q2ExpVi: d[14],
+  })),
+  ...PART4_TOPICS.map((t, idx): SeedP34 => ({
+    id: `ielts-lis-p4-${String(idx + 1).padStart(2, '0')}`,
+    part: 'part_4',
+    title: t[0],
+    topic: t[1],
+    accent: t[2],
+    cefrTarget: idx >= 8 ? 'C1' : 'B2',
+    contextDescription: `Academic university lecture Part 4 analyzing mechanisms, evidence, and implications in ${t[1].toLowerCase()}.`,
+    wordLimitNote: 'ONE WORD ONLY',
+    scriptLines: t[3].map((line) => ({ speaker: 'Lecturer', text: line })),
+    distractorTraps: [
+      'Spot contrast shift between former simplistic assumption ("spent decades assuming...") and modern mechanism.',
+    ],
+    q1Prompt: t[4],
+    q1Options: t[5],
+    q1Ans: t[6],
+    q1Exp: t[7],
+    q1ExpVi: t[8],
+    q2Prompt: t[9],
+    q2Ans: t[10],
+    q2Accept: t[10] === 'oak-gall' ? ['oak', 'oak gall', 'oak-gall'] : [t[10].toLowerCase()],
+    q2Exp: t[11],
+    q2ExpVi: t[12],
+  })),
+];
+
+export const IELTS_LISTENING_P3_P4: IELTSListeningActivity[] = SEEDS_P34.map((s) =>
+  createIeltsListening({
+    id: s.id,
+    part: s.part,
+    pathway: 'shared',
+    title: s.title,
+    topic: s.topic,
+    accent: s.accent === 'american' ? 'en-US' : 'en-GB',
+    cefrTarget: s.cefrTarget,
+    contextDescription: s.contextDescription,
+    wordLimitNote: s.wordLimitNote,
+    scriptLines: s.scriptLines,
+    distractorTraps: s.distractorTraps,
+    exercises: [
+      iEx({
+        id: `il-${s.id}-1`,
+        lessonId: s.id,
+        type: 'audio_recognition',
+        instruction: 'Choose the exact mechanism, critique, or agreement supported by the academic audio.',
+        prompt: s.q1Prompt,
+        audioText: s.scriptLines.map((l) => `${l.speaker}: ${l.text}`).join(' '),
+        options: s.q1Options,
+        correctAnswer: s.q1Ans,
+        explanation: s.q1Exp,
+        explanationVi: s.q1ExpVi,
+        difficulty: 3,
+        skills: ['listening'],
+      }),
+      iEx({
+        id: `il-${s.id}-2`,
+        lessonId: s.id,
+        type: 'fill_blank',
+        instruction: 'Type STRICTLY ONE WORD heard in the seminar/lecture audio.',
+        prompt: s.q2Prompt,
+        audioText: s.scriptLines.map((l) => `${l.speaker}: ${l.text}`).join(' '),
+        correctAnswer: s.q2Ans,
+        acceptableAnswers: s.q2Accept,
+        explanation: s.q2Exp,
+        explanationVi: s.q2ExpVi,
+        difficulty: 3,
+        skills: ['listening', 'writing'],
+      }),
+    ],
+  }),
+);

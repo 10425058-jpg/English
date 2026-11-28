@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { evaluateExerciseAnswer, type CEFRLevel } from '@english-quest/shared';
+import {
+  convertListeningRawToBand,
+  convertReadingRawToBand,
+  evaluateExerciseAnswer,
+  roundIeltsOverallBand,
+  type CEFRLevel,
+} from '@english-quest/shared';
 import { loadMergedUnitsByCefr, loadAllMergedUnits, getUnitLockState, computeCefrMasteryProgress, getLessonNodeState, isUnitChestUnlocked } from '@/services/curriculumService';
 import { ALL_UNITS, CURRICULUM_SECTIONS } from '@/data/curriculum';
 import { evaluatePlacementLevel, PLACEMENT_QUESTIONS } from '@/data/placementTest';
@@ -225,5 +231,19 @@ describe('Quest Store Progression & Idempotency', () => {
     );
     expect(afterMastery.levelExamPassed).toBe(true);
     expect(afterMastery.masteryPercent).toBeGreaterThan(beforeMastery.masteryPercent);
+  });
+
+  it('computes official IELTS 40-mark Academic vs General Training scales and .25/.75 half-band rounding', () => {
+    expect(convertListeningRawToBand(30, 40)).toBe(7.0);
+    expect(convertListeningRawToBand(35, 40)).toBe(8.0);
+    // General Training Reading requires stricter raw hits than Academic at equivalent band
+    expect(convertReadingRawToBand(30, 'academic', 40)).toBe(7.0);
+    expect(convertReadingRawToBand(30, 'general_training', 40)).toBe(6.0);
+    expect(convertReadingRawToBand(34, 'general_training', 40)).toBe(7.0);
+
+    // Official IELTS overall averaging (.25 -> .5, .75 -> next whole band)
+    expect(roundIeltsOverallBand([6.5, 6.5, 6.0, 6.0])).toBe(6.5); // 6.25 -> 6.5
+    expect(roundIeltsOverallBand([7.0, 7.0, 6.5, 6.5])).toBe(7.0); // 6.75 -> 7.0
+    expect(roundIeltsOverallBand([6.5, 6.0, 6.0, 6.0])).toBe(6.0); // 6.125 -> 6.0
   });
 });
