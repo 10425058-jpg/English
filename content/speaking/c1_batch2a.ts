@@ -1,0 +1,403 @@
+import type { SpeakingLesson } from '@english-quest/shared';
+import { createSpeakingLesson } from './helpers';
+
+export const C1_SPEAKING_BATCH2A: SpeakingLesson[] = [
+  createSpeakingLesson({
+    id: 'spk-m2-c1-08',
+    title: 'Executive Diplomacy: Saying "No" to an Unprofitable Partnership Without Burning Bridges',
+    activityType: 'roleplay',
+    category: 'workplace',
+    cefrLevel: 'C1',
+    prompt: 'Deliver a poised executive call declining a flashy co-branded retail pilot whose heavy custom engineering drains two sprints for unclear revenue—preserving warm goodwill for future collaborations.',
+    promptVi: 'Gọi điện từ chối khéo léo một dự án hợp tác hào nhoáng nhưng đòi hỏi tiêu tốn hai chu kỳ kỹ thuật tùy biến trong khi doanh thu mơ hồ—vẫn giữ quan hệ đối tác tốt đẹp lâu dài.',
+    objectives: [
+      'Separate sincere institutional warmth completely from non-negotiable unit-economics limits!',
+      'Keep future doors gracefully open with concrete lighter referral or white-label alternatives.',
+    ],
+    preparationQuestions: ['What exact Q3 technical allocation clashes cleanly with custom builds?', 'Can offering an existing plug-and-play API feed soften the "no" gracefully?'],
+    modelText: 'Hannah, we truly appreciate the creative energy your merchandising team brought into shaping this co-branded checkout concept—your holiday store footprint genuinely stands second to none! Stepping back carefully beside our engineering allocation ahead of Q3 though, dedicating six core developers across two full sprints toward bespoke in-store kiosk adapters would freeze urgent accessibility upgrades serving our primary mobile base. Rather than over-committing thinly and risking an under-supported integration come October, we have to pass cleanly on custom kiosk builds right now. Wait—should your campaign operate smoothly atop our existing standard REST voucher webhook, we would love revisiting an effortless zero-engineering launch cleanly early November! Does keeping our partnership light on standard APIs sound workable for your timeline?',
+    modelComparisonByLevel: {
+      basic: 'Hannah, we love your store team’s creative idea, thank you! Sadly dedicating 6 engineers for two sprints to custom kiosk hardware would stop critical Q3 mobile accessibility fixes, so we must pass right now! Still, if standard API vouchers fit your holiday campaign cleanly instead, let’s talk again November!',
+      natural: 'Hannah, genuinely admired the creative thought your team poured into our holiday concept! Looking candidly at Q3 sprint limits though, tying up two engineering cycles on bespoke in-store kiosk plumbing pulls critical bandwidth straight away from core mobile accessibility work—and we refuse launching half-baked hardware across peak sales! So we need to decline custom kiosk builds this quarter cleanly; yet if existing standard REST voucher feeds fit smoothly instead, we’d love launching lightweight together early November!',
+      advanced: 'Hannah, your retail merchandising team showcased compelling creative vision—thank you warmly for inviting us to co-design the pilot. Having audited Q3 engineering capacity closely however, diverting six senior builders cleanly across two bespoke kiosk sprints risks starving essential core accessibility commitments; rather than diluting delivery fidelity right ahead of holiday volume, we must regretfully pass on custom integration now. Conversely, were a lightweight pilot relying strictly upon our out-of-the-box voucher endpoint viable, we would gladly revisit collaboration in November!',
+    },
+    alternativeResponses: [
+      'While expanding custom white-label translation tiers exceeds Q4 architectural capacity, introducing your group warmly to our trusted implementation partner—or testing our ready-made web widgets quietly next month—keeps collaboration effortless cleanly!',
+    ],
+    vocabularyBank: [
+      { term: 'bespoke', meaning: 'Custom-built specifically from scratch for one unique partner hardware setup cleanly.', vietnamese: 'tùy biến riêng lẻ tốn kém' },
+      { term: 'delivery fidelity', meaning: 'Honoring spotless reliability standards rather than shipping fragile rushed code.', vietnamese: 'chất lượng bàn giao trọn vẹn cam kết' },
+      { term: 'over-committing thinly', meaning: 'Spreading scarce engineering focus awkwardly across too many flashy side pilots.', vietnamese: 'ôm đồm phân tán nguồn lực mỏng' },
+    ],
+    naturalExpressions: ['Stepping back carefully beside engineering allocation...', 'Rather than over-committing thinly...', 'Conversely, were a standard endpoint viable...'],
+    sentenceStructures: [
+      { frame: 'We genuinely appreciate [vision], yet auditing [constraint] forces passing cleanly on [heavy ask] rather than compromising [core quality]. Should [lighter alternative] serve cleanly, we’d welcome revisiting [future month]!', example: 'We deeply appreciate the keynote invite, yet lab accreditation demands passing on long overseas panels rather than rushing students; should a 20-minute Q&A livestream suffice cleanly, gladly join!' },
+    ],
+    suggestedOrganization: ['1. Authentic specific praise of partner reach & effort', '2. Transparent strategic constraint protecting existing users', '3. Firm clean refusal ("have to pass cleanly")', '4. Constructive lightweight alternative leaving warmth intact'],
+    commonMistakes: [
+      { mistake: 'Your project earns zero profit so no thanks bye.', correction: 'Decline strictly citing clear capacity allocation protecting existing client integrity while proposing standard API light options cleanly!', why: 'Respecting mutual strategic boundaries cleanly preserves executive reputation months later!' },
+    ],
+    followUpQuestions: ['Notice keeping "we refuse shipping half-baked work cleanly right ahead of peak October" turned refusal into respected leadership integrity?!'],
+    improvementStrategies: ['Practice framing every difficult business "No" cleanly as a principled "Yes" toward core customer reliability!'],
+    tips: ['Never dilute an unambiguous "pass right now" inside false vague "we might look later maybe".'],
+    selfChecklist: ['Expressed sincere appreciation of partner strengths.', 'Delivered crisp principled refusal anchored cleanly on capacity.', 'Offered light no-cost standard alternative gracefully.'],
+    keyVocabulary: ['bespoke', 'over-commit', 'conversely'],
+    suggestedSeconds: 60,
+    scene: 'workspace',
+    roleplayTurns: [
+      { partner: 'Partner Lead: "Can your core team spend two full sprints building our bespoke kiosk bridge ahead of Q3?"', cue: 'Praise retail reach warmly, decline bespoke build firmly protecting Q3 core accessibility, and offer out-of-the-box REST voucher pivot.' },
+    ],
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-09',
+    title: 'IELTS Part 3 Philosophical Precision: Weighing Historical Urban Nostalgia vs. Clean Livability',
+    activityType: 'ielts_speaking',
+    category: 'ielts_part_3',
+    cefrLevel: 'C1',
+    prompt: 'Respond at Band 8+ subtlety: "When city planners clean up crowded atmospheric old districts, why do residents sometimes complain towns simultaneously lose invisible neighborhood charm?"',
+    promptVi: 'Trả lời IELTS Part 3 sắc sảo mức Band 8+: Vì sao khi quy hoạch chỉnh trang lại những khu phố cũ đông đúc cho khang trang sạch sẽ, người dân đôi khi vẫn tiếc nuối mất đi cái hồn thân quen của phố phường?',
+    objectives: [
+      'Unpack invisible civic texture ("informal front-porch friction", "mixed rental micro-economies") rather than shallow aesthetics!',
+      'Balance clean sanitary pipes warmly against excessive corporate sanitization.',
+    ],
+    preparationQuestions: ['What tiny non-commercial street rituals happen along narrow noisy alleys?', 'Can cities modernize sewers cleanly WITHOUT evicting century-old cobblers under sky-high luxury rents?'],
+    modelText: 'That apparent paradox surfaces repeatedly across rapidly gentrifying river cities globally: upgrading leaking water mains and paving safe wheelchair curbs undeniably heals daily public health, yet excessive hyper-sanitization frequently hollows out living neighborhood texture! In messy organic old districts, uneven narrow shopfronts sit interspersed effortlessly alongside modest cobbler stools, grandmother herb carts, and noisy multi-age tea benches—precisely because varied cheap micro-rents shelter quirky low-margin craftspeople beside wealthier boutiques. The moment glossy wholesale redevelopment hikes rents uniformly and enforces sterile franchise facades everywhere, serendipitous everyday neighbor encounters evaporate into manicured outdoor museum corridors! Truly perceptive urban stewardship replaces broken plumbing underground cleanly without pricing ordinary neighborhood characters quietly out through luxury lease spikes.',
+    modelComparisonByLevel: {
+      basic: 'Upgrading leaky pipes and smooth streets undeniably helps daily life, yet gleaming expensive malls accidentally push funny little cobbler stalls and cheap tea benches out smoothly through huge rent jumps! Good planners fix broken water pipes silently underground while protecting fair rents so real neighborhood locals stay proudly home cleanly!',
+      natural: 'Residents rarely miss broken drains or mud when grieving overhauled historic quarters! What truly evaporates cleanly during heavy gentrification is quirky multi-income urban texture: affordable odd corners where veteran watch-repairers sit peacefully right beside noisy student dumpling stalls! When gleaming uniform leases sweep every side alley cleanly upward into identical chain storefronts, spontaneous human warmth shifts suddenly into polished movie-set sterility. Upgrading utility pipes quietly while protecting small local leases saves soul cleanly.',
+      advanced: 'This seeming paradox invariably stems less from mourning crumbling plaster than from losing socio-economic diversity: untidy organic quarters weave veteran repairmen, casual doorstep chess players, and budget diners cleanly alongside upscale shops precisely through varied affordable lease footprints. When sweeping redevelopment homogenizes rents and aesthetics simultaneously, vibrant unscripted community life yields softly to manicured commercial sterility—revealing why discerning planners modernize subsurface utilities cleanly while anchoring stabilized rents for neighborhood institutions.',
+    },
+    alternativeResponses: [
+      'Notice how genuine architectural warmth breathes through unscripted small imperfections—chipped hand-painted signage and uneven stone benches where neighbors linger freely—whereas sterile uniform franchise blocks deter lingering unless buying overpriced lattes.',
+    ],
+    vocabularyBank: [
+      { term: 'hyper-sanitization', meaning: 'Polishing messy lively districts cleanly into artificial lifeless theme-park avenues.', vietnamese: 'sự chỉnh trang cứng nhắc đến mức vô hồn' },
+      { term: 'serendipitous encounters', meaning: 'Warm unplanned spontaneous greetings surfacing smoothly along informal streets.', vietnamese: 'cuộc chạm mặt tình cờ đầy hơi ấm cộng đồng' },
+      { term: 'subsurface utilities', meaning: 'Hidden underground drainage pipes, electric lines, and clean fiber cables.', vietnamese: 'hạ tầng ngầm thoát nước, điện cáp' },
+    ],
+    naturalExpressions: ['Apparent paradox surfaces cleanly...', 'Hollows out living texture...', 'Perceptive urban stewardship reconciles...'],
+    sentenceStructures: [
+      { frame: 'This apparent paradox arises rarely from [surface cliché] than from losing [underlying balance]: when redevelopment [sweeping act], [lively virtue] yields softly to [sterile outcome].', example: 'This apparent nostalgia arises less from fearing bright lamps than from losing calm silence: when billboards colonize quiet parks, contemplative rest yields to noisy commercial clamor!' },
+    ],
+    suggestedOrganization: ['1. Acknowledge valid hygiene gains immediately ("undeniably heals...")', '2. Unpack socioeconomic lease ecosystem behind old charm', '3. Contrast vibrant variety vs uniform museum sterility', '4. Crisp surgical utility-fix + rent-anchor takeaway'],
+    commonMistakes: [
+      { mistake: 'Old places feel cute purely because dirty walls.', correction: 'Vibrant old streets thrive via diverse affordable storefront sizes fostering real cross-income human mixing rather than cracked dirt!', why: 'Pinpointing mixed-rent diversity proves genuine C1 sociology depth!' },
+    ],
+    followUpQuestions: ['Did dissecting "varied small leases allowing cobblers beside cafes" turn vague nostalgia into razor-sharp Band 8 urban insight?!'],
+    improvementStrategies: ['Explain abstract cultural feelings strictly through tangible economic or social structures ("rent diversity", "informal seating")!'],
+    tips: ['Always use clean parallel clauses ("modernize subsurface pipes while anchoring neighborhood rents").'],
+    selfChecklist: ['Distinguished valid plumbing repairs cleanly from rent displacement.', 'Explained diverse affordable ecosystem concretely.', 'Maintained smooth C1 analytical flow effortlessly.'],
+    keyVocabulary: ['serendipitous', 'sterility', 'stewardship'],
+    suggestedSeconds: 60,
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-10',
+    title: 'Academic Conference Q&A: Handling Unexpected Unfriendly Critique Gracefully',
+    activityType: 'academic_speaking',
+    category: 'academic_discussion',
+    cefrLevel: 'C1',
+    prompt: 'Respond calmly after an aggressive audience questioner interrupts your Q&A asserting dismissively: "Surely this entire classroom sample looks far too small to prove anything meaningfully whatsoever!"',
+    promptVi: 'Ứng xử điềm tĩnh chuẩn học thuật trong phần hỏi đáp hội thảo khi có người ngắt lời chỉ trích gay gắt: "Chắc chắn cỡ mẫu lớp học này quá nhỏ chẳng thể chứng minh được điều gì cả!"',
+    objectives: [
+      'Avoid defensive snappy hostility ("You didn’t read Slide 9!") AND weak cowering ("Oops sorry our paper fails!").',
+      'Acknowledge exact scope boundary gracefully while reclaiming the valid genuine mechanistic discovery cleanly!',
+    ],
+    preparationQuestions: ['What exact pilot limitation ARE small-sample papers honestly meant for?', 'How do effect sizes & follow-up trials address statistical power transparently?'],
+    modelText: 'Thank you candidly for raising sample statistical power straight away—let me clarify scope crisply without overclaiming! To put boundaries transparently upfront: a thirty-eight-learner cohort never claims sweeping universal proof across entire secondary school districts, and Section Four states that statistical generalization caveat explicitly. Where a finely controlled modest cohort DOES yield rigorous diagnostic value though—especially tracking rich weekly audio portfolios side-by-side—lies pinpointing exact micro-level pronunciation bottlenecks cleanly before wasting taxpayer funds scaling blindly onto three thousand pupils! Pairing our clear three-millisecond pause shift mechanism here directly into next spring’s randomized multi-campus cohort cleanly resolves both scale and mechanistic certainty.',
+    modelComparisonByLevel: {
+      basic: 'Thank you for raising sample size! Clearly thirty-eight students cannot prove claims cleanly for every huge school nationwide, and we admit that right inside Section Four. Still, intensive weekly checking on small rooms reveals exact subtle pause glitches cheaply ahead of big thousands-student trials planned next spring!',
+      natural: 'Appreciate pushing straight onto statistical power—let’s calibrate exact claims candidly! Zero arguments here: thirty-eight participants never generalize blindly nationwide, which our limitations table flags clearly. However, tight small-N acoustic studies excel at uncovering subtle micro-level pause shifts cleanly—giving us solid proof-of-mechanism BEFORE investing cleanly into next semester’s five-school randomized trial!',
+      advanced: 'Thank you sincerely for pressing straight onto statistical power—it warrants razor-sharp boundary transparency. Unquestionably, an intensive thirty-eight-learner sample cannot claim population-wide external validity, an explicit constraint noted prominently inside Section Four. Crucially however, tight longitudinal cohorts remain indispensable precisely for validating fine-grained acoustic mechanisms cleanly prior to deploying costly five-campus randomized replications scheduled next semester.',
+    },
+    alternativeResponses: [
+      'Fair methodological scrutiny regarding regional homogeneity! Precisely because single-clinic data isolates core metabolic noise first, these measured baselines supply exact variance checks enabling our funded multi-center national cohort launching smoothly next month!',
+    ],
+    vocabularyBank: [
+      { term: 'external validity', meaning: 'How confidently findings generalize safely outside one specific study classroom onto wider nations.', vietnamese: 'giá trị khái quát hóa ra ngoài mẫu' },
+      { term: 'proof-of-mechanism', meaning: 'High-resolution close tracking confirming exact subtle physical steps operate genuinely before multi-million scaling.', vietnamese: 'bằng chứng cơ chế tinh vi trước khi nhân rộng' },
+      { term: 'overclaiming', meaning: 'Inflating modest specific trial findings clumsily into sweeping universal laws.', vietnamese: 'thổi phồng quá phạm vi dữ liệu chứng minh' },
+    ],
+    naturalExpressions: ['Thank you candidly for pressing straight onto...', 'Unquestionably, an intensive small cohort cannot claim..., crucially however...', 'Giving rigorous proof-of-mechanism BEFORE scaling blindly!'],
+    sentenceStructures: [
+      { frame: 'Appreciate pressing directly onto [critique]—to clarify scope candidly: [Sample] never asserts sweeping [big claim], yet precisely isolates [mechanism] ahead of [upcoming scale step].', example: 'Appreciate checking single-season runoff closely—one dry autumn never spans decade cycles yet isolates exact curb drainage cracks ahead of five-year gauges!' },
+    ],
+    suggestedOrganization: ['1. Unflustered gracious thank-you validating methodology point', '2. Candid zero-defensiveness boundary ("never claims nationwide proof")', '3. Reclaim rigorous micro-mechanism value', '4. Forward multi-campus next step bridging scale cleanly'],
+    commonMistakes: [
+      { mistake: 'You weren’t paying attention—small studies always work fine!', correction: 'Unquestionably thirty-eight learners lack broad external generalizability—which is precisely why it stands transparently scoped as mechanistic diagnostic insight ahead of multi-site scaling!', why: 'Conceding genuine statistical limits calmly renders dismissive hecklers immediately powerless!' },
+    ],
+    followUpQuestions: ['Notice keeping a calm steady smile while explicitly stating boundaries made aggressive questioning look small beside poised expertise?!'],
+    improvementStrategies: ['Rehearse the 4-Move Q&A Aikido: Gracious Thanks -> Honest Scope Limit -> Exact Focused Value Reclaimed -> Scaled Follow-up Plan!'],
+    tips: ['Master key C1 defense frame: "Where a compact study DOES yield value lies specifically in..." cleanly!'],
+    selfChecklist: ['Remained completely gracious without defensive tension.', 'Scoped external generalizability limits candidly.', 'Defended authentic diagnostic value + clear next step smoothly.'],
+    keyVocabulary: ['validity', 'mechanism', 'overclaiming'],
+    suggestedSeconds: 60,
+    scene: 'workspace',
+    roleplayTurns: [
+      { partner: 'Audience Critic: "Come now—thirty-eight volunteers in one room cannot remotely prove anything meaningfully broadly!"', cue: 'Thank candidly for highlighting sample power, state honest scope caveat cleanly, reclaim deep mechanistic audio tracking value + upcoming 5-campus replication.' },
+    ],
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-11',
+    title: 'Inversion & Hedging Fluency Practice: "Not Only / Hardly / Rarely" Naturally Aloud',
+    activityType: 'topic_discussion',
+    category: 'academic_discussion',
+    cefrLevel: 'C1',
+    prompt: 'Integrate TWO crisp natural spoken negative inversions cleanly ("Not only did...", "Seldom have cities witnessed...", "Little did neighbors suspect...") inside an engaging 55-second mini-talk on bicycle lane revival without sounding stiffly theatrical.',
+    promptVi: 'Đưa khéo léo hai cấu trúc đảo ngữ phủ định ("Not only did...", "Seldom have...") vào một bài nói tự nhiên dài 55 giây về sự hồi sinh của làn xe đạp đô thị mà không nghe cứng nhắc sách vở.',
+    objectives: [
+      'Avoid forgetting helper-verb inversion strictly inside front-loaded negatives ("Not only DID it cut...", NOT "Not only it cut...")!',
+      'Balance elevated dramatic opener effortlessly with relaxed vivid street facts cleanly.',
+    ],
+    preparationQuestions: ['What crisp inverted helper verb snaps cleanly straight behind "Not only"?', 'How does relaxed simple prose directly afterward keep delivery sounding warm and conversational?'],
+    modelText: 'Look cleanly across Utrecht’s quiet riverside bike lanes over the past twenty years! Seldom have municipal planners reversed noisy urban highway blight with such understated everyday delight. Back in the nineteen-seventies, concrete expressways cut flat across historic canal beds while anxious parents feared bicycle commutes cleanly—little did early campaigners suspect how fiercely future shopkeepers themselves would cheer calm green boulevards once painted protected curbs opened! Not only did crisp raised bike paths slash midday downtown exhaust noticeably within two brief seasons, they quietly handed ten-year-olds safe afternoon freedom riding effortlessly to neighborhood brass music clubs unaccompanied. Once smooth dry bike lanes connect train gates seamlessly right to grocery front steps, ordinary residents embrace cycling purely out of daily delight rather than preachy climate guilt!',
+    modelComparisonByLevel: {
+      basic: 'Not only did Utrecht’s raised bicycle lanes reduce smelly afternoon car smoke quickly, they also let elementary kids bike cheerfully to friends cleanly! Planners rarely turn noisy concrete roads into calm cheerful paths so successfully—making riding normal easy joy instead of guilty duty.',
+      natural: 'Utrecht’s calm street turn-around shows smart urban grit cleanly! Seldom have municipal builders rolled back clogged inner highways so smoothly—and little did cynical early merchants suspect how swiftly bicycle boulevards would raise café receipts once painted curbs launched! Not only did separated bike ways trim noise within two years, they returned ten-year-olds safe solo rides straight to music practice cleanly.',
+      advanced: 'Consider Utrecht’s quiet twenty-year transformation along reclaimed canal embankments cleanly. Seldom have city authorities dismantled noisy concrete arteries with such disarming everyday lightness; little did early skeptical merchants anticipate how rapidly protected cycleways would swell neighborhood café patronage! Not only did separated lanes curtail downtown emissions within two seasons, they simultaneously restored ten-year-olds confident autonomous trips to music practice—proving seamless design motivates cleanly past moral nagging.',
+    },
+    alternativeResponses: [
+      'Rarely does one affordable transit change shift daily culture swiftly: not only did twenty-four-hour library smart return lockers eliminate stubborn overdue fines cleanly, they immediately opened late evening book swaps smoothly for tired hospital night nurses!',
+    ],
+    vocabularyBank: [
+      { term: 'seldom have planners', meaning: 'Elevated rhetorical inversion emphasizing rare notable historic success cleanly.', vietnamese: 'hiếm khi các nhà quy hoạch đạt được...' },
+      { term: 'little did they suspect', meaning: 'Graceful ironic inversion foreshadowing unexpected warm reversal of initial doubt.', vietnamese: 'họ ít ngờ rằng về sau...' },
+      { term: 'understated delight', meaning: 'Quiet cheerful daily enjoyment replacing stressful chore hustle cleanly.', vietnamese: 'niềm vui nhẹ nhàng thường nhật' },
+    ],
+    naturalExpressions: ['Seldom have planners...', 'Little did early skeptics suspect...', 'Not only did lanes slash X, they quietly handed...'],
+    sentenceStructures: [
+      { frame: 'Seldom have [agents] [past participle] cleanly. Not only did [action] [outcome 1], it also [outcome 2]!', example: 'Seldom have rural libraries modernized cleanly; not only did solar lamps stretch homework hours past dusk, they invited elders reading evening newspapers!' },
+    ],
+    suggestedOrganization: ['1. Dramatic crisp "Seldom have..." thesis hook', '2. Warm vivid past concrete transformation + natural "Little did..." contrast', '3. Clean accurate "Not only DID [subj] [bare V]" double win', '4. Crisp earthy closing takeaway canceling stiff academic stiffness'],
+    commonMistakes: [
+      { mistake: 'Not only it cut air smoke, it helped kids cleanly.', correction: 'Not only DID IT cut exhaust smoke cleanly, it also handed children safe independent freedom!', why: 'Whenever "Not only / Seldom / Rarely / Little" opens cleanly upfront, always place auxiliary ("did / have / can") strictly BEFORE subject!' },
+    ],
+    followUpQuestions: ['Did slipping back naturally into simple relaxed language right after each inversion keep rhythm genuinely warm rather than robotic?!'],
+    improvementStrategies: ['Save opening inversions cleanly for strictly ONE dramatic contrast peak per 60-second talk—not five packed together!'],
+    tips: ['Always use base infinitive behind "Not only DID it + [slash / create / cut]"!'],
+    selfChecklist: ['Inverted auxiliary cleanly ahead of subject ("Not only DID", "Seldom HAVE").', 'Kept bare main verb after "did".', 'Paired elevated emphasis naturally with relaxed earthy closing story.'],
+    keyVocabulary: ['seldom', 'not only did', 'autonomous'],
+    suggestedSeconds: 55,
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-12',
+    title: 'Diplomatic Cross-Team Disagreement: Re-Anchoring Flawed Unstated Assumptions',
+    activityType: 'roleplay',
+    category: 'workplace',
+    cefrLevel: 'C1',
+    prompt: 'Interrupt gently inside a quarterly budget room when an enthusiastic marketing VP takes cleanly for granted that hiring thirty extra cold-callers doubles B2B conversions automatically—surface flawed funnel math politely.',
+    promptVi: 'Góp ý khéo léo trong cuộc họp ngân sách quý khi sếp Marketing mặc định tuyển thêm 30 nhân sự gọi điện lạnh sẽ tự động tăng gấp đôi hợp đồng B2B—chỉ ra điểm nghẽn thực sự ở khâu kỹ thuật thẩm định bảo mật mà không làm mất mặt người phát biểu.',
+    objectives: [
+      'Avoid saying blunt "Your marketing math doesn’t work!"—open respectfully testing the shared assumption via neutral curiosity ("Mind if we stress-test one crucial middle bottleneck cleanly?").',
+      'Pinpoint real capacity bottle cleanly ("our two security legal auditors sit queued six weeks behind!").',
+    ],
+    preparationQuestions: ['What exact legal security bottleneck throttles final enterprise closures regardless of loud front-end cold dials?', 'How much cheaper does hiring 2 security compliance leads look cleanly beside 30 noisy callers?'],
+    modelText: 'Excuse me quickly, Victor—genuinely admire expanding market pipeline speed! Before locking extra payroll behind thirty new cold-call seats though, might we gently stress-test one hidden middle assumption quietly driving our B2B numbers? Pulling live Q2 conversion waterfalls cleanly right beside security review desks shows marketing demos actually grew twenty-eight percent last spring already—yet signed checks stayed flat solely because enterprises wait six exhausting weeks queuing behind just two overworked IT compliance auditors! Doubling top-funnel noisy lead dials tomorrow without widening compliance audit bandwidth cleanly simply packs frustrated prospects longer into the identical doorway! Redirecting even half that budget smoothly toward two seasoned security compliance engineers unlocks trapped pipeline revenue cleanly twice as swiftly—what do our Q2 audit queue logs suggest alongside sales?',
+    modelComparisonByLevel: {
+      basic: 'Hold on, love adding sales focus, yet let’s check one step! Last quarter marketing demos already rose 28%, while final closed enterprise sales stayed flat purely because IT security audits backlogged six weeks behind two tired reviewers! Buying thirty extra cold callers jams the identical slow door even worse unless we hire two compliance checkers first cleanly!',
+      natural: 'Appreciate the energy driving Q3 growth, Victor! Mind if we quickly reality-check one quiet premise inside that 30-rep cold-call bet? Looking candidly at Q2 funnel stages, qualified leads already surged twenty-eight percent—yet closings stalled waiting six solid weeks behind strictly two security compliance reviewers! Flooding an unchanged security bottleneck with twice the outreach simply stacks angry prospects indoors unless we unlock legal compliance capacity first cleanly!',
+      advanced: 'Victor, while that assertive ambition around top-of-funnel coverage stands clear, might we briefly stress-test the underlying capacity premise? Reviewing our Q2 cohort telemetry reveals qualified inbound demos already climbed twenty-eight percent, yet final closures plateaued entirely because deals languished six weeks awaiting clearance from merely two overextended security compliance officers. Amplifying outreach volume ahead of curing review throughput risks backing up impatient prospects rather than lifting revenue cleanly; shifting partial capital toward two additional compliance reviewers frees trapped value far faster.',
+    },
+    alternativeResponses: [
+      'Before tripling noisy weekend ad clicks cleanly right ahead of warehouse upgrades, auditing delivery failure sheets reveals late packaging lines—not lack of eager website viewers—triggers sixty percent of silent customer cart dropouts!',
+    ],
+    vocabularyBank: [
+      { term: 'stress-test a premise', meaning: 'Politely check quiet hidden math assumptions before locking multi-quarter funding.', vietnamese: 'kiểm tra phản biện giả định nền tảng' },
+      { term: 'plateaued', meaning: 'Leveled off flat despite escalating initial hype and outreach energy.', vietnamese: 'chững lại đi ngang không tăng tiếp' },
+      { term: 'languished waiting', meaning: 'Sat idle stuck painfully inside slow review backlogs until buyers walked quietly elsewhere.', vietnamese: 'bị tồn đọng chờ mòn mỏi' },
+    ],
+    naturalExpressions: ['Might we stress-test one hidden assumption...', 'Telemetry reveals X climbed..., yet closures stalled strictly because...', 'Doubling outreach ahead of curing bottlenecks simply...'],
+    sentenceStructures: [
+      { frame: 'Admire the ambition around [Goal]—before locking [big spend], might we stress-test [assumed bottleneck]? Telemetry reveals [stage A] grew cleanly, whereas [bottleneck] throttled [outcome].', example: 'Admire speeding store apps—before adding twenty servers, telemetry shows slow unindexed customer lookup queries, not CPU boxes, stall 70% logins!' },
+    ],
+    suggestedOrganization: ['1. Warm sincere respect for ambitious goal', '2. Diplomatic non-combative "stress-test premise" request', '3. Irrefutable Q2 funnel math contrasting demo climb vs audit jam', '4. Concrete lower-cost compliance swap proposal + collaborative question'],
+    commonMistakes: [
+      { mistake: 'You ignored security completely and wasted budget!', correction: 'Stress-test shared Q2 waterfall metrics collaboratively cleanly focusing strictly on clearing trapped pipeline value!', why: 'Bringing objective data beside respectful collaborative questions dissolves executive defensiveness instantly!' },
+    ],
+    followUpQuestions: ['Notice keeping "Mind if we stress-test one hidden middle assumption?" felt curious and supportive rather than adversarial?!'],
+    improvementStrategies: ['Never tell executives "You forgot X!"—always ask cleanly "Might we stress-test [bottleneck] beside Q2 data together?"!'],
+    tips: ['Always use clean passive/stative clarity ("deals languished waiting behind...") smoothly!'],
+    selfChecklist: ['Validated leadership ambition before redirecting calmly.', 'Grounded challenge on explicit funnel evidence rather than vibes.', 'Presented faster high-ROI alternative tactfully.'],
+    keyVocabulary: ['stress-test', 'plateaued', 'throughput'],
+    suggestedSeconds: 60,
+    scene: 'workspace',
+    roleplayTurns: [
+      { partner: 'Marketing VP: "Simple win team: approve thirty more outbound cold callers tomorrow so enterprise closes double!"', cue: 'Appreciate target drive, request testing hidden assumption cleanly via Q2 numbers (demos +28%, stalled 6 weeks at 2 IT compliance officers), pitch compliance hire cleanly.' },
+    ],
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-13',
+    title: 'IELTS Part 2 High-Nuance Story: A Small Quiet Choice That Redirected Long-Term Growth',
+    activityType: 'ielts_speaking',
+    category: 'ielts_part_2',
+    cefrLevel: 'C1',
+    prompt: 'Tell an introspective rich 60-second Band 8 narrative about one seemingly minor ordinary decision (signing up silently for evening debates, trading social feeds for 20-minute morning essay journals, saying "yes" to nervous solo travel) whose compounding ripple unexpectedly shaped years afterward.',
+    promptVi: 'Kể câu chuyện nội tâm sâu sắc dài 60 giây đạt Band 8+ về một quyết định tưởng chừng nhỏ bé bình thường (tham gia câu lạc bộ tranh biện buổi tối, duy trì nhật ký tiếng Anh sáng...) lại tạo hiệu ứng lan tỏa lâu dài.',
+    objectives: [
+      'Highlight contrast between trivial small beginning ("unassuming bulletin post") and deep multi-year ripple cleanly.',
+      'Convey genuine personal vulnerability rather than generic hero bragging!',
+    ],
+    preparationQuestions: ['What tiny mundane Tuesday moment sparked that quiet change?', 'Which concrete door years later traced directly back to Week One bravery?'],
+    modelText: 'Rather than some cinematic grand graduation leap, one deceptively quiet hallway choice four winters ago shaped nearly every professional step I enjoy today! Waiting lazily between damp afternoon physics lectures, I spotted a faded chalk bulletin pinned crookedly outside Room 204 inviting tongue-tied non-native undergrads to casual ungraded Friday English tea chats—zero competition microphones, strictly plain tea biscuits and honest slow dialogue! Nearly turning cleanly back down stairs expecting awkward stiff silence, I scrawled my initials nervously bottom of page two purely out of stubborn boredom. First Friday felt mildly terrifying stammering short imperfect thoughts; yet patiently returning across thirty consecutive drizzly afternoons built unhurried idiomatic ear instincts quietly behind zero test stress! Strikingly, three years later when interviewing smoothly inside a tense cross-regional conference selection room, that unscripted casual Room 204 conversational poise won me my inaugural scholarship seamlessly—proving compounding gentle consistency routinely dwarfs brief flashy willpower sprints!',
+    modelComparisonByLevel: {
+      basic: 'Four winters ago seeing a small chalkboard notice outside Room 204 for ungraded Friday English tea talks changed everything quietly! Nearly turning shyly away downstairs, I wrote my name down anyhow feeling very nervous at Week One! Going faithfully thirty calm weeks built relaxed smooth listening and speaking without exam dread—directly earning me a scholarship talk three years later!',
+      natural: 'Surprisingly, no sweeping life reset turned things around—just scrawling my hesitant initials onto a smudged hallway flyer inviting shy undergrads to casual Friday English tea chats cleanly! Almost backing down stairs fearing awkward silent pauses, showing up week after drizzly week over thirty Fridays gradually sanded down perfection dread while building quick ear comfort without pressure. Three years onward, precisely that unforced calm fluency carried my toughest regional scholarship panel smoothly—confirming quiet tiny weekly drops carve deeper channels than loud sudden cram bursts.',
+      advanced: 'Far from any cinematic epiphany, scrawling my reluctant initials beneath a faded hallway flyer four winters back proved quietly transformative. Advertising ungraded Friday afternoon English tea chats inside Room 204, that humble sign nearly sent shy impulse fleeing downstairs; pressing onward regardless across thirty consecutive weeks gradually dissolved stifling self-monitoring until intuitive conversational cadence took hold. Three years later, walking calmly into an unnerving regional fellowship interview, precisely that seasoned poise bridged crisp dialogue effortlessly—demonstrating how modest consistent curiosity reliably outlasts theatrical bursts of ambition.',
+    },
+    alternativeResponses: [
+      'Swapping morning alarm scroll traps quietly for ten hand-lettered journal lines every dawn beside warm ginger tea looked laughably slight Day One—yet harvesting two hundred calm pages quietly built unhurried English phrasing clarity shaping my technical documentation career effortlessly today!',
+    ],
+    vocabularyBank: [
+      { term: 'deceptively quiet', meaning: 'Outwardly modest tiny moment concealing enormous future consequence cleanly.', vietnamese: 'lặng lẽ tưởng chừng tầm thường mà sâu rộng' },
+      { term: 'self-monitoring', meaning: 'Exhausting anxious inner critic judging every syllable mid-conversation silently.', vietnamese: 'tâm lý tự soi xét căng thẳng từng từ nói ra' },
+      { term: 'compounding consistency', meaning: 'Small tiny reliable deposits accumulating staggering lifelong poise patiently.', vietnamese: 'sức mạnh tích lũy đều đặn qua thời gian' },
+    ],
+    naturalExpressions: ['Rather than some cinematic grand leap...', 'Nearly turning back out of sheer hesitation...', 'Quiet consistency routinely dwarfs flashy bursts!'],
+    sentenceStructures: [
+      { frame: 'Far from a dramatic leap, [small humble habit] proved quietly pivotal: pressing gently onward despite [early friction] built [enduring poise] surfacing crisply years later!', example: 'Far from dramatic vows, cycling slow residential routes proved pivotal—turning dreaded morning grogginess cleanly into steady cheerful weekday stamina!' },
+    ],
+    suggestedOrganization: ['1. Contrast small humble sign against grand clichés cleanly', '2. Honest timid hesitation standing outside door', '3. 30 quiet unhurried patient repeats', '4. Distant 3-year payoff + memorable wisdom line'],
+    commonMistakes: [
+      { mistake: 'That tiny club immediately made me flawless C2 speaker within two Friday nights.', correction: 'Thirty steady patient weeks quietly eased self-doubt until conversational rhythm felt natural!', why: 'Honest plausible cumulative timelines sound utterly convincing and deeply moving cleanly!' },
+    ],
+    followUpQuestions: ['Did contrasting tiny hesitant Day-One reality against calm 3-year compounding rewards ring genuinely inspiring?!'],
+    improvementStrategies: ['Tell small vulnerable truths accurately ("faded flyer, timid initials, 30 rainy Fridays") rather than overblown fake overnight transformations!'],
+    tips: ['Keep accurate past-perfect precision ("had been scrawled" vs clean simple past "scrawled").'],
+    selfChecklist: ['Contrasted small choice realistically against multi-year ripple.', 'Shared genuine initial hesitation candidly.', 'Landed rich reflective closing takeaway cleanly.'],
+    keyVocabulary: ['deceptively', 'self-monitoring', 'compounding'],
+    suggestedSeconds: 60,
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-14',
+    title: 'Spontaneous Debate Rebuttal: Evaluating Mandatory Public Algorithmic Transparency Audits',
+    activityType: 'debate_defense',
+    category: 'opinion_debate',
+    cefrLevel: 'C1',
+    prompt: 'Defend requiring independent pre-deployment audits on high-stakes housing, medical, and hiring automated screeners—rebut corporate fears cleanly around trade-secret theft via zero-raw-code sandbox verification.',
+    promptVi: 'Bảo vệ quan điểm bắt buộc kiểm toán độc lập đối với thuật toán chấm điểm nhà ở, y tế hoặc tuyển dụng—bác bỏ khéo léo lo ngại lộ bí mật thương mại bằng cơ chế kiểm thử hộp cát bảo mật dữ liệu gốc.',
+    objectives: [
+      'Dissect false industry trade-secret panic concisely cleanly ("auditors check disparate outcome metrics inside NDA vaults cleanly without dumping raw source weights onto GitHub!").',
+      'Weigh civil fairness stakes calmly against bureaucratic gridlock.',
+    ],
+    preparationQuestions: ['Does inspecting food kitchen safety expose secret grandma spice proportions loudly publicly—or solely verify safe hygiene?', 'What targeted scope restricts red-tape overhead strictly to high-consequence life portals?'],
+    modelText: 'Opponents routinely protest that independent auditing on hiring and loan algorithms compels innovative labs to dump proprietary source weights helplessly in front of overseas copycats! Respectfully, that claim rests upon an outdated confusion cleanly contrasting food-safety restaurant inspections against publishing secret family spice recipes! Audited financial statements verify accurate tax compliance securely inside accredited confidential rooms without posting internal bank spreadsheets online; identically, accredited third-party AI evaluators can feed structured synthetic stress profiles straight into sandboxed APIs safely verifying gender, age, and postcode equity cleanly without ever unveiling secret proprietary code parameters! Restricting pre-deployment stress audits specifically to high-stakes civic portals—medical triage, rental screening, and credit underwriting—shields essential civil rights robustly without choking playful low-risk playlist recommenders under pointless red tape.',
+    modelComparisonByLevel: {
+      basic: 'Tech firms complain public algorithm checks steal trade secrets! Actually kitchen hygiene inspections never publish chef secret spice recipes online—auditors simply verify safety inside private rooms cleanly! Accredited testers check high-risk housing and loan models safely inside secure sandboxes leaving playful movie recommendation apps totally unbothered smoothly.',
+      natural: 'Companies frequently protest fairness audits leak crown-jewel source weights straight to rivals! Yet restaurant health audits inspect kitchen cleanliness rigorously without ever posting grandma’s secret marinade recipes online! Secure sandbox testing lets accredited third-party examiners test bias inputs inside NDA rooms safely without spilling private code. Scoping checks cleanly exclusively to high-stakes credit, medical, and housing decisions prevents choking harmless hobby startups in red tape!',
+      advanced: 'Industry opponents invariably assert pre-deployment fairness audits endanger intellectual trade secrets publicly. Yet this rests cleanly upon conflating confidential verification with raw code exposure—identical to how clinical aviation inspections validate airworthiness rigorously inside closed hangars without distributing manufacturing blueprints worldwide. Accredited third-party evaluators probing sandboxed outputs securely detect disparate postcode biases cleanly, while scoping legal oversight firmly around consequential housing, lending, and triage screeners preserves frictionless innovation across benign consumer spaces.',
+    },
+    alternativeResponses: [
+      'Scoping safety compliance cleanly by blast radius—identical cleanly to strict elevator braking codes versus casual cardboard bookshelf labels—protects vulnerable applicants coherently while encouraging nimble lightweight startup experimentation calmly!',
+    ],
+    vocabularyBank: [
+      { term: 'conflating X with Y', meaning: 'Blurring two fundamentally separate duties (like independent verification vs open-source dumping) awkwardly together cleanly.', vietnamese: 'đánh đồng khập khiễng giữa hai khái niệm' },
+      { term: 'synthetic stress profiles', meaning: 'Carefully varied dummy applicant pairs holding identical skills while shifting strictly zip code or surname cleanly to uncover subtle hidden drops.', vietnamese: 'bộ hồ sơ giả lập kiểm tra thiên lệch' },
+      { term: 'blast radius / consequential', meaning: 'Deep life-altering weight differentiating mortgage rejections cleanly from playful weekend movie suggestions.', vietnamese: 'phạm vi tác động trọng yếu tới đời sống' },
+    ],
+    naturalExpressions: ['Rests squarely upon conflating X with Y...', 'Identically, accredited third-party evaluators...', 'While preserving frictionless agility across benign spaces!'],
+    sentenceStructures: [
+      { frame: 'Critics contend [mandate] compels exposing [secret], conflating [confidential verification] awkwardly with [public dump]. Just as [clean safety analogy], accredited auditors validate [fairness] securely inside [sandbox]!', example: 'Critics warn water inspections leak recipes—conflating contamination safety with flavor trade secrets; inspectors check bacteria strictly privately!' },
+    ],
+    suggestedOrganization: ['1. Steel-man opponent’s trade-secret alarm swiftly upfront', '2. Demolish conflation cleanly using Aviation / Kitchen hygiene safety analogy', '3. Detail clean synthetic NDA sandbox testing', '4. Crisp high-stakes-only proportionality limit'],
+    commonMistakes: [
+      { mistake: 'Companies should publish all source code publicly immediately!', correction: 'Confidential accredited NDA sandbox stress testing protects intellectual trade secrets cleanly while upholding civic fairness checks!', why: 'Balanced institutional solutions respect IP incentives simultaneously with civil rights rather than looking technically naïve!' },
+    ],
+    followUpQuestions: ['Did comparing algorithm bias audits directly to confidential aviation & kitchen safety inspections immediately expose the trade-secret red herring cleanly?!'],
+    improvementStrategies: ['Keep the "Inspection Analogy" ready anytime regulated industries insist safety rules force handing blueprints freely over to rivals!'],
+    tips: ['Always use clean parallel subject-verb alignment ("evaluators probe..., auditors verify...").'],
+    selfChecklist: ['Refuted trade-secret conflation calmly with sharp hygiene/aviation parallel.', 'Described synthetic sandbox bias audits concretely.', 'Maintained sensible proportionality between high-stakes & harmless tools.'],
+    keyVocabulary: ['conflating', 'sandboxed', 'consequential'],
+    suggestedSeconds: 60,
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-15',
+    title: 'Natural Discourse Markers Clinic: Strategic Hedging & Diplomatic Caution',
+    activityType: 'academic_speaking',
+    category: 'academic_discussion',
+    cefrLevel: 'C1',
+    prompt: 'Transform three blunt reckless absolute claims smoothly into polished calibrated C1 commentary using authentic hedges ("tentatively suggests", "broadly speaking, though subject to...", "it would be premature to conclude...").',
+    promptVi: 'Nâng cấp ba phát ngôn cực đoan vội vã sang văn phong C1 chuẩn mực bằng các cụm rào đón khoa học tinh tế ("tạm thời gợi ý rằng", "còn quá sớm để kết luận...", "nhìn chung vẫn tùy thuộc vào...").',
+    objectives: [
+      'Avoid hollow wishy-washy mumbling—notice crisp hedging actually increases precision and intellectual weight dramatically!',
+      'Swap stiff textbook "in my humble opinion" for sleek natural epistemic nuance ("preliminary figures point cautiously toward...", "by and large...").',
+    ],
+    preparationQuestions: ['Why do scientists and diplomats distrust words like "ALWAYS", "PROVES", "EVERY SINGLE ONE"?', 'How does "It remains premature..." buy critical accuracy calmly?'],
+    modelText: 'Look at shifting three risky blanket absolutes into credible executive clarity smoothly! First absolute: "Working fully remote ALWAYS destroys junior mentorship!" Upgraded calibration cleanly: "Absent intentional structured pairing rituals, remote-first schedules *tend to slow* organic informal learning noticeably for entry-level hires—though distributed teams guarding crisp recorded walkthroughs frequently buck that trend cleanly!" Second reckless claim: "Five-day summer coding camps GUARANTEE lucrative jobs!" Grounded honesty cleanly: "Intensive brief bootcamps provide inspiring introductory foundations smoothly, yet *it would be somewhat premature* to equate week-long exposure uniformly with months of deliberate collaborative production debugging." Finally: "Everyone hates reading dense user documentation!" Fair nuance smoothly: "Broadly speaking, busy readers abandon bloated narrative manuals fast, yet concise searchable concrete code snippets remain indispensable when edge crashes erupt calmly!"',
+    modelComparisonByLevel: {
+      basic: 'Do not use risky "ALWAYS" or "GUARANTEED"! Say "remote schedules often slow junior learning UNLESS intentional check-ins happen cleanly!" Swap "bootcamps guarantee jobs" cleanly into "camps ignite starting curiosity nicely, yet real fluency demands steady practice months onward!" Clear balanced nuance makes every listener trust judgment swiftly cleanly!',
+      natural: 'Dropping fragile overstatements like "always" and "guarantees" transforms sloppy generalizations cleanly into trustworthy analysis! Instead of roaring remote offices shatter mentoring unconditionally, note accurately that unmonitored isolated remote desks *tend to dilute* spontaneous osmotic guidance—while recording async design chats cushions it cleanly! Likewise, swapping "everyone hates manuals" to "by and large, bloated prose pushes hurried builders past concise runnable examples" earns immediate technical respect smoothly.',
+      advanced: 'Replacing reckless absolutist sweeps with disciplined epistemic hedging elevates intellectual credibility instantly. Rather than asserting remote environments inevitably sever junior development, calibrated phrasing clarifies that unstructured remote workflows *frequently erode* osmotic apprenticeship—yet intentional documentation offsets much drift. Similarly, framing brief introductory bootcamps cleanly as catalytic springboards while remaining cautious against equating weeks with multi-quarter mastery protects precision seamlessly.',
+    },
+    alternativeResponses: [
+      'Rather than declaring blanketly that "AI summaries obliterate attentive reading", calibrated framing clarifies carefully that uncritical algorithmic digests risk dulling slow interpretive stamina whenever schools fail anchoring primary-text seminars alongside!',
+    ],
+    vocabularyBank: [
+      { term: 'epistemic hedging', meaning: 'Calibrating certainty accurately to match actual evidence limits rather than exaggerating recklessly cleanly.', vietnamese: 'ngôn ngữ rào đón chuẩn xác mức độ chắc chắn' },
+      { term: 'buck that trend', meaning: 'Defy depressing common statistical averages through thoughtful disciplined habits.', vietnamese: 'đi ngược xu hướng chung nhờ cách làm hay' },
+      { term: 'premature to equate', meaning: 'Unfairly hasty treating mild initial curiosity identically as seasoned deep mastery.', vietnamese: 'còn vội vàng khi đánh đồng ngang hàng' },
+    ],
+    naturalExpressions: ['Absent structured pairing rituals, ... tend to...', 'It remains somewhat premature to equate...', 'Broadly speaking, ... though subject to...'],
+    sentenceStructures: [
+      { frame: 'Rather than claiming [absolute sweep], existing evidence points cautiously toward [calibrated tendency]—subject clearly to [key moderator]!', example: 'Rather than claiming open-plan offices always spark ideas, evidence points tentatively toward noisy drops—subject sharply to silent focus booths nearby!' },
+    ],
+    suggestedOrganization: ['1. Spot dangerous absolute flaw -> transform remote mentoring claim', '2. Upgrade wild "guaranteed bootcamp outcome" hype calmly', '3. Calibrate "nobody reads docs" nuance -> sharp takeaway'],
+    commonMistakes: [
+      { mistake: 'Actually maybe possibly I kind of sort of think slightly perhaps it might help...', correction: 'Swap insecure filler stacks ("maybe possibly kind of sort of") for ONE crisp accurate moderator ("tends to, absent clear structure")!', why: 'Strong precise academic hedging sounds sharp and authoritative cleanly, NEVER timid or apologetic!' },
+    ],
+    followUpQuestions: ['Notice keeping ONE clean calibrated adverb ("frequently", "absent deliberate pairing") beats stacking clumsy insecure fillers cleanly?'],
+    improvementStrategies: ['Audit your own arguments today specifically deleting bare "always / never / proves 100%" and swapping in "tends to / subject to / preliminary signs hint"!'],
+    tips: ['Never stack 3 hedges at once ("sort of maybe kind of")—pick ONE sharp epistemic verb ("tend to / points toward")!'],
+    selfChecklist: ['Replaced all three reckless absolutes accurately.', 'Avoided weak stacked insecure fillers ("kind of maybe").', 'Preserved clear assertive direction cleanly inside nuance.'],
+    keyVocabulary: ['epistemic', 'premature', 'buck that trend'],
+    suggestedSeconds: 60,
+  }),
+
+  createSpeakingLesson({
+    id: 'spk-m2-c1-16',
+    title: 'Precision Storytelling: Turning an Everyday Observation Into Memorable Cultural Commentary',
+    activityType: 'topic_discussion',
+    category: 'storytelling',
+    cefrLevel: 'C1',
+    prompt: 'Spin an evocative 60-second reflective micro-essay aloud starting cleanly from a tiny real sensory moment (watching elderly neighborhood chess matches quietly, an untouched antique pocket watch, or late-night noodle steam) expanding outward onto deeper human insight.',
+    promptVi: 'Kể một tản văn ngắn đầy chiều sâu dài 60 giây bắt đầu từ một chi tiết quan sát đời thường tinh tế (ván cờ tướng đầu ngõ của các cụ già, chiếc đồng hồ quả quýt cũ hay làn khói phở khuya) rồi khéo léo nâng lên thành suy ngẫm nhân văn sâu sắc.',
+    objectives: [
+      'Move organically cleanly from hyper-specific physical details ("carved chipped bamboo knights") straight up into understated philosophical resonance cleanly!',
+      'Avoid mushy Hallmark clichés through restrained vivid sensory verbs!',
+    ],
+    preparationQuestions: ['What exact tiny physical object carries visible worn history cleanly?', 'What quiet human truth surfaces gently at second 45 without preaching loudly?'],
+    modelText: 'Walking past corner banyan shade every sticky Tuesday noon, I love pausing twenty seconds watching two neighborhood retirees hunched silent over worn red-and-black painted wood chess pieces resting atop a wobbly plastic stool. Noticeably, zero frantic smartphone countdown clocks buzz beside their knees; between unhurried thoughtful moves, half-empty ceramic tumblers catch flickering mottled canopy sun while three watching scooter couriers lean quietly over handlebars offering whispered playful advice never quite taken! On surface inspection, those unhurried afternoon boards look quaintly disconnected from shimmering glass financial towers rising three avenues behind them—yet linger five minutes witnessing how effortless wooden rituals weave retired mechanics seamlessly beside twenty-year-old delivery couriers across shared respect and teasing warmth cleanly, and suddenly frantic efficiency sprints look slightly impoverished beside ordinary patient company!',
+    modelComparisonByLevel: {
+      basic: 'Walking past neighborhood banyan tree Tuesdays, I enjoy watching two elderly retirees playing wooden chess quietly atop plastic stools while delivery couriers lean cheerfully watching! No phones buzz fast near them—just peaceful ceramic tea cups flickering under leaves behind modern glass towers cleanly. Watching patient ordinary games makes hasty frantic scrolling feel slightly shallow beside real patient human company!',
+      natural: 'Whenever passing corner banyan shade sticky Tuesdays, watching two neighborhood retirees lean patiently over faded red-and-black wooden chess discs catches my eye smoothly! Neither pulls out glowing stopwatch apps; young delivery riders rest neatly beside handlebars whispering teasing moves over dappled canopy leaves while tall shiny glass banks tower quietly three streets behind. Witnessing humble shared wood effortlessly stitch mechanics alongside young couriers reminds anyone rushing blindly how poor pure speed feels absent patient neighborhood company.',
+      advanced: 'Strolling beneath heavy corner banyan boughs humid Tuesdays, pausing quietly beside two neighborhood retirees leaning silently over scarred timber chessmen reveals something oddly grounding: devoid of frantic countdown alarms, dappled leaves flicker serenely over chipped teacups while young couriers pause along curbs trading affectionate unhurried whispers directly beneath distant shining skyscrapers. Witnessing weathered wooden boards stitch retired tradesmen effortlessly alongside young riders illuminates cleanly how threadbare brisk digital efficiency grows the moment quiet civic kinship vanishes!',
+    },
+    alternativeResponses: [
+      'Watching silent ninety-second dawn train arrivals at quiet provincial rural platforms—where steaming cloth-wrapped sticky rice baskets exchange warm palms cleanly between aunts before whistles blow smoothly—distills quiet civic loyalty louder than grand glossy hometown slogans!',
+    ],
+    vocabularyBank: [
+      { term: 'mottled canopy sun', meaning: 'Broken trembling golden patches slipping gently through dense shady green leaves.', vietnamese: 'nắng loang lổ nhảy múa qua kẽ lá' },
+      { term: 'threadbare / impoverished', meaning: 'Outwardly flashy yet quietly stripped thin of warm shared human kinship cleanly.', vietnamese: 'nghèo nàn thiếu hụt chiều sâu gắn kết' },
+      { term: 'stitch alongside', meaning: 'Naturally knit distinct distant generations together peacefully.', vietnamese: 'kết nối tự nhiên các thế hệ lại gần nhau' },
+    ],
+    naturalExpressions: ['On surface inspection, those boards look...', 'Linger five minutes witnessing how...', 'Suddenly frantic sprints look slightly impoverished!'],
+    sentenceStructures: [
+      { frame: 'Pause five seconds watching [tiny concrete street scene]: on surface [quaint sight], yet witnessing [warm human glue] illuminates how [deeper quiet truth]!', example: 'Pause quietly outside neighborhood cobbler benches: tiny brass nails look old-world, yet watching decades-long trust stitch scuffed winter boots illuminates thoughtful anti-throwaway care!' },
+    ],
+    suggestedOrganization: ['1. Anchor tactile setting + exact weather/light/object immediately', '2. Zoom onto small human micro-gestures ("whispered playful advice", "dappled cups")', '3. Juxtapose quietly against distant hurried modern glass skyline', '4. Distill quiet poignant universal observation cleanly'],
+    commonMistakes: [
+      { mistake: 'Chess matches are very good and everybody must cherish friends forever and ever!', correction: 'Let concrete tactile imagery ("scarred timber discs, quiet courier whispers") carry philosophical warmth understatedly without loud preachy slogans!', why: 'Show-don’t-tell storytelling with calm restrained insight defines effortless C1 literary spoken mastery!' },
+    ],
+    followUpQuestions: ['Did holding off your broader reflection softly until the final sentence—after rich concrete scene painting—feel far stronger than shouting morals early?!'],
+    improvementStrategies: ['Train the Zoom-Lens Essay: Micro Detail (25s visible sight/sound) -> Wider Quiet Backdrop Contrast (15s) -> Restrained Resonance (15s)!'],
+    tips: ['Trust concrete sensory verbs ("hunched", "flicker", "stitch") rather than stacking heavy vague adjectives ("very amazing wonderful").'],
+    selfChecklist: ['Anchored concrete tactile sensory scene right at line 1.', 'Expanded organically from detail onto wider quiet insight.', 'Kept closing tone understatedly poetic rather than preachy.'],
+    keyVocabulary: ['mottled', 'impoverished', 'stitch'],
+    suggestedSeconds: 60,
+  }),
+];

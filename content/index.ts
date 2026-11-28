@@ -1,11 +1,21 @@
 import type {
   CEFRLevel,
+  ConversationScenario,
   CurriculumMatrixEntry,
   Exercise,
   GrammarTopic,
+  IntegratedSequence,
   LearningResource,
+  ListeningContent,
+  PronunciationLesson,
+  ReadingPassage,
+  ShadowingSession,
+  SpeakingFrameworkGuide,
+  SpeakingLesson,
   ThematicCollection,
+  ThinkInEnglishActivity,
   Vocabulary,
+  WritingLesson,
 } from '@english-quest/shared';
 
 export const CEFR_LEVELS: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -74,4 +84,250 @@ export async function loadLearningResources(): Promise<LearningResource[]> {
 
 export async function loadCurriculumMatrix(): Promise<CurriculumMatrixEntry[]> {
   return import('./curriculum/matrix').then((m) => m.CURRICULUM_MATRIX);
+}
+
+function appendExtraExercises<T extends { id: string; exercises: E[] }, E>(
+  items: T[],
+  extra: Record<string, E[]>,
+): T[] {
+  return items.map((item) => {
+    const addons = extra[item.id];
+    return addons?.length ? { ...item, exercises: [...item.exercises, ...addons] } : item;
+  });
+}
+
+async function mergeListeningParts(
+  parts: Array<Promise<ListeningContent[]>>,
+  includeBatch2AExt = true,
+): Promise<ListeningContent[]> {
+  const [loadedParts, extMap] = await Promise.all([
+    Promise.all(parts),
+    includeBatch2AExt
+      ? import('./listening/drills_batch2a_ext').then((m) => m.EXTRA_LISTENING_DRILLS_BATCH2A)
+      : Promise.resolve({} as Record<string, ListeningContent['exercises']>),
+  ]);
+  return appendExtraExercises(loadedParts.flat(), extMap);
+}
+
+const listeningLoaders: Record<CEFRLevel, () => Promise<ListeningContent[]>> = {
+  A1: () =>
+    mergeListeningParts([
+      import('./listening/a1').then((m) => m.A1_LISTENING_LESSONS),
+      import('./listening/a1_batch2').then((m) => m.A1_LISTENING_BATCH2),
+    ]),
+  A2: () =>
+    mergeListeningParts([
+      import('./listening/a2').then((m) => m.A2_LISTENING_LESSONS),
+      import('./listening/a2_batch2').then((m) => m.A2_LISTENING_BATCH2),
+    ]),
+  B1: () =>
+    mergeListeningParts([
+      import('./listening/b1').then((m) => m.B1_LISTENING_LESSONS),
+      import('./listening/b1_batch2').then((m) => m.B1_LISTENING_BATCH2),
+    ]),
+  B2: () =>
+    mergeListeningParts([
+      import('./listening/b2').then((m) => m.B2_LISTENING_LESSONS),
+      import('./listening/b2_batch2a').then((m) => m.B2_LISTENING_BATCH2A),
+      import('./listening/b2_batch2b').then((m) => m.B2_LISTENING_BATCH2B),
+    ]),
+  C1: () =>
+    mergeListeningParts([
+      import('./listening/c1').then((m) => m.C1_LISTENING_LESSONS),
+      import('./listening/c1_batch2a').then((m) => m.C1_LISTENING_BATCH2A),
+      import('./listening/c1_batch2b').then((m) => m.C1_LISTENING_BATCH2B),
+    ]),
+  C2: () =>
+    mergeListeningParts([
+      import('./listening/c2').then((m) => m.C2_LISTENING_LESSONS),
+      import('./listening/c2_batch2').then((m) => m.C2_LISTENING_BATCH2),
+    ]),
+};
+
+async function mergeSpeakingParts(parts: Array<Promise<SpeakingLesson[]>>): Promise<SpeakingLesson[]> {
+  return (await Promise.all(parts)).flat();
+}
+
+const speakingLoaders: Record<CEFRLevel, () => Promise<SpeakingLesson[]>> = {
+  A1: () =>
+    mergeSpeakingParts([
+      import('./speaking/a1').then((m) => m.A1_SPEAKING_LESSONS),
+      import('./speaking/a1_batch2').then((m) => m.A1_SPEAKING_BATCH2),
+    ]),
+  A2: () =>
+    mergeSpeakingParts([
+      import('./speaking/a2').then((m) => m.A2_SPEAKING_LESSONS),
+      import('./speaking/a2_batch2').then((m) => m.A2_SPEAKING_BATCH2),
+    ]),
+  B1: () =>
+    mergeSpeakingParts([
+      import('./speaking/b1').then((m) => m.B1_SPEAKING_LESSONS),
+      import('./speaking/b1_batch2').then((m) => m.B1_SPEAKING_BATCH2),
+    ]),
+  B2: () =>
+    mergeSpeakingParts([
+      import('./speaking/b2').then((m) => m.B2_SPEAKING_LESSONS),
+      import('./speaking/b2_batch2a').then((m) => m.B2_SPEAKING_BATCH2A),
+      import('./speaking/b2_batch2b').then((m) => m.B2_SPEAKING_BATCH2B),
+    ]),
+  C1: () =>
+    mergeSpeakingParts([
+      import('./speaking/c1').then((m) => m.C1_SPEAKING_LESSONS),
+      import('./speaking/c1_batch2a').then((m) => m.C1_SPEAKING_BATCH2A),
+      import('./speaking/c1_batch2b').then((m) => m.C1_SPEAKING_BATCH2B),
+    ]),
+  C2: () =>
+    mergeSpeakingParts([
+      import('./speaking/c2').then((m) => m.C2_SPEAKING_LESSONS),
+      import('./speaking/c2_batch2').then((m) => m.C2_SPEAKING_BATCH2),
+    ]),
+};
+
+export async function loadListeningByLevel(level: CEFRLevel): Promise<ListeningContent[]> {
+  return listeningLoaders[level]();
+}
+
+export async function loadAllListening(): Promise<ListeningContent[]> {
+  const packs = await Promise.all(CEFR_LEVELS.map((lvl) => listeningLoaders[lvl]()));
+  return packs.flat();
+}
+
+export async function loadSpeakingByLevel(level: CEFRLevel): Promise<SpeakingLesson[]> {
+  return speakingLoaders[level]();
+}
+
+export async function loadAllSpeaking(): Promise<SpeakingLesson[]> {
+  const packs = await Promise.all(CEFR_LEVELS.map((lvl) => speakingLoaders[lvl]()));
+  return packs.flat();
+}
+
+export async function loadSpeakingMindsetGuides(): Promise<SpeakingFrameworkGuide[]> {
+  return import('./speaking/guides').then((m) => m.SPEAKING_MINDSET_GUIDES);
+}
+
+export async function loadPronunciationLessons(): Promise<PronunciationLesson[]> {
+  const [p1, p2, p3, ext] = await Promise.all([
+    import('./pronunciation/pack1_vowels_consonants').then((m) => m.PRONUNCIATION_PACK_1),
+    import('./pronunciation/pack2_stress_rhythm_connected').then((m) => m.PRONUNCIATION_PACK_2),
+    import('./pronunciation/pack3_connected_intonation_advanced').then((m) => m.PRONUNCIATION_PACK_3),
+    import('./pronunciation/drills_ext').then((m) => m.EXTRA_PRONUNCIATION_DRILLS_BATCH2D),
+  ]);
+  return [...p1, ...p2, ...p3].map((lesson) => {
+    const addons = ext[lesson.id];
+    return addons?.length
+      ? { ...lesson, listeningExercises: [...lesson.listeningExercises, ...addons] }
+      : lesson;
+  });
+}
+
+export async function loadShadowingSessions(): Promise<ShadowingSession[]> {
+  const [b1, b2, b3] = await Promise.all([
+    import('./shadowing/sessions_batch1').then((m) => m.SHADOWING_SESSIONS_BATCH1),
+    import('./shadowing/sessions_batch2').then((m) => m.SHADOWING_SESSIONS_BATCH2),
+    import('./shadowing/sessions_batch3').then((m) => m.SHADOWING_SESSIONS_BATCH3),
+  ]);
+  return [...b1, ...b2, ...b3];
+}
+
+export async function loadAllConversations(): Promise<ConversationScenario[]> {
+  const [c1, c2, c3] = await Promise.all([
+    import('./conversations/everyday_travel').then((m) => m.CONVERSATIONS_EVERYDAY_TRAVEL),
+    import('./conversations/workplace_social').then((m) => m.CONVERSATIONS_WORKPLACE_SOCIAL),
+    import('./conversations/academic_emergency').then((m) => m.CONVERSATIONS_ACADEMIC_EMERGENCY),
+  ]);
+  return [...c1, ...c2, ...c3];
+}
+
+export async function loadThinkInEnglish(): Promise<ThinkInEnglishActivity[]> {
+  return import('./think-in-english/activities').then((m) => m.THINK_IN_ENGLISH_ACTIVITIES);
+}
+
+export async function loadIntegratedSequences(): Promise<IntegratedSequence[]> {
+  return import('./integrated-learning/sequences').then((m) => m.INTEGRATED_LEARNING_SEQUENCES);
+}
+
+async function mergeReadingParts(
+  parts: Array<Promise<ReadingPassage[]>>,
+  loadExt: () => Promise<Record<string, ReadingPassage['questions']>>,
+): Promise<ReadingPassage[]> {
+  const [loadedParts, ext] = await Promise.all([Promise.all(parts), loadExt()]);
+  return loadedParts.flat().map((passage) => {
+    const addons = ext[passage.id];
+    return addons?.length ? { ...passage, questions: [...passage.questions, ...addons] } : passage;
+  });
+}
+
+const loadReadingExtA1B1 = () =>
+  import('./reading/drills_ext_a').then((m) => m.EXTRA_READING_DRILLS_A1_B1);
+const loadReadingExtB2C2 = () =>
+  import('./reading/drills_ext_b').then((m) => m.EXTRA_READING_DRILLS_B2_C2);
+
+const readingLoaders: Record<CEFRLevel, () => Promise<ReadingPassage[]>> = {
+  A1: () => mergeReadingParts([import('./reading/a1').then((m) => m.A1_READING_PASSAGES)], loadReadingExtA1B1),
+  A2: () => mergeReadingParts([import('./reading/a2').then((m) => m.A2_READING_PASSAGES)], loadReadingExtA1B1),
+  B1: () =>
+    mergeReadingParts(
+      [
+        import('./reading/b1_part1').then((m) => m.B1_READING_PART1),
+        import('./reading/b1_part2').then((m) => m.B1_READING_PART2),
+      ],
+      loadReadingExtA1B1,
+    ),
+  B2: () =>
+    mergeReadingParts(
+      [
+        import('./reading/b2_part1').then((m) => m.B2_READING_PART1),
+        import('./reading/b2_part2').then((m) => m.B2_READING_PART2),
+        import('./reading/b2_part3').then((m) => m.B2_READING_PART3),
+      ],
+      loadReadingExtB2C2,
+    ),
+  C1: () =>
+    mergeReadingParts(
+      [
+        import('./reading/c1_part1').then((m) => m.C1_READING_PART1),
+        import('./reading/c1_part2').then((m) => m.C1_READING_PART2),
+      ],
+      loadReadingExtB2C2,
+    ),
+  C2: () => mergeReadingParts([import('./reading/c2').then((m) => m.C2_READING_PASSAGES)], loadReadingExtB2C2),
+};
+
+export async function loadReadingByLevel(level: CEFRLevel): Promise<ReadingPassage[]> {
+  return readingLoaders[level]();
+}
+
+export async function loadAllReading(): Promise<ReadingPassage[]> {
+  const packs = await Promise.all(CEFR_LEVELS.map((lvl) => readingLoaders[lvl]()));
+  return packs.flat();
+}
+
+const writingLoaders: Record<CEFRLevel, () => Promise<WritingLesson[]>> = {
+  A1: () => import('./writing/a1').then((m) => m.A1_WRITING_LESSONS),
+  A2: () => import('./writing/a2').then((m) => m.A2_WRITING_LESSONS),
+  B1: () => import('./writing/b1').then((m) => m.B1_WRITING_LESSONS),
+  B2: async () => {
+    const [p1, p2] = await Promise.all([
+      import('./writing/b2_part1').then((m) => m.B2_WRITING_PART1),
+      import('./writing/b2_part2').then((m) => m.B2_WRITING_PART2),
+    ]);
+    return [...p1, ...p2];
+  },
+  C1: async () => {
+    const [p1, p2] = await Promise.all([
+      import('./writing/c1_part1').then((m) => m.C1_WRITING_PART1),
+      import('./writing/c1_part2').then((m) => m.C1_WRITING_PART2),
+    ]);
+    return [...p1, ...p2];
+  },
+  C2: () => import('./writing/c2').then((m) => m.C2_WRITING_LESSONS),
+};
+
+export async function loadWritingByLevel(level: CEFRLevel): Promise<WritingLesson[]> {
+  return writingLoaders[level]();
+}
+
+export async function loadAllWriting(): Promise<WritingLesson[]> {
+  const packs = await Promise.all(CEFR_LEVELS.map((lvl) => writingLoaders[lvl]()));
+  return packs.flat();
 }

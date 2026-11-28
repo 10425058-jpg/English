@@ -116,12 +116,61 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-grammar-drills.png'), fullPage: false });
 
   await page.goto('./#/reading');
+  await expect(page.getByRole('button', { name: /Passages \(126\)/i })).toBeVisible();
+  await page.getByRole('button', { name: 'C2', exact: true }).click();
+  await expect(page.getByText(/Goodhart’s Law/i)).toBeVisible();
+  await page.getByRole('button', { name: /Goodhart’s Law/i }).click();
+  await expect(page.getByText(/One-Sentence Comprehension Summary Check/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-reading-academy.png'), fullPage: false });
   await page.getByRole('button', { name: /Curated Open Resources \(36\)/i }).click();
   await expect(page.getByText(/British Council/i).first()).toBeVisible();
+
+  await page.goto('./#/writing');
+  await expect(page.getByText(/0 \/ 97 Completed/i)).toBeVisible();
+  await page.getByRole('button', { name: 'C1', exact: true }).click();
+  await expect(page.getByText(/Executive Synthesis Memo/i)).toBeVisible();
+  await page.getByRole('button', { name: /Executive Synthesis Memo/i }).click();
+  await page.getByRole('button', { name: /Pre-Draft Drills \(3\)/i }).click();
+  await expect(page.getByText(/Drill 1 of 3/i)).toBeVisible();
+  await page.locator('#writing-academy-editor').fill(
+    'This calibration memo analyzes how engineering teams and sales cohorts diverge smoothly under flexible hybrid schedules while preserving mentorship.'
+  );
+  await page.getByRole('button', { name: /Submit & Analyze Locally/i }).click();
+  await expect(page.getByText(/Local Revision Feedback/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-writing-academy.png'), fullPage: false });
 
   await page.goto('./#/learn');
   await page.getByRole('tab', { name: /B2–C2 Roadmap/i }).click();
   await expect(page.getByText(/Complete A1–C2 CEFR Coverage Matrix/i)).toBeVisible();
+  await page.getByRole('tab', { name: /Integrated Loops \(24\)/i }).click();
+  await expect(page.getByText(/Integrated Four-Skill Thematic Loops/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-integrated-learning.png'), fullPage: false });
+
+  // Verify Milestone 2 Listening Academy & Speaking/Pronunciation/Shadowing Academies
+  await page.goto('./#/listening');
+  await expect(page.getByText(/126 Lessons \(A1–C2\)/i)).toBeVisible();
+  await page.getByRole('button', { name: 'C1', exact: true }).click();
+  await expect(page.getByText(/Working Memory Load & Chunking/i)).toBeVisible();
+  await page.getByRole('button', { name: /Working Memory Load & Chunking/i }).click();
+  await page.getByRole('button', { name: /Reveal Transcript/i }).click();
+  await expect(page.getByText(/Line-by-Line Transcript/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-listening-academy.png'), fullPage: false });
+
+  await page.goto('./#/speaking');
+  await expect(page.getByText(/Speaking Academy \(127\)/i)).toBeVisible();
+  await page.getByRole('button', { name: /Open Fluency Guides \(6\)/i }).click();
+  await expect(page.getByText(/PREP Method/i)).toBeVisible();
+  await page.getByRole('tab', { name: /Conversations \(60\)/i }).click();
+  await expect(page.getByText(/Register-Aware Branching Dialogue Simulator/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-conversations.png'), fullPage: false });
+  await page.getByRole('tab', { name: /Think in English \(30\)/i }).click();
+  await expect(page.getByText(/Anti-Translation Mental Speed Training/i)).toBeVisible();
+  await page.getByRole('tab', { name: /Pronunciation Academy \(48\)/i }).click();
+  await expect(page.getByText(/Vietnamese Learner Breakthrough/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-pronunciation-academy.png'), fullPage: false });
+  await page.getByRole('tab', { name: /Shadowing Studio \(60\)/i }).click();
+  await expect(page.getByText(/Shadowing Self-Check/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-shadowing-studio.png'), fullPage: false });
 
   // Also check Onboarding page
   await page.goto('./#/onboarding');

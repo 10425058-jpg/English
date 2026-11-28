@@ -56,7 +56,7 @@ export function speakText(text: string, options: SpeakOptions = {}): boolean {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = accent;
-    utterance.rate = Math.min(1.5, Math.max(0.65, rate));
+    utterance.rate = Math.min(2.0, Math.max(0.5, rate));
     const voices = window.speechSynthesis.getVoices();
     const voice = pickVoiceForAccent(voices, accent);
     if (voice) {
@@ -121,5 +121,54 @@ export function playFeedbackTone(
     }, 800);
   } catch {
     // Ignore audio context errors when autoplay policies block sound
+  }
+}
+
+export function pickDialogueVoice(
+  voices: SpeechSynthesisVoice[],
+  accent: EnglishAccent,
+  speakerIndex: number
+): SpeechSynthesisVoice | undefined {
+  if (!voices.length) return undefined;
+  const exact = voices.filter((v) => v.lang.toLowerCase() === accent.toLowerCase());
+  const prefix = voices.filter((v) => v.lang.toLowerCase().startsWith(accent.toLowerCase().slice(0, 2)));
+  const pool = exact.length > 0 ? exact : prefix.length > 0 ? prefix : voices;
+  return pool[Math.abs(speakerIndex) % pool.length];
+}
+
+export function speakDialogueLine(
+  text: string,
+  options: {
+    accent: EnglishAccent;
+    rate?: number;
+    speakerIndex?: number;
+    onStart?: () => void;
+    onEnd?: () => void;
+    onError?: (reason: string) => void;
+  }
+): boolean {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    options.onError?.('Speech synthesis is unavailable in this browser.');
+    return false;
+  }
+  const speakerIdx = options.speakerIndex ?? 0;
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = options.accent;
+    utterance.rate = Math.min(2.0, Math.max(0.5, options.rate ?? 1.0));
+    utterance.pitch = speakerIdx % 2 === 0 ? 1.0 : 1.08;
+    const voice = pickDialogueVoice(window.speechSynthesis.getVoices(), options.accent, speakerIdx);
+    if (voice) {
+      utterance.voice = voice;
+    }
+    utterance.onstart = () => options.onStart?.();
+    utterance.onend = () => options.onEnd?.();
+    utterance.onerror = () => options.onError?.('Could not play audio output on this device.');
+    window.speechSynthesis.speak(utterance);
+    return true;
+  } catch {
+    options.onError?.('Audio synthesis failed to start.');
+    return false;
   }
 }

@@ -18,7 +18,17 @@ Generated automatically by `npm run validate:content`.
 | Interactive Practice Bank Exercises | 0 | 600 | 600 |
 | Grammar Academy Mini-Quizzes | 8 | 144 | 152 |
 | Core Learning Path Exercises | 192 | 0 | 192 |
-| **Combined Interactive Exercises** | **200** | **744** | **944** |
+| **Combined Interactive Exercises** | **200** | **1798** | **1998** |
+| Listening Academy Lessons (Batch 2A+) | 6 | 40 | 46 |
+| Speaking Academy Lessons (Batch 2A+) | 7 | 40 | 47 |
+| Reading Academy Passages (Batch 2B) | 6 | 120 | 126 |
+| Writing Academy Lessons (Batch 2B) | 7 | 90 | 97 |
+| Pronunciation Academy Lessons | 0 | 48 | 48 |
+| Shadowing Studio Sessions | 0 | 60 | 60 |
+| Practical Conversation Scenarios | 0 | 60 | 60 |
+| Think in English Drills | 0 | 30 | 30 |
+| Integrated 4-Skill Units | 0 | 24 | 24 |
+| Speaking Mindset Guides | 0 | 6 | 6 |
 | Curated Open Educational Resources | 0 | 36 | 36 |
 | CEFR Coverage Matrix Levels | 3 active + 3 upcoming | 6 full A1–C2 specifications | 6 |
 

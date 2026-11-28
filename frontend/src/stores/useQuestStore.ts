@@ -96,6 +96,8 @@ export interface QuestStoreState {
   aiConversations: AIConversation[];
   aiMessages: Record<string, AIMessage[]>;
   grammarQuizPassedIds: string[];
+  bookmarkedContentIds: string[];
+  completedAcademyIds: string[];
 
   questsClaimedByPeriod: Record<string, string[]>;
   achievementsUnlocked: Record<string, string>;
@@ -151,6 +153,8 @@ export interface QuestStoreState {
   submitWriting: (submission: Omit<WritingSubmission, 'id' | 'submittedAt'>) => void;
 
   recordGrammarQuizPass: (topicId: string) => void;
+  toggleContentBookmark: (contentId: string) => void;
+  markAcademyCompleted: (contentId: string) => void;
   recordIeltsSession: (session: Omit<IELTSPracticeSession, 'id' | 'completedAt'>) => void;
 
   upsertAiMessage: (
@@ -262,6 +266,8 @@ function createInitialDataState() {
     aiConversations: [],
     aiMessages: {},
     grammarQuizPassedIds: [],
+    bookmarkedContentIds: [],
+    completedAcademyIds: [],
     questsClaimedByPeriod: {},
     achievementsUnlocked: {},
   };
@@ -652,6 +658,26 @@ export const useQuestStore = create<QuestStoreState>()(
         }));
       },
 
+      toggleContentBookmark: (contentId) => {
+        set((state) => {
+          const current = state.bookmarkedContentIds ?? [];
+          return {
+            bookmarkedContentIds: current.includes(contentId)
+              ? current.filter((id) => id !== contentId)
+              : [...current, contentId],
+          };
+        });
+      },
+
+      markAcademyCompleted: (contentId) => {
+        set((state) => {
+          const current = state.completedAcademyIds ?? [];
+          return {
+            completedAcademyIds: current.includes(contentId) ? current : [...current, contentId],
+          };
+        });
+      },
+
       recordIeltsSession: (session) => {
         set((state) => ({
           ieltsSessions: [
@@ -756,6 +782,8 @@ export const useQuestStore = create<QuestStoreState>()(
               writingSubmissions: state.writingSubmissions,
               ieltsSessions: state.ieltsSessions,
               grammarQuizPassedIds: state.grammarQuizPassedIds,
+              bookmarkedContentIds: state.bookmarkedContentIds ?? [],
+              completedAcademyIds: state.completedAcademyIds ?? [],
               achievementsUnlocked: state.achievementsUnlocked,
             },
           },

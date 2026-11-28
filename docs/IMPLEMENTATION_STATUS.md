@@ -1,6 +1,6 @@
 # English Quest — Implementation Status
 
-> Updated: 2026-11-27 | Active Branch: `feature/curriculum-content-expansion`
+> Updated: 2026-11-28 | Active Branch: `feature/four-skill-intensive-training`
 
 ## Milestone Summary
 
@@ -20,6 +20,14 @@
   - **600** unique interactive Vocabulary & Grammar practice drills (100/level across 13 distinct formats, bringing total verified interactive items to **944**).
   - **36** verified open educational resources integrated into `ReadingPage`, plus the **6-level A1–C2 Curriculum Matrix** visible in `LearnPage`.
   - Automated validation suite (`npm run validate:content`) + Vitest integration tests enforcing zero duplicate IDs, zero broken references, and 100% evaluator round-trip verification (`docs/CONTENT_QUALITY_REPORT.md`).
+
+- **Milestone 2 — Four-Skill Intensive Training (Batches 2A–2C Verified; Batch 2D Authored & Typechecked, CI Pending):**
+  - Expanded `ListeningAcademyPage` (`126` lessons across A1–C2 = 120 new + 6 core) with **0.5x–2.0x** speed presets (`speechService.ts`), multi-speaker Web Speech dialogue synthesis (`speakDialogueLine`), loop replay, dictation mode toggle, connected speech notes, bookmarking, and **720** new listening comprehension & dictation exercises.
+  - Expanded `SpeakingAcademyPage` with **Speaking Academy (`127` lessons = 120 new + 7 core)**, **Conversations Studio (`60` branching scenarios across 6 domains)**, **Think in English (`30` timed anti-translation & circumlocution sprints)**, **Pronunciation Academy (`48` IPA/Vietnamese trap lessons, `240` discrimination exercises)**, **Shadowing Studio (`60` progressive sessions)**, and **6 Speaking Mindset & Framework guides** (`PREP`, `STAR`, `Past-Present-Future`, `Circumlocution`, etc.).
+  - Expanded `LearnPage` with **Integrated Loops (`24` thematic L -> R -> S -> W pathways)** connecting matched Listening, Reading, Speaking, Writing, and SM-2 vocabulary items cleanly across A1–C2.
+  - Expanded `ReadingAcademyPage` (`126` leveled passages across A1–C2 = 120 new + 6 core, **600** new comprehension/IELTS-style questions, interactive SM-2 click-to-save glossaries, WPM dwell indicator, paragraph highlighter, summary check, plus all **36** Curated Open Resources).
+  - Expanded `WritingAcademyPage` (`97` lessons across A1–C2 = 90 new + 7 core, **270** interactive pre-draft drills, model outlines, clickable vocab/sentence-frame banks, rubrics, common mistakes, annotated model samples, autosave drafts, and side-by-side **Revision Compare** alongside local heuristic feedback).
+  - See [MILESTONE_2_PROGRESS.md](./MILESTONE_2_PROGRESS.md) for live batch-by-batch tracking and verification status.
 
 - **Phase 2 — Backend & Cloud Persistence:** **Schema & Contracts Drafted**
   - 28 normalized PostgreSQL Prisma models defined in `backend/prisma/schema.prisma`.

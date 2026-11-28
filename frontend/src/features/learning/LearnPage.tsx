@@ -11,6 +11,7 @@ import {
   Crown,
   Gift,
   Headphones,
+  Layers,
   Lock,
   Mic,
   PenTool,
@@ -35,6 +36,7 @@ import {
 } from '@/services/curriculumService';
 import { playFeedbackTone } from '@/services/speechService';
 import { useQuestStore } from '@/stores/useQuestStore';
+import { IntegratedLearningTab } from './IntegratedLearningTab';
 
 const NODE_OFFSETS = ['translate-x-0', 'translate-x-10 sm:translate-x-14', 'translate-x-0', '-translate-x-10 sm:-translate-x-14'];
 
@@ -58,7 +60,7 @@ export function LearnPage() {
   const soundEffects = useQuestStore((s) => s.preferences.soundEffects);
   const claimTreasureChest = useQuestStore((s) => s.claimTreasureChest);
 
-  const [selectedCefr, setSelectedCefr] = useState<CEFRLevel | 'UPCOMING'>(
+  const [selectedCefr, setSelectedCefr] = useState<CEFRLevel | 'UPCOMING' | 'INTEGRATED'>(
     recommendedCefr === 'A2' || recommendedCefr === 'B1' ? recommendedCefr : 'A1'
   );
   const [openGuideUnitId, setOpenGuideUnitId] = useState<string | null>(null);
@@ -71,7 +73,10 @@ export function LearnPage() {
     staleTime: Infinity,
   });
 
-  const units = selectedCefr === 'UPCOMING' ? [] : getUnitsByCefr(selectedCefr);
+  const units =
+    selectedCefr === 'UPCOMING' || selectedCefr === 'INTEGRATED'
+      ? []
+      : getUnitsByCefr(selectedCefr);
   const nextStep = findNextRecommendedLesson(lessonProgress, recommendedCefr);
   const totalCompletedLessons = Object.keys(lessonProgress).length;
 
@@ -210,6 +215,20 @@ export function LearnPage() {
           <Compass className="h-4 w-4" />
           <span>B2–C2 Roadmap</span>
         </button>
+        <button
+          role="tab"
+          aria-selected={selectedCefr === 'INTEGRATED'}
+          type="button"
+          onClick={() => setSelectedCefr('INTEGRATED')}
+          className={`flex items-center gap-2 rounded-2xl border-2 border-b-4 px-4 py-2 text-sm font-black transition ${
+            selectedCefr === 'INTEGRATED'
+              ? 'border-[#0E8BC9] bg-[#1CB0F6] text-white'
+              : 'border-[#E5E5E5] bg-white text-[#666666] hover:bg-[#F7F8FA]'
+          }`}
+        >
+          <Layers className="h-4 w-4" />
+          <span>Integrated Loops (24)</span>
+        </button>
       </div>
 
       {chestToast && (
@@ -301,6 +320,8 @@ export function LearnPage() {
           )}
         </div>
       )}
+
+      {selectedCefr === 'INTEGRATED' && <IntegratedLearningTab />}
 
       {/* Vertically Scrolling Gamified Path for Active CEFR Level */}
       <div className="space-y-10">

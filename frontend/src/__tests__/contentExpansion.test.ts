@@ -2,15 +2,29 @@ import { describe, expect, it } from 'vitest';
 import { evaluateExerciseAnswer } from '@english-quest/shared';
 import {
   CEFR_LEVELS,
+  loadAllConversations,
   loadAllExercises,
   loadAllGrammar,
+  loadAllListening,
+  loadAllReading,
+  loadAllSpeaking,
   loadAllVocabulary,
+  loadAllWriting,
   loadCurriculumMatrix,
+  loadIntegratedSequences,
   loadLearningResources,
+  loadPronunciationLessons,
+  loadShadowingSessions,
+  loadSpeakingMindsetGuides,
   loadThematicCollections,
+  loadThinkInEnglish,
 } from '@content/index';
 import { SEED_VOCABULARY } from '@/data/vocabularySeed';
 import { GRAMMAR_TOPICS } from '@/data/grammarTopics';
+import { LISTENING_LAB_TRACKS } from '@/data/listeningLabData';
+import { READING_LIBRARY_PASSAGES } from '@/data/readingLibraryData';
+import { SPEAKING_LAB_ACTIVITIES } from '@/data/speakingLabData';
+import { WRITING_LAB_PROMPTS } from '@/data/writingPromptsData';
 
 describe('Expanded Milestone 1 Content Integrity & Lazy Modules', () => {
   it('loads 1,400+ curated unique vocabulary entries distributed cleanly across A1–C2', async () => {
@@ -100,6 +114,168 @@ describe('Expanded Milestone 1 Content Integrity & Lazy Modules', () => {
       const parsed = new URL(res.url);
       expect(['https:', 'http:']).toContain(parsed.protocol);
       expect(parsed.hostname).not.toContain('example.com');
+    }
+  });
+
+  it('loads full Milestone 2 Listening (120), Speaking (120), Pronunciation (48) & Shadowing (60) academies cleanly', async () => {
+    const [listening, speaking, guides, pronunciation, shadowing] = await Promise.all([
+      loadAllListening(),
+      loadAllSpeaking(),
+      loadSpeakingMindsetGuides(),
+      loadPronunciationLessons(),
+      loadShadowingSessions(),
+    ]);
+
+    expect(listening.length).toBe(120);
+    expect(speaking.length).toBe(120);
+    expect(guides.length).toBeGreaterThanOrEqual(6);
+    expect(pronunciation.length).toBe(48);
+    expect(shadowing.length).toBe(60);
+
+    const lisCounts: Record<string, number> = {};
+    const lisIds = new Set(LISTENING_LAB_TRACKS.map((l) => l.id));
+    let lisExTotal = 0;
+    for (const track of listening) {
+      expect(lisIds.has(track.id)).toBe(false);
+      lisIds.add(track.id);
+      lisCounts[track.cefrLevel] = (lisCounts[track.cefrLevel] ?? 0) + 1;
+      expect(track.scriptLines.length).toBeGreaterThanOrEqual(4);
+      expect(track.exercises.length).toBeGreaterThanOrEqual(6);
+      lisExTotal += track.exercises.length;
+      for (const ex of track.exercises) {
+        expect(evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect).toBe(true);
+      }
+    }
+    expect(lisCounts).toEqual({ A1: 15, A2: 15, B1: 20, B2: 30, C1: 25, C2: 15 });
+
+    const spkCounts: Record<string, number> = {};
+    const spkIds = new Set(SPEAKING_LAB_ACTIVITIES.map((s) => s.id));
+    for (const lesson of speaking) {
+      expect(spkIds.has(lesson.id)).toBe(false);
+      spkIds.add(lesson.id);
+      spkCounts[lesson.cefrLevel] = (spkCounts[lesson.cefrLevel] ?? 0) + 1;
+      expect(lesson.objectives.length).toBeGreaterThanOrEqual(1);
+      expect(lesson.vocabularyBank.length).toBeGreaterThanOrEqual(2);
+    }
+    expect(spkCounts).toEqual({ A1: 15, A2: 15, B1: 20, B2: 30, C1: 25, C2: 15 });
+
+    const proIds = new Set<string>();
+    let proExTotal = 0;
+    for (const pro of pronunciation) {
+      expect(proIds.has(pro.id)).toBe(false);
+      proIds.add(pro.id);
+      expect(pro.minimalPairs.length).toBeGreaterThanOrEqual(2);
+      expect(pro.listeningExercises.length).toBeGreaterThanOrEqual(5);
+      proExTotal += pro.listeningExercises.length;
+      for (const ex of pro.listeningExercises) {
+        expect(evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect).toBe(true);
+      }
+    }
+
+    expect(lisExTotal).toBeGreaterThanOrEqual(720);
+    expect(proExTotal).toBeGreaterThanOrEqual(240);
+
+    const shdIds = new Set<string>();
+    for (const shd of shadowing) {
+      expect(shdIds.has(shd.id)).toBe(false);
+      shdIds.add(shd.id);
+      expect(shd.segments.length).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('loads Milestone 2 120 Reading Passages and 90 Writing Lessons cleanly across A1–C2 with >= 1,800 M2 exercises', async () => {
+    const [listening, pronunciation, reading, writing] = await Promise.all([
+      loadAllListening(),
+      loadPronunciationLessons(),
+      loadAllReading(),
+      loadAllWriting(),
+    ]);
+
+    expect(reading.length).toBe(120);
+    expect(writing.length).toBe(90);
+
+    const readCounts: Record<string, number> = {};
+    const readIds = new Set(READING_LIBRARY_PASSAGES.map((p) => p.id));
+    let readExTotal = 0;
+    for (const p of reading) {
+      expect(readIds.has(p.id)).toBe(false);
+      readIds.add(p.id);
+      readCounts[p.cefrLevel] = (readCounts[p.cefrLevel] ?? 0) + 1;
+      expect(p.glossary.length).toBeGreaterThanOrEqual(3);
+      expect(p.questions.length).toBeGreaterThanOrEqual(5);
+      readExTotal += p.questions.length;
+      for (const q of p.questions) {
+        expect(evaluateExerciseAnswer(q, q.correctAnswer).isCorrect).toBe(true);
+      }
+    }
+    expect(readCounts).toEqual({ A1: 15, A2: 15, B1: 20, B2: 30, C1: 25, C2: 15 });
+
+    const wrtCounts: Record<string, number> = {};
+    const wrtIds = new Set(WRITING_LAB_PROMPTS.map((w) => w.id));
+    let wrtExTotal = 0;
+    for (const lesson of writing) {
+      expect(wrtIds.has(lesson.id)).toBe(false);
+      wrtIds.add(lesson.id);
+      wrtCounts[lesson.cefrLevel] = (wrtCounts[lesson.cefrLevel] ?? 0) + 1;
+      expect(lesson.modelOutline.length).toBeGreaterThanOrEqual(3);
+      expect(lesson.practiceExercises?.length).toBeGreaterThanOrEqual(3);
+      wrtExTotal += lesson.practiceExercises?.length ?? 0;
+      for (const ex of lesson.practiceExercises ?? []) {
+        expect(evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect).toBe(true);
+      }
+    }
+    expect(wrtCounts).toEqual({ A1: 10, A2: 10, B1: 15, B2: 25, C1: 20, C2: 10 });
+
+    const totalM2Exercises =
+      listening.reduce((sum, l) => sum + l.exercises.length, 0) +
+      pronunciation.reduce((sum, p) => sum + p.listeningExercises.length, 0) +
+      readExTotal +
+      wrtExTotal;
+    expect(totalM2Exercises).toBeGreaterThanOrEqual(1800);
+  });
+
+  it('loads Milestone 2 Batch 2C Conversations (60), Think in English (30), and Integrated Units (24) cleanly', async () => {
+    const [vocab, listening, reading, conversations, thinkItems, integrated] = await Promise.all([
+      loadAllVocabulary(),
+      loadAllListening(),
+      loadAllReading(),
+      loadAllConversations(),
+      loadThinkInEnglish(),
+      loadIntegratedSequences(),
+    ]);
+
+    expect(conversations.length).toBe(60);
+    expect(thinkItems.length).toBe(30);
+    expect(integrated.length).toBe(24);
+
+    const vocabIds = new Set([...SEED_VOCABULARY.map((v) => v.id), ...vocab.map((v) => v.id)]);
+    const lisIds = new Set([...LISTENING_LAB_TRACKS.map((l) => l.id), ...listening.map((l) => l.id)]);
+    const readIds = new Set([...READING_LIBRARY_PASSAGES.map((p) => p.id), ...reading.map((p) => p.id)]);
+
+    const convIds = new Set<string>();
+    for (const c of conversations) {
+      expect(convIds.has(c.id)).toBe(false);
+      convIds.add(c.id);
+      expect(c.dialogueBranches.length).toBeGreaterThanOrEqual(2);
+      expect(c.keyPhrases.length).toBeGreaterThanOrEqual(2);
+    }
+
+    const thkIds = new Set<string>();
+    for (const t of thinkItems) {
+      expect(thkIds.has(t.id)).toBe(false);
+      thkIds.add(t.id);
+      expect(t.starterFrames.length).toBeGreaterThanOrEqual(1);
+    }
+
+    const seqIds = new Set<string>();
+    for (const seq of integrated) {
+      expect(seqIds.has(seq.id)).toBe(false);
+      seqIds.add(seq.id);
+      expect(lisIds.has(seq.listeningLessonId)).toBe(true);
+      expect(Boolean(seq.readingPassageId && readIds.has(seq.readingPassageId))).toBe(true);
+      for (const vid of seq.keyVocabIds) {
+        expect(vocabIds.has(vid)).toBe(true);
+      }
     }
   });
 });
