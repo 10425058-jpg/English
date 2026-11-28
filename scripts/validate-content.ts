@@ -622,6 +622,98 @@ export async function runValidation(writeReport = false): Promise<number> {
     }
   }
 
+  // 16. Milestone 2 completeness, CEFR distribution & per-lesson prompt uniqueness
+  const expectedM2MainDist: Record<CEFRLevel, number> = { A1: 15, A2: 15, B1: 20, B2: 30, C1: 25, C2: 15 };
+  const expectedM2WritingDist: Record<CEFRLevel, number> = { A1: 10, A2: 10, B1: 15, B2: 25, C1: 20, C2: 10 };
+
+  if (expandedListening.length !== 120) {
+    errors.push(`Expected 120 Milestone 2 Listening lessons, found ${expandedListening.length}`);
+  }
+  if (expandedSpeaking.length !== 120) {
+    errors.push(`Expected 120 Milestone 2 Speaking lessons, found ${expandedSpeaking.length}`);
+  }
+  if (expandedReading.length !== 120) {
+    errors.push(`Expected 120 Milestone 2 Reading passages, found ${expandedReading.length}`);
+  }
+  if (expandedWriting.length !== 90) {
+    errors.push(`Expected 90 Milestone 2 Writing lessons, found ${expandedWriting.length}`);
+  }
+  if (pronunciationLessons.length !== 48) {
+    errors.push(`Expected 48 Milestone 2 Pronunciation lessons, found ${pronunciationLessons.length}`);
+  }
+  if (shadowingSessions.length !== 60) {
+    errors.push(`Expected 60 Milestone 2 Shadowing sessions, found ${shadowingSessions.length}`);
+  }
+  if (conversations.length !== 60) {
+    errors.push(`Expected 60 Milestone 2 Conversation scenarios, found ${conversations.length}`);
+  }
+  if (thinkInEnglish.length !== 30) {
+    errors.push(`Expected 30 Milestone 2 Think in English drills, found ${thinkInEnglish.length}`);
+  }
+  if (integratedSequences.length !== 24) {
+    errors.push(`Expected 24 Milestone 2 Integrated sequences, found ${integratedSequences.length}`);
+  }
+
+  for (const level of CEFR_LEVELS) {
+    if (listeningCountsByLevel[level] !== expectedM2MainDist[level]) {
+      errors.push(
+        `Listening ${level} count mismatch: expected ${expectedM2MainDist[level]}, got ${listeningCountsByLevel[level]}`,
+      );
+    }
+    if (speakingCountsByLevel[level] !== expectedM2MainDist[level]) {
+      errors.push(
+        `Speaking ${level} count mismatch: expected ${expectedM2MainDist[level]}, got ${speakingCountsByLevel[level]}`,
+      );
+    }
+    if (readingCountsByLevel[level] !== expectedM2MainDist[level]) {
+      errors.push(
+        `Reading ${level} count mismatch: expected ${expectedM2MainDist[level]}, got ${readingCountsByLevel[level]}`,
+      );
+    }
+    if (writingCountsByLevel[level] !== expectedM2WritingDist[level]) {
+      errors.push(
+        `Writing ${level} count mismatch: expected ${expectedM2WritingDist[level]}, got ${writingCountsByLevel[level]}`,
+      );
+    }
+  }
+
+  const checkUniquePromptsPerUnit = (
+    academy: string,
+    items: Array<{ id: string; exercises: Array<{ id: string; prompt: string }> }>,
+    minExercises: number,
+  ) => {
+    for (const item of items) {
+      if (item.exercises.length < minExercises) {
+        errors.push(`${academy} ${item.id} has ${item.exercises.length} exercises (expected >= ${minExercises})`);
+      }
+      const seen = new Set<string>();
+      for (const ex of item.exercises) {
+        const norm = ex.prompt.toLowerCase().trim();
+        if (seen.has(norm)) {
+          errors.push(`Duplicate exercise prompt inside ${academy} ${item.id}: "${ex.prompt}"`);
+        }
+        seen.add(norm);
+      }
+    }
+  };
+
+  checkUniquePromptsPerUnit('Listening', expandedListening, 6);
+  checkUniquePromptsPerUnit(
+    'Reading',
+    expandedReading.map((p) => ({ id: p.id, exercises: p.questions })),
+    5,
+  );
+  checkUniquePromptsPerUnit(
+    'Pronunciation',
+    pronunciationLessons.map((p) => ({ id: p.id, exercises: p.listeningExercises })),
+    5,
+  );
+  checkUniquePromptsPerUnit(
+    'Writing',
+    expandedWriting.map((w) => ({ id: w.id, exercises: w.practiceExercises ?? [] })),
+    3,
+  );
+
   const totalVocab = SEED_VOCABULARY.length + expandedVocab.length;
   const totalGrammarTopics = GRAMMAR_TOPICS.length + expandedGrammar.length;
   const legacyPathExercises = ALL_UNITS.reduce(
@@ -634,6 +726,9 @@ export async function runValidation(writeReport = false): Promise<number> {
     pronunciationExercisesCount +
     readingExercisesCount +
     writingExercisesCount;
+  if (m2NewExercises < 1800) {
+    errors.push(`Milestone 2 interactive exercises (${m2NewExercises}) below 1,800 target`);
+  }
   const totalExercises =
     legacyPathExercises +
     legacyGrammarQuizzes +
@@ -705,19 +800,20 @@ Generated automatically by \`npm run validate:content\`.
 
 ## Verified Live Content Counts
 
-| Category | Core Seed / Phase 1 | Milestone 1 Expansion | Total Verified |
+| Category | Core Seed / Phase 1 | Curriculum Expansion (M1 + M2) | Total Verified |
 |---|---:|---:|---:|
 | Vocabulary & Lexical Entries | ${SEED_VOCABULARY.length} | ${expandedVocab.length} | ${totalVocab} |
 | Grammar Academy Lessons | ${GRAMMAR_TOPICS.length} | ${expandedGrammar.length} | ${totalGrammarTopics} |
 | Thematic Vocabulary Collections | 0 | ${collections.length} | ${collections.length} |
 | Interactive Practice Bank Exercises | 0 | ${expandedExercises.length} | ${expandedExercises.length} |
 | Grammar Academy Mini-Quizzes | ${legacyGrammarQuizzes} | ${grammarQuizCount} | ${legacyGrammarQuizzes + grammarQuizCount} |
+| Milestone 2 Academy Interactive Exercises | 0 | ${m2NewExercises} | ${m2NewExercises} |
 | Core Learning Path Exercises | ${legacyPathExercises} | 0 | ${legacyPathExercises} |
 | **Combined Interactive Exercises** | **${legacyPathExercises + legacyGrammarQuizzes}** | **${expandedExercises.length + grammarQuizCount + m2NewExercises}** | **${totalExercises}** |
-| Listening Academy Lessons (Batch 2A+) | ${LISTENING_LAB_TRACKS.length} | ${expandedListening.length} | ${LISTENING_LAB_TRACKS.length + expandedListening.length} |
-| Speaking Academy Lessons (Batch 2A+) | ${SPEAKING_LAB_ACTIVITIES.length} | ${expandedSpeaking.length} | ${SPEAKING_LAB_ACTIVITIES.length + expandedSpeaking.length} |
-| Reading Academy Passages (Batch 2B) | ${READING_LIBRARY_PASSAGES.length} | ${expandedReading.length} | ${READING_LIBRARY_PASSAGES.length + expandedReading.length} |
-| Writing Academy Lessons (Batch 2B) | ${WRITING_LAB_PROMPTS.length} | ${expandedWriting.length} | ${WRITING_LAB_PROMPTS.length + expandedWriting.length} |
+| Listening Academy Lessons | ${LISTENING_LAB_TRACKS.length} | ${expandedListening.length} | ${LISTENING_LAB_TRACKS.length + expandedListening.length} |
+| Speaking Academy Lessons | ${SPEAKING_LAB_ACTIVITIES.length} | ${expandedSpeaking.length} | ${SPEAKING_LAB_ACTIVITIES.length + expandedSpeaking.length} |
+| Reading Academy Passages | ${READING_LIBRARY_PASSAGES.length} | ${expandedReading.length} | ${READING_LIBRARY_PASSAGES.length + expandedReading.length} |
+| Writing Academy Lessons | ${WRITING_LAB_PROMPTS.length} | ${expandedWriting.length} | ${WRITING_LAB_PROMPTS.length + expandedWriting.length} |
 | Pronunciation Academy Lessons | 0 | ${pronunciationLessons.length} | ${pronunciationLessons.length} |
 | Shadowing Studio Sessions | 0 | ${shadowingSessions.length} | ${shadowingSessions.length} |
 | Practical Conversation Scenarios | 0 | ${conversations.length} | ${conversations.length} |
@@ -739,6 +835,18 @@ Generated automatically by \`npm run validate:content\`.
 | C2 | ${vocabCountsByLevel.C2} | ${grammarCountsByLevel.C2} | ${exerciseCountsByLevel.C2} |
 | **Total** | **${expandedVocab.length}** | **${expandedGrammar.length}** | **${expandedExercises.length}** |
 
+## Breakdown by CEFR Level (Milestone 2 Academies)
+
+| CEFR Level | Listening | Speaking | Reading | Writing |
+|---|---:|---:|---:|---:|
+| A1 | ${listeningCountsByLevel.A1} | ${speakingCountsByLevel.A1} | ${readingCountsByLevel.A1} | ${writingCountsByLevel.A1} |
+| A2 | ${listeningCountsByLevel.A2} | ${speakingCountsByLevel.A2} | ${readingCountsByLevel.A2} | ${writingCountsByLevel.A2} |
+| B1 | ${listeningCountsByLevel.B1} | ${speakingCountsByLevel.B1} | ${readingCountsByLevel.B1} | ${writingCountsByLevel.B1} |
+| B2 | ${listeningCountsByLevel.B2} | ${speakingCountsByLevel.B2} | ${readingCountsByLevel.B2} | ${writingCountsByLevel.B2} |
+| C1 | ${listeningCountsByLevel.C1} | ${speakingCountsByLevel.C1} | ${readingCountsByLevel.C1} | ${writingCountsByLevel.C1} |
+| C2 | ${listeningCountsByLevel.C2} | ${speakingCountsByLevel.C2} | ${readingCountsByLevel.C2} | ${writingCountsByLevel.C2} |
+| **Total** | **${expandedListening.length}** | **${expandedSpeaking.length}** | **${expandedReading.length}** | **${expandedWriting.length}** |
+
 ## Interactive Format Distribution (600-Item Bank)
 
 | Exercise Format | Count |
@@ -750,11 +858,11 @@ ${Object.entries(exerciseTypeCounts)
 
 ## Automated Invariants Verified
 
-1. **Zero duplicate IDs** across all vocabulary entries, grammar topics, collections, exercises, and external resources.
+1. **Zero duplicate IDs** across all vocabulary entries, grammar topics, collections, exercises, Milestone 2 academies, and external resources.
 2. **Zero duplicate headwords** (normalized \`word + senseLabel\`) in expanded vocabulary packs.
-3. **Zero duplicate prompts** inside any expanded level exercise bank.
-4. **100% referential integrity**: every \`vocabularyIds\` reference inside all ${collections.length} thematic collections exists, and every \`relatedKnowledgeId\` inside all ${expandedExercises.length} practice exercises resolves to a real vocabulary item or grammar topic.
-5. **100% evaluator round-trip check**: every expanded quiz and bank exercise (${expandedExercises.length + grammarQuizCount} total) passes \`evaluateExerciseAnswer(ex, ex.correctAnswer) === true\`.
+3. **Zero duplicate prompts** inside any expanded level exercise bank or within any Listening, Reading, Pronunciation, or Writing academy lesson.
+4. **100% referential integrity**: every \`vocabularyIds\` reference inside all ${collections.length} thematic collections exists, every \`relatedKnowledgeId\` inside all ${expandedExercises.length} practice exercises resolves to a real vocabulary item or grammar topic, and every \`IntegratedSequence\` links valid listening, reading, and vocabulary IDs.
+5. **100% evaluator round-trip check**: every expanded quiz, bank, and Milestone 2 academy exercise (${expandedExercises.length + grammarQuizCount + m2NewExercises} total) passes \`evaluateExerciseAnswer(ex, ex.correctAnswer) === true\`.
 6. **100% valid external resource URLs**: all ${resources.length} resource URLs parse cleanly over HTTPS/HTTP with zero placeholder domains.
 `;
     fs.writeFileSync(reportPath, md, 'utf8');

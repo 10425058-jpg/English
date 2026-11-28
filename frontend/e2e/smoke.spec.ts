@@ -146,9 +146,9 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
   await expect(page.getByText(/Integrated Four-Skill Thematic Loops/i)).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-integrated-learning.png'), fullPage: false });
 
-  // Verify Batch 2A Listening Academy & Speaking/Pronunciation/Shadowing Academies
+  // Verify Milestone 2 Listening Academy & Speaking/Pronunciation/Shadowing Academies
   await page.goto('./#/listening');
-  await expect(page.getByText(/46 Lessons \(A1–C2\)/i)).toBeVisible();
+  await expect(page.getByText(/126 Lessons \(A1–C2\)/i)).toBeVisible();
   await page.getByRole('button', { name: 'C1', exact: true }).click();
   await expect(page.getByText(/Working Memory Load & Chunking/i)).toBeVisible();
   await page.getByRole('button', { name: /Working Memory Load & Chunking/i }).click();
@@ -157,7 +157,7 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-listening-academy.png'), fullPage: false });
 
   await page.goto('./#/speaking');
-  await expect(page.getByText(/Speaking Academy \(47\)/i)).toBeVisible();
+  await expect(page.getByText(/Speaking Academy \(127\)/i)).toBeVisible();
   await page.getByRole('button', { name: /Open Fluency Guides \(6\)/i }).click();
   await expect(page.getByText(/PREP Method/i)).toBeVisible();
   await page.getByRole('tab', { name: /Conversations \(60\)/i }).click();
