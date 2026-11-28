@@ -15,6 +15,7 @@ export function ProfilePage() {
   const streak = useQuestStore((s) => s.streak);
   const lessonProgress = useQuestStore((s) => s.lessonProgress);
   const assessmentHistory = useQuestStore((s) => s.assessmentHistory ?? []);
+  const ieltsMockHistory = useQuestStore((s) => s.ieltsMockHistory ?? []);
   const skillStats = useQuestStore((s) => s.skillStats);
   const xpTransactions = useQuestStore((s) => s.xpTransactions);
 
@@ -147,6 +148,37 @@ export function ProfilePage() {
                     View/Retake
                   </Link>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </QuestCard>
+
+      <QuestCard className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-lg font-black">IELTS Mock Readiness History (Unofficial)</h2>
+          <Link to="/ielts" className="text-xs font-black text-[#8E3FD6] hover:underline">
+            Open IELTS Mastery Center →
+          </Link>
+        </div>
+        {ieltsMockHistory.length === 0 ? (
+          <p className="text-sm font-semibold text-[#666666]">
+            No timed 4-skill IELTS mock examinations completed yet. Try any Academic or General Training Mock inside the IELTS hub!
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {ieltsMockHistory.slice(0, 5).map((mock) => (
+              <div
+                key={mock.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#E5E5E5] bg-[#F7F8FA] px-3.5 py-2.5 text-sm"
+              >
+                <div>
+                  <span className="font-black text-[#3C3C3C]">{mock.title}</span>
+                  <p className="text-xs font-bold text-[#666666]">
+                    L {mock.listeningBand.toFixed(1)} • R {mock.readingBand.toFixed(1)} • W {mock.writingBand.toFixed(1)} • S {mock.speakingBand.toFixed(1)} ({mock.pathway === 'academic' ? 'Academic' : 'GT'})
+                  </p>
+                </div>
+                <PillBadge tone="purple">Est. Overall {mock.overallBand.toFixed(1)}</PillBadge>
               </div>
             ))}
           </div>

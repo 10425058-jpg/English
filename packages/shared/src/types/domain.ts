@@ -814,7 +814,7 @@ export interface XPTransaction {
 export interface IELTSPracticeSession {
   id: string;
   pathway: IELTSPathway;
-  skill: 'listening' | 'reading' | 'writing' | 'speaking' | 'mini_mock';
+  skill: 'listening' | 'reading' | 'writing' | 'speaking' | 'mini_mock' | 'full_mock';
   title: string;
   score: number;
   maxScore: number;
@@ -876,5 +876,235 @@ export interface AssessmentAttemptRecord {
   productiveResponse?: string;
   productiveSelfCheckDone?: boolean;
   durationSeconds: number;
+  completedAt: string;
+}
+
+export type IELTSListeningPart = 'part_1' | 'part_2' | 'part_3' | 'part_4';
+export type IELTSSpeakingPart = 'part_1' | 'part_2' | 'part_3';
+export type IELTSWritingSubtype =
+  | 'bar_chart'
+  | 'line_graph'
+  | 'pie_chart'
+  | 'table'
+  | 'process'
+  | 'map'
+  | 'formal_letter'
+  | 'semi_formal_letter'
+  | 'informal_letter'
+  | 'opinion'
+  | 'discussion'
+  | 'advantages_disadvantages'
+  | 'problem_solution'
+  | 'two_part';
+
+export interface IELTSListeningActivity {
+  id: string;
+  part: IELTSListeningPart;
+  pathway: 'shared';
+  title: string;
+  topic: string;
+  accent: EnglishAccent;
+  cefrTarget: CEFRLevel;
+  contextDescription: string;
+  wordLimitNote: string;
+  scriptLines: Array<{ speaker: string; text: string }>;
+  distractorTraps: string[];
+  exercises: Exercise[];
+}
+
+export interface IELTSSpeakingActivity {
+  id: string;
+  part: IELTSSpeakingPart;
+  title: string;
+  topic: string;
+  cefrTarget: CEFRLevel;
+  activityType?: SpeakingActivityType;
+  category?: SpeakingCategory;
+  prompt?: string;
+  promptVi?: string;
+  objectives?: string[];
+  preparationQuestions?: string[];
+  cueCard?: {
+    prompt: string;
+    bullets: string[];
+    prepSeconds: 60;
+    speakSeconds: 120;
+  };
+  questions: string[];
+  followUpProbes?: string[];
+  vocabularyCollocations: Array<{ phrase: string; meaning: string; vietnamese: string }>;
+  bandModels: {
+    band6: string;
+    band8: string;
+  };
+  examinerNotes: string[];
+  modelText?: string;
+  alternativeResponses?: string[];
+  vocabularyBank?: Array<{ term: string; meaning: string; vietnamese: string }>;
+  naturalExpressions?: string[];
+  sentenceStructures?: Array<{ frame: string; example: string }>;
+  suggestedOrganization?: string[];
+  commonMistakes?: Array<{ mistake: string; correction: string; why: string }>;
+  followUpQuestions?: string[];
+  improvementStrategies?: string[];
+  tips?: string[];
+  selfChecklist?: string[];
+  keyVocabulary?: string[];
+  suggestedSeconds?: number;
+}
+
+export interface IELTSReadingPassage {
+  id: string;
+  pathway: 'academic' | 'general_training';
+  sectionLabel: string;
+  title: string;
+  topic: string;
+  cefrTarget: CEFRLevel;
+  paragraphs: Array<{ label: string; text: string }>;
+  questionTypesCovered: string[];
+  exercises: Exercise[];
+}
+
+export interface IELTSVisualSpec {
+  type: 'line' | 'bar' | 'pie' | 'table' | 'process' | 'map';
+  title: string;
+  unitLabel: string;
+  categories?: string[];
+  series?: Array<{ name: string; values: number[] }>;
+  tableRows?: string[][];
+  processSteps?: string[];
+  mapChanges?: Array<{ zone: string; before: string; after: string }>;
+}
+
+export interface IELTSWritingTask {
+  id: string;
+  taskType: 'task_1_academic' | 'task_1_gt' | 'task_2';
+  pathway: 'academic' | 'general_training' | 'shared';
+  questionSubtype: IELTSWritingSubtype;
+  title: string;
+  topic: string;
+  cefrTarget: CEFRLevel;
+  prompt: string;
+  minWords: 150 | 250;
+  recommendedMinutes: 20 | 40;
+  visualSpec?: IELTSVisualSpec;
+  letterContext?: {
+    recipientType: string;
+    tone: 'formal' | 'semi_formal' | 'informal';
+    bulletPoints: string[];
+  };
+  bandDescriptors: Array<{ criterion: string; targetNote: string }>;
+  outlineSteps: string[];
+  keyCollocations: Array<{ phrase: string; note: string; vietnamese: string }>;
+  band6Model: string;
+  band8Model: string;
+  commonPitfalls: string[];
+  exercises: Exercise[];
+}
+
+export interface IELTSIdeaVocabTopic {
+  id: string;
+  topic: string;
+  cefrTarget: CEFRLevel;
+  coreArguments: Array<{ thesis: string; support: string; counterPoint: string }>;
+  academicCollocations: Array<{
+    term: string;
+    registerNote: string;
+    example: string;
+    vietnamese: string;
+  }>;
+  speakingNaturalExpressions: Array<{
+    phrase: string;
+    nuance: string;
+    example: string;
+  }>;
+  exercises: Exercise[];
+}
+
+export type IELTSStrategyCategory =
+  | 'listening'
+  | 'reading'
+  | 'writing'
+  | 'speaking'
+  | 'exam_day';
+
+export interface IELTSStrategyLesson {
+  id: string;
+  category: IELTSStrategyCategory;
+  title: string;
+  cefrTarget: CEFRLevel;
+  skillFocus: string;
+  corePrinciple: string;
+  stepByStepMethod: string[];
+  trapPatterns: Array<{
+    trapName: string;
+    howItTricks: string;
+    counterMove: string;
+  }>;
+  timingAllocationNote: string;
+  exampleBox: {
+    snippet: string;
+    breakdown: string;
+  };
+  exercises: Exercise[];
+}
+
+export interface IELTSMockExamManifest {
+  id: string;
+  number: number;
+  pathway: IELTSPathway;
+  title: string;
+  subtitle: string;
+  estimatedMinutes: number;
+  listeningIds: [string, string, string, string];
+  readingIds: [string, string, string];
+  writingTask1Id: string;
+  writingTask2Id: string;
+  speakingPartIds: [string, string, string];
+  isUnofficialNotice: string;
+}
+
+export interface AssembledIELTSMockExam {
+  manifest: IELTSMockExamManifest;
+  listeningParts: IELTSListeningActivity[];
+  readingPassages: IELTSReadingPassage[];
+  writingTask1: IELTSWritingTask;
+  writingTask2: IELTSWritingTask;
+  speakingParts: IELTSSpeakingActivity[];
+}
+
+export interface IELTSMockAttemptDraft {
+  mockId: string;
+  pathway: IELTSPathway;
+  currentSection: 'listening' | 'reading' | 'writing' | 'speaking';
+  sectionRemainingSeconds: number;
+  listeningAnswers: Record<string, string | string[]>;
+  readingAnswers: Record<string, string | string[]>;
+  writingTask1Draft: string;
+  writingTask2Draft: string;
+  speakingSelfBand: number;
+  speakingNotes: string;
+  startedAt: string;
+  updatedAt: string;
+}
+
+export interface IELTSMockAttemptResult {
+  id: string;
+  mockId: string;
+  title: string;
+  pathway: IELTSPathway;
+  listeningRaw: number;
+  listeningMax: number;
+  listeningBand: number;
+  readingRaw: number;
+  readingMax: number;
+  readingBand: number;
+  writingBand: number;
+  writingTask1Words: number;
+  writingTask2Words: number;
+  speakingBand: number;
+  overallBand: number;
+  durationSeconds: number;
+  isUnofficialEstimate: true;
   completedAt: string;
 }

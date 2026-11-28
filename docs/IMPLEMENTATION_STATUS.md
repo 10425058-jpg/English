@@ -1,6 +1,6 @@
 # English Quest — Implementation Status
 
-> Updated: 2026-11-28 | Active Branch: `feature/advanced-cefr-ielts-mastery` (Milestone 3 Batch 3A)
+> Updated: 2026-11-28 | Active Branch: `feature/advanced-cefr-ielts-mastery` (Milestone 3 Complete Batches 3A–3D)
 
 ## Milestone Summary
 
@@ -29,9 +29,11 @@
   - Expanded `WritingAcademyPage` (`97` lessons across A1–C2 = 90 new + 7 core, **270** interactive pre-draft drills, model outlines, clickable vocab/sentence-frame banks, rubrics, common mistakes, annotated model samples, autosave drafts, and side-by-side **Revision Compare** alongside local heuristic feedback).
   - See [MILESTONE_2_PROGRESS.md](./MILESTONE_2_PROGRESS.md) for live batch-by-batch tracking and verification status.
 
-- **Milestone 3 — Advanced CEFR Learning Path & IELTS Mastery Center (Batch 3A Active on `feature/advanced-cefr-ielts-mastery`):**
-  - **Batch 3A (Complete & Verified Locally):** Activated full A1–C2 CEFR Learning Path (`36` new units + `12` core = `48` total units across `A1–C2`, `216` new structured lessons + `48` core = `264` lessons), **`45` structured assessments** (`36` Unit Mastery + `6` CEFR Level Completion Exams + `3` diagnostic/section/mixed review packs), **`888` newly authored interactive exercises** (`+51` reused drill references tracked separately -> `3,662` total combined exercises), upgraded `placementTest.ts` across A1–C2 (`14` items), added dedicated `/assessment/:assessmentId` Assessment Player, separated non-XP CEFR Mastery metrics, flexible level unlocking, and collapsible lesson briefing panels. See [MILESTONE_3_PROGRESS.md](./MILESTONE_3_PROGRESS.md).
-  - **Batches 3B–3D (Planned Next):** Comprehensive IELTS Academic/GT academies (`80` Listening, `100` Speaking, `60` Reading, `60` Writing, Idea & Vocab banks), `60` Strategy Lessons + `12` Timed Mock Exams (`8` Academic, `4` GT), real analytics, adaptive study planner, and mistake breakdown.
+- **Milestone 3 — Advanced CEFR Learning Path & IELTS Mastery Center (Complete Batches 3A–3D on `feature/advanced-cefr-ielts-mastery`):**
+  - **Batch 3A (Complete & CI Passed `358b7dd`):** Activated full A1–C2 CEFR Learning Path (`36` new units + `12` core = `48` total units across `A1–C2`, `216` new structured lessons + `48` core = `264` lessons), **`45` structured assessments** (`36` Unit Mastery + `6` CEFR Level Completion Exams + `3` diagnostic/section/mixed review packs), **`888` newly authored interactive exercises** (`+51` reused drill references tracked separately), upgraded `placementTest.ts` across A1–C2 (`14` items), added dedicated `/assessment/:assessmentId` Assessment Player, separated non-XP CEFR Mastery metrics, flexible level unlocking, and collapsible lesson briefing panels. See [MILESTONE_3_PROGRESS.md](./MILESTONE_3_PROGRESS.md).
+  - **Batch 3B (Complete & CI Passed `e945f1c`):** Upgraded `IeltsPage.tsx` into the full IELTS Mastery Center with Academic vs. General Training separation (`ieltsScoring.ts` 40-mark curves & `.25/.75` rounding), **`80` Listening** items (`160` ex), **`100` Speaking** sets (Cue Cards w/ 1m/2m timers, mic recorder, Band 6 vs Band 8 comparisons), **`60` Reading** passages (`40` Academic + `20` GT, `300` ex), **`60` Writing** prompts (`20` Academic Task 1 w/ Recharts `line`/`bar`/`pie`/Table/Process/Map visuals, `10` GT Letters, `30` Task 2 essays, `120` ex), and **`10` Topic Idea & Lexis Packs** (`20` ex).
+  - **Batch 3C (Complete & CI Passed `41655ee`):** Authored **`60` IELTS Strategy & Methodology Lessons** (`120` new interactive checks) plus **`12` Complete Timed 4-Skill Mock Exams** (`8` Academic + `4` General Training) running in distraction-free `/mock-exam/:mockId` (`MockExamPlayerPage.tsx`) with section timers, split-screen Reading, local Speaking capture, autosave crash recovery, and unofficial band reports -> **`4,382` combined interactive exercises**.
+  - **Batch 3D (Complete & Validated):** Rule-based adaptive study planner (`buildPersonalizedDailyPlan`), mistake pattern clustering (`clusterUnresolvedMistakes`), real IELTS Mock readiness progression chart & CEFR assessment KPIs on `ReviewPage.tsx` and `ProfilePage.tsx`, full regression suite & PR documentation.
 
 - **Phase 2 — Backend & Cloud Persistence:** **Schema & Contracts Drafted**
   - 28 normalized PostgreSQL Prisma models defined in `backend/prisma/schema.prisma`.

@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { evaluateExerciseAnswer, type CEFRLevel } from '@english-quest/shared';
+import {
+  convertListeningRawToBand,
+  convertReadingRawToBand,
+  evaluateExerciseAnswer,
+  roundIeltsOverallBand,
+  type CEFRLevel,
+} from '@english-quest/shared';
 import { loadMergedUnitsByCefr, loadAllMergedUnits, getUnitLockState, computeCefrMasteryProgress, getLessonNodeState, isUnitChestUnlocked } from '@/services/curriculumService';
 import { ALL_UNITS, CURRICULUM_SECTIONS } from '@/data/curriculum';
 import { evaluatePlacementLevel, PLACEMENT_QUESTIONS } from '@/data/placementTest';
@@ -225,5 +231,103 @@ describe('Quest Store Progression & Idempotency', () => {
     );
     expect(afterMastery.levelExamPassed).toBe(true);
     expect(afterMastery.masteryPercent).toBeGreaterThan(beforeMastery.masteryPercent);
+  });
+
+  it('computes official IELTS 40-mark Academic vs General Training scales and .25/.75 half-band rounding', () => {
+    expect(convertListeningRawToBand(30, 40)).toBe(7.0);
+    expect(convertListeningRawToBand(35, 40)).toBe(8.0);
+    // General Training Reading requires stricter raw hits than Academic at equivalent band
+    expect(convertReadingRawToBand(30, 'academic', 40)).toBe(7.0);
+    expect(convertReadingRawToBand(30, 'general_training', 40)).toBe(6.0);
+    expect(convertReadingRawToBand(34, 'general_training', 40)).toBe(7.0);
+
+    // Official IELTS overall averaging (.25 -> .5, .75 -> next whole band)
+    expect(roundIeltsOverallBand([6.5, 6.5, 6.0, 6.0])).toBe(6.5); // 6.25 -> 6.5
+    expect(roundIeltsOverallBand([7.0, 7.0, 6.5, 6.5])).toBe(7.0); // 6.75 -> 7.0
+    expect(roundIeltsOverallBand([6.5, 6.0, 6.0, 6.0])).toBe(6.0); // 6.125 -> 6.0
+  });
+
+  it('generates rule-based adaptive study plan highlighting mistake clusters, IELTS mock gaps, and mock autosave recovery', async () => {
+    const { buildPersonalizedDailyPlan, clusterUnresolvedMistakes } = await import('@/services/curriculumService');
+
+    useQuestStore.getState().recordMistake({
+      source: 'reading',
+      skill: 'reading',
+      cefrLevel: 'B2',
+      prompt: 'True or False test prompt',
+      userAnswer: 'TRUE',
+      expectedAnswer: 'FALSE',
+      explanation: 'Direct contradiction.',
+    });
+    useQuestStore.getState().recordMistake({
+      source: 'reading',
+      skill: 'reading',
+      cefrLevel: 'B2',
+      prompt: 'Heading check prompt',
+      userAnswer: 'A',
+      expectedAnswer: 'B',
+      explanation: 'Check paragraph thesis.',
+    });
+
+    const clusters = clusterUnresolvedMistakes(useQuestStore.getState().mistakes);
+    expect(clusters[0]).toMatchObject({ skill: 'reading', source: 'reading', count: 2 });
+
+    // Save & record mock exam progression
+    const draft = {
+      mockId: 'ielts-mock-ac-01',
+      pathway: 'academic' as const,
+      currentSection: 'reading' as const,
+      sectionRemainingSeconds: 2400,
+      listeningAnswers: {},
+      readingAnswers: {},
+      writingTask1Draft: 'Overall chart trends.',
+      writingTask2Draft: 'Essay body.',
+      speakingSelfBand: 6.5,
+      speakingNotes: '',
+      startedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    useQuestStore.getState().saveInProgressMockExam(draft);
+    expect(useQuestStore.getState().inProgressMockExam?.mockId).toBe('ielts-mock-ac-01');
+
+    const { awardedXp } = useQuestStore.getState().recordMockExamCompletion({
+      mockId: 'ielts-mock-ac-01',
+      title: 'Mock Exam 1',
+      pathway: 'academic',
+      listeningRaw: 7,
+      listeningMax: 8,
+      listeningBand: 8.0,
+      readingRaw: 8,
+      readingMax: 15,
+      readingBand: 5.5,
+      writingBand: 6.5,
+      writingTask1Words: 165,
+      writingTask2Words: 270,
+      speakingBand: 6.5,
+      overallBand: 6.5,
+      durationSeconds: 1800,
+      isUnofficialEstimate: true,
+    });
+    expect(awardedXp).toBe(120);
+    expect(useQuestStore.getState().inProgressMockExam).toBeNull();
+    expect(useQuestStore.getState().ieltsMockHistory).toHaveLength(1);
+
+    const plan = buildPersonalizedDailyPlan({
+      skillStats: useQuestStore.getState().skillStats,
+      mistakes: useQuestStore.getState().mistakes,
+      vocabularySchedules: useQuestStore.getState().vocabularySchedules,
+      lessonProgress: useQuestStore.getState().lessonProgress,
+      recommendedCefr: useQuestStore.getState().recommendedCefr,
+      dailyGoalMinutes: 30,
+      studyMinutesToday: 0,
+      purpose: 'ielts',
+      ieltsPathway: 'academic',
+      ieltsTargetBand: 7.5,
+      ieltsMockHistory: useQuestStore.getState().ieltsMockHistory,
+      unitAssessmentResults: useQuestStore.getState().unitAssessmentResults,
+    });
+
+    expect(plan.some((p) => p.category === 'mistake' && p.title.includes('2 active'))).toBe(true);
+    expect(plan.some((p) => p.category === 'ielts' && p.title.includes('Reading Gap'))).toBe(true);
   });
 });

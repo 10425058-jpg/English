@@ -1,9 +1,18 @@
 import type {
+  AssembledIELTSMockExam,
   CEFRLevel,
   ConversationScenario,
   CurriculumMatrixEntry,
   Exercise,
   GrammarTopic,
+  IELTSIdeaVocabTopic,
+  IELTSListeningActivity,
+  IELTSMockExamManifest,
+  IELTSPathway,
+  IELTSReadingPassage,
+  IELTSSpeakingActivity,
+  IELTSStrategyLesson,
+  IELTSWritingTask,
   IntegratedSequence,
   LearningResource,
   Lesson,
@@ -447,3 +456,97 @@ export async function loadAssessmentById(id: string): Promise<StructuredAssessme
   const all = await loadAllAssessments();
   return all.find((a) => a.id === id) ?? null;
 }
+
+/**
+ * Lazy loaders for Milestone 3 Batch 3B IELTS Mastery Center Academies.
+ */
+export async function loadIeltsListening(): Promise<IELTSListeningActivity[]> {
+  const [p12, p34] = await Promise.all([
+    import('./ielts/listening_p1_p2').then((m) => m.IELTS_LISTENING_P1_P2),
+    import('./ielts/listening_p3_p4').then((m) => m.IELTS_LISTENING_P3_P4),
+  ]);
+  return [...p12, ...p34];
+}
+
+export async function loadIeltsSpeaking(): Promise<IELTSSpeakingActivity[]> {
+  const [p1, p23] = await Promise.all([
+    import('./ielts/speaking_p1').then((m) => m.IELTS_SPEAKING_PART1),
+    import('./ielts/speaking_p2_p3').then((m) => m.IELTS_SPEAKING_PART2_PART3),
+  ]);
+  return [...p1, ...p23];
+}
+
+export async function loadIeltsReading(pathway?: IELTSPathway): Promise<IELTSReadingPassage[]> {
+  if (pathway === 'general_training') {
+    return import('./ielts/reading_gt').then((m) => m.IELTS_READING_GT);
+  }
+  const [acA, acB] = await Promise.all([
+    import('./ielts/reading_academic_a').then((m) => m.IELTS_READING_ACADEMIC_A),
+    import('./ielts/reading_academic_b').then((m) => m.IELTS_READING_ACADEMIC_B),
+  ]);
+  if (pathway === 'academic') {
+    return [...acA, ...acB];
+  }
+  const gt = await import('./ielts/reading_gt').then((m) => m.IELTS_READING_GT);
+  return [...acA, ...acB, ...gt];
+}
+
+export async function loadIeltsWriting(pathway?: IELTSPathway): Promise<IELTSWritingTask[]> {
+  const [t1, t2] = await Promise.all([
+    import('./ielts/writing_task1').then((m) => m.IELTS_WRITING_TASK1),
+    import('./ielts/writing_task2').then((m) => m.IELTS_WRITING_TASK2),
+  ]);
+  const all = [...t1, ...t2];
+  if (!pathway) return all;
+  return all.filter((w) => w.pathway === 'shared' || w.pathway === pathway);
+}
+
+export async function loadIeltsIdeaBanks(): Promise<IELTSIdeaVocabTopic[]> {
+  return import('./ielts/vocabulary_ideas').then((m) => m.IELTS_TOPIC_IDEA_BANKS);
+}
+
+/**
+ * Lazy loaders for Milestone 3 Batch 3C IELTS Strategy Academy & Timed Mock Exams.
+ */
+export async function loadIeltsStrategies(): Promise<IELTSStrategyLesson[]> {
+  return import('./ielts/strategy_lessons').then((m) => m.IELTS_STRATEGY_LESSONS);
+}
+
+export async function loadIeltsMockManifests(): Promise<IELTSMockExamManifest[]> {
+  return import('./ielts/mock_exams').then((m) => m.IELTS_MOCK_EXAMS);
+}
+
+export async function assembleIeltsMockExamById(mockId: string): Promise<AssembledIELTSMockExam | null> {
+  const manifests = await loadIeltsMockManifests();
+  const manifest = manifests.find((m) => m.id === mockId);
+  if (!manifest) return null;
+
+  const [listening, reading, writing, speaking] = await Promise.all([
+    loadIeltsListening(),
+    loadIeltsReading(manifest.pathway),
+    loadIeltsWriting(manifest.pathway),
+    loadIeltsSpeaking(),
+  ]);
+
+  const lMap = new Map(listening.map((x) => [x.id, x]));
+  const rMap = new Map(reading.map((x) => [x.id, x]));
+  const wMap = new Map(writing.map((x) => [x.id, x]));
+  const sMap = new Map(speaking.map((x) => [x.id, x]));
+
+  const listeningParts = manifest.listeningIds.map((id) => lMap.get(id)).filter(Boolean) as IELTSListeningActivity[];
+  const readingPassages = manifest.readingIds.map((id) => rMap.get(id)).filter(Boolean) as IELTSReadingPassage[];
+  const writingTask1 = wMap.get(manifest.writingTask1Id);
+  const writingTask2 = wMap.get(manifest.writingTask2Id);
+  const speakingParts = manifest.speakingPartIds.map((id) => sMap.get(id)).filter(Boolean) as IELTSSpeakingActivity[];
+
+  if (!writingTask1 || !writingTask2) return null;
+  return {
+    manifest,
+    listeningParts,
+    readingPassages,
+    writingTask1,
+    writingTask2,
+    speakingParts,
+  };
+}
+

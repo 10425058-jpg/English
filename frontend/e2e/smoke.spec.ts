@@ -85,9 +85,11 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
   await expect(page.getByText(/Pip Coach/i).first()).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-ai-tutor.png'), fullPage: false });
 
-  // Visit Review Dashboard & capture screenshot
+  // Visit Review Dashboard & capture screenshot (Batch 3D Analytics, Adaptive Plan & Mistake Clustering)
   await page.goto('./#/review');
   await expect(page.getByText(/Skill Proficiency Radar/i)).toBeVisible();
+  await expect(page.getByText(/Today’s Rule-Based Adaptive Study Plan/i)).toBeVisible();
+  await expect(page.getByText(/IELTS Mock Readiness Progression/i)).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-review.png'), fullPage: false });
 
   // Smoke-check every single navigation route has zero overflow and renders heading
@@ -196,6 +198,29 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
   await page.getByRole('tab', { name: /Shadowing Studio \(60\)/i }).click();
   await expect(page.getByText(/Shadowing Self-Check/i)).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-shadowing-studio.png'), fullPage: false });
+
+  // Verify Batch 3B IELTS Mastery Center tabs, Academic vs GT filter, and Recharts visual rendering
+  await page.goto('./#/ielts');
+  await expect(page.getByText(/IELTS Mastery Center/i)).toBeVisible();
+  await page.getByRole('tab', { name: /Listening \(80\)/i }).click();
+  await expect(page.getByText(/IELTS Listening Distractor Lab/i)).toBeVisible();
+  await page.getByRole('tab', { name: /Reading \(60\)/i }).click();
+  await expect(page.getByText(/IELTS Reading Academy/i)).toBeVisible();
+  await page.getByRole('tab', { name: /Writing \(60\)/i }).click();
+  await expect(page.getByText(/IELTS Writing Task 1 & Task 2 Studio/i)).toBeVisible();
+  await expect(page.locator('[data-testid="ielts-task1-chart"]').first()).toBeVisible();
+  await page.getByRole('tab', { name: /Strategy \(60\)/i }).click();
+  await expect(page.getByText(/IELTS Strategy & Methodology Academy/i)).toBeVisible();
+  await page.getByRole('tab', { name: /Mock Exams \(12\)/i }).click();
+  await expect(page.getByText(/Timed 4-Skill IELTS Mock Examination Center/i)).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-ielts-mastery.png'), fullPage: false });
+
+  // Verify Distraction-Free Full Timed Mock Simulator route opens cleanly (Listening + Reading Split-Screen)
+  await page.goto('./#/mock-exam/ielts-mock-ac-01');
+  await expect(page.getByRole('heading', { name: /Mock Exam 1/i })).toBeVisible();
+  await page.getByRole('button', { name: /Reading \(Split Screen\)/i }).click();
+  await expect(page.getByText(/Academic Passage 1/i).first()).toBeVisible();
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-ielts-mock-simulator.png'), fullPage: false });
 
   // Also check Onboarding page
   await page.goto('./#/onboarding');

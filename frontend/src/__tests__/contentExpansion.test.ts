@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { evaluateExerciseAnswer } from '@english-quest/shared';
 import {
+  assembleIeltsMockExamById,
   CEFR_LEVELS,
   loadAllAssessments,
   loadAllConversations,
@@ -13,6 +14,13 @@ import {
   loadAllVocabulary,
   loadAllWriting,
   loadCurriculumMatrix,
+  loadIeltsIdeaBanks,
+  loadIeltsListening,
+  loadIeltsMockManifests,
+  loadIeltsReading,
+  loadIeltsSpeaking,
+  loadIeltsStrategies,
+  loadIeltsWriting,
   loadIntegratedSequences,
   loadLearningResources,
   loadPronunciationLessons,
@@ -371,5 +379,91 @@ describe('Expanded Milestone 1 Content Integrity & Lazy Modules', () => {
       }
     }
     expect(m3AssessExIds.size).toBe(240);
+  });
+
+  it('Milestone 3 Batch 3B IELTS Mastery Center validates 310 entries and 600 unique exercises cleanly', async () => {
+    const [listening, speaking, readingAc, readingGt, writingAc, writingGt, ideas] = await Promise.all([
+      loadIeltsListening(),
+      loadIeltsSpeaking(),
+      loadIeltsReading('academic'),
+      loadIeltsReading('general_training'),
+      loadIeltsWriting('academic'),
+      loadIeltsWriting('general_training'),
+      loadIeltsIdeaBanks(),
+    ]);
+
+    expect(listening).toHaveLength(80);
+    expect(speaking).toHaveLength(100);
+    expect(readingAc).toHaveLength(40);
+    expect(readingGt).toHaveLength(20);
+    expect(ideas).toHaveLength(10);
+
+    const allWriting = [...new Map([...writingAc, ...writingGt].map((w) => [w.id, w])).values()];
+    expect(allWriting).toHaveLength(60);
+    expect(allWriting.filter((w) => w.taskType === 'task_1_academic')).toHaveLength(20);
+    expect(allWriting.filter((w) => w.taskType === 'task_1_gt')).toHaveLength(10);
+    expect(allWriting.filter((w) => w.taskType === 'task_2')).toHaveLength(30);
+
+    for (const ac1 of allWriting.filter((w) => w.taskType === 'task_1_academic')) {
+      expect(ac1.visualSpec).toBeDefined();
+    }
+    for (const gt1 of allWriting.filter((w) => w.taskType === 'task_1_gt')) {
+      expect(gt1.letterContext?.bulletPoints.length).toBeGreaterThanOrEqual(3);
+    }
+
+    const ieltsExIds = new Set<string>();
+    const checkList = [
+      ...listening.flatMap((x) => x.exercises),
+      ...readingAc.flatMap((x) => x.exercises),
+      ...readingGt.flatMap((x) => x.exercises),
+      ...allWriting.flatMap((x) => x.exercises),
+      ...ideas.flatMap((x) => x.exercises),
+    ];
+    for (const ex of checkList) {
+      expect(ieltsExIds.has(ex.id)).toBe(false);
+      ieltsExIds.add(ex.id);
+      expect(evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect).toBe(true);
+    }
+    expect(ieltsExIds.size).toBe(600);
+  });
+
+  it('Milestone 3 Batch 3C validates 60 IELTS Strategy Lessons (120 ex) and 12 Complete 4-Skill Mock Exams', async () => {
+    const [strategies, manifests] = await Promise.all([
+      loadIeltsStrategies(),
+      loadIeltsMockManifests(),
+    ]);
+
+    expect(strategies).toHaveLength(60);
+    const stratExIds = new Set<string>();
+    const stratPrompts = new Set<string>();
+    for (const s of strategies) {
+      expect(s.stepByStepMethod.length).toBeGreaterThanOrEqual(3);
+      expect(s.trapPatterns.length).toBeGreaterThanOrEqual(1);
+      for (const ex of s.exercises) {
+        expect(stratExIds.has(ex.id)).toBe(false);
+        stratExIds.add(ex.id);
+        const norm = ex.prompt.toLowerCase().trim();
+        expect(stratPrompts.has(norm)).toBe(false);
+        stratPrompts.add(norm);
+        expect(evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect).toBe(true);
+      }
+    }
+    expect(stratExIds.size).toBe(120);
+
+    expect(manifests).toHaveLength(12);
+    expect(manifests.filter((m) => m.pathway === 'academic')).toHaveLength(8);
+    expect(manifests.filter((m) => m.pathway === 'general_training')).toHaveLength(4);
+
+    const acMock = await assembleIeltsMockExamById('ielts-mock-ac-01');
+    expect(acMock?.listeningParts).toHaveLength(4);
+    expect(acMock?.readingPassages).toHaveLength(3);
+    expect(acMock?.writingTask1.visualSpec).toBeDefined();
+    expect(acMock?.speakingParts).toHaveLength(3);
+
+    const gtMock = await assembleIeltsMockExamById('ielts-mock-gt-01');
+    expect(gtMock?.listeningParts).toHaveLength(4);
+    expect(gtMock?.readingPassages).toHaveLength(3);
+    expect(gtMock?.writingTask1.taskType).toBe('task_1_gt');
+    expect(gtMock?.speakingParts).toHaveLength(3);
   });
 });

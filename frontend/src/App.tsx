@@ -55,6 +55,9 @@ const GrammarPage = lazy(() =>
 const IeltsPage = lazy(() =>
   import('@/features/ielts/IeltsPage').then((m) => ({ default: m.IeltsPage }))
 );
+const MockExamPlayerPage = lazy(() =>
+  import('@/features/ielts/MockExamPlayerPage').then((m) => ({ default: m.MockExamPlayerPage }))
+);
 const QuestsPage = lazy(() =>
   import('@/features/gamification/QuestsPage').then((m) => ({ default: m.QuestsPage }))
 );
@@ -103,6 +106,7 @@ export function App() {
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route path="/lesson/:lessonId" element={<LessonPlayerPage />} />
               <Route path="/assessment/:assessmentId" element={<AssessmentPlayerPage />} />
+              <Route path="/mock-exam/:mockId" element={<MockExamPlayerPage />} />
 
               {/* Main 15-page Application Shell */}
               <Route

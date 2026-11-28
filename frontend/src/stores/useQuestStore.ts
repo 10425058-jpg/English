@@ -13,6 +13,8 @@ import {
   type DailyGoalMinutes,
   type EnglishAccent,
   type GuestMigrationPayload,
+  type IELTSMockAttemptDraft,
+  type IELTSMockAttemptResult,
   type IELTSPathway,
   type IELTSPracticeSession,
   type LearningPurpose,
@@ -94,6 +96,8 @@ export interface QuestStoreState {
   writingDrafts: Record<string, { text: string; updatedAt: string }>;
   writingSubmissions: WritingSubmission[];
   ieltsSessions: IELTSPracticeSession[];
+  inProgressMockExam: IELTSMockAttemptDraft | null;
+  ieltsMockHistory: IELTSMockAttemptResult[];
   unitAssessmentResults: Record<string, AssessmentAttemptRecord>;
   assessmentHistory: AssessmentAttemptRecord[];
   unlockedUnitOverrides: string[];
@@ -160,6 +164,10 @@ export interface QuestStoreState {
   toggleContentBookmark: (contentId: string) => void;
   markAcademyCompleted: (contentId: string) => void;
   recordIeltsSession: (session: Omit<IELTSPracticeSession, 'id' | 'completedAt'>) => void;
+  saveInProgressMockExam: (draft: IELTSMockAttemptDraft | null) => void;
+  recordMockExamCompletion: (
+    result: Omit<IELTSMockAttemptResult, 'id' | 'completedAt'>
+  ) => { result: IELTSMockAttemptResult; awardedXp: number };
   recordAssessmentAttempt: (
     attempt: Omit<AssessmentAttemptRecord, 'id' | 'completedAt'>,
   ) => { awardedXp: number; record: AssessmentAttemptRecord };
@@ -272,6 +280,8 @@ function createInitialDataState() {
     writingDrafts: {},
     writingSubmissions: [],
     ieltsSessions: [],
+    inProgressMockExam: null as IELTSMockAttemptDraft | null,
+    ieltsMockHistory: [] as IELTSMockAttemptResult[],
     unitAssessmentResults: {} as Record<string, AssessmentAttemptRecord>,
     assessmentHistory: [] as AssessmentAttemptRecord[],
     unlockedUnitOverrides: [] as string[],
@@ -703,6 +713,68 @@ export const useQuestStore = create<QuestStoreState>()(
         }));
       },
 
+      saveInProgressMockExam: (draft) => {
+        set({ inProgressMockExam: draft });
+      },
+
+      recordMockExamCompletion: (payload) => {
+        const state = get();
+        const nowIso = new Date().toISOString();
+        const today = toLocalDateKey(new Date(nowIso));
+        const result: IELTSMockAttemptResult = {
+          ...payload,
+          id: `mock-res-${Date.now()}`,
+          completedAt: nowIso,
+        };
+        const idempotencyKey = `mock-complete-${payload.mockId}-${Date.now()}`;
+        const awardedXp = 120;
+        const mins = Math.max(5, Math.round(payload.durationSeconds / 60));
+
+        const nextState: QuestStoreState = {
+          ...state,
+          xp: state.xp + awardedXp,
+          streak: updateStreakForActivity(state.streak, today),
+          studyMinutesByDate: {
+            ...state.studyMinutesByDate,
+            [today]: (state.studyMinutesByDate[today] ?? 0) + mins,
+          },
+          xpTransactions: [
+            ...state.xpTransactions,
+            {
+              id: `xp-${Date.now()}`,
+              idempotencyKey,
+              amount: awardedXp,
+              source: 'ielts',
+              referenceId: payload.mockId,
+              createdAt: nowIso,
+            },
+          ],
+          ieltsSessions: [
+            {
+              id: `ielts-${Date.now()}`,
+              pathway: payload.pathway,
+              skill: 'full_mock' as const,
+              title: payload.title,
+              score: payload.listeningRaw + payload.readingRaw,
+              maxScore: payload.listeningMax + payload.readingMax,
+              estimatedBand: payload.overallBand,
+              isUnofficialEstimate: true as const,
+              durationSeconds: payload.durationSeconds,
+              completedAt: nowIso,
+            },
+            ...state.ieltsSessions,
+          ].slice(0, 50),
+          ieltsMockHistory: [result, ...(state.ieltsMockHistory ?? [])].slice(0, 40),
+          inProgressMockExam: null,
+          completedAcademyIds: state.completedAcademyIds.includes(payload.mockId)
+            ? state.completedAcademyIds
+            : [...state.completedAcademyIds, payload.mockId],
+        };
+        nextState.achievementsUnlocked = evaluateUnlockedAchievements(nextState);
+        set(nextState);
+        return { result, awardedXp };
+      },
+
       upsertAiMessage: (conversation, message) => {
         set((state) => {
           const nowIso = new Date().toISOString();
@@ -888,6 +960,7 @@ export const useQuestStore = create<QuestStoreState>()(
               writingDrafts: state.writingDrafts,
               writingSubmissions: state.writingSubmissions,
               ieltsSessions: state.ieltsSessions,
+              ieltsMockHistory: state.ieltsMockHistory ?? [],
               unitAssessmentResults: state.unitAssessmentResults ?? {},
               assessmentHistory: state.assessmentHistory ?? [],
               unlockedUnitOverrides: state.unlockedUnitOverrides ?? [],
