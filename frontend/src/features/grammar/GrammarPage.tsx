@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { CheckCircle2, Dumbbell, GraduationCap, Layers, XCircle } from 'lucide-react';
 import { evaluateExerciseAnswer, type CEFRLevel } from '@english-quest/shared';
-import { CEFR_LEVELS, loadExercisesByLevel, loadGrammarByLevel } from '@content/index';
+import { CEFR_LEVELS, loadAllGrammar, loadExercisesByLevel, loadGrammarByLevel } from '@content/index';
 import { PillBadge, QuestCard } from '@/components/ui/QuestUI';
 import { TactileButton } from '@/components/ui/TactileButton';
 import { ExerciseRenderer } from '@/features/learning/ExerciseRenderer';
@@ -14,15 +15,43 @@ import { useQuestStore } from '@/stores/useQuestStore';
 type PackSelection = 'CORE' | CEFRLevel;
 
 export function GrammarPage() {
+  const [searchParams] = useSearchParams();
+  const q = searchParams.get('q') ?? '';
+  return <GrammarPageInner key={q} initialQuery={q} />;
+}
+
+function GrammarPageInner({ initialQuery }: { initialQuery: string }) {
   const preferences = useQuestStore((s) => s.preferences);
   const grammarQuizPassedIds = useQuestStore((s) => s.grammarQuizPassedIds);
   const recordGrammarQuizPass = useQuestStore((s) => s.recordGrammarQuizPass);
   const awardActivityXp = useQuestStore((s) => s.awardActivityXp);
   const recordMistake = useQuestStore((s) => s.recordMistake);
 
+  const normQ = initialQuery.trim().toLowerCase();
+  const coreHit = normQ
+    ? GRAMMAR_TOPICS.find((t) => t.title.toLowerCase().includes(normQ))
+    : undefined;
+
   const [viewMode, setViewMode] = useState<'lessons' | 'drills'>('lessons');
   const [pack, setPack] = useState<PackSelection>('CORE');
-  const [selectedId, setSelectedId] = useState(GRAMMAR_TOPICS[0].id);
+  const [selectedId, setSelectedId] = useState(coreHit?.id ?? GRAMMAR_TOPICS[0].id);
+
+  useEffect(() => {
+    if (!normQ || coreHit) return;
+    let active = true;
+    void loadAllGrammar().then((all) => {
+      if (!active) return;
+      const hit = all.find((t) => t.title.toLowerCase().includes(normQ));
+      if (hit) {
+        setPack(hit.cefrLevel);
+        setSelectedId(hit.id);
+        setViewMode('lessons');
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [normQ, coreHit]);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [checked, setChecked] = useState(false);
 

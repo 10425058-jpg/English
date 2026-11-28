@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import {
   Award,
@@ -14,6 +14,7 @@ import {
   Mic,
   PenTool,
   RotateCcw,
+  Search,
   Settings,
   Sparkles,
   Target,
@@ -24,6 +25,7 @@ import {
 } from 'lucide-react';
 import { computeUserLevel, toLocalDateKey } from '@english-quest/shared';
 import { PipMascot } from '@/components/mascot/PipMascot';
+import { GlobalSearchModal } from '@/components/search/GlobalSearchModal';
 import { QuestCard, QuestProgressBar } from '@/components/ui/QuestUI';
 import { QUESTS_CATALOG } from '@/data/gamificationData';
 import { useQuestStore } from '@/stores/useQuestStore';
@@ -78,7 +80,19 @@ const NAV_GROUPS: NavGroup[] = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   const xp = useQuestStore((s) => s.xp);
   const gems = useQuestStore((s) => s.gems);
@@ -133,6 +147,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           </span>
           <button
             type="button"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Open global knowledge search"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#E5E5E5] bg-white text-[#0E8BC9] hover:bg-[#F2FAFF]"
+          >
+            <Search className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open all navigation sections"
             className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#E5E5E5] bg-white text-[#3C3C3C] hover:bg-[#F7F8FA]"
@@ -159,6 +181,21 @@ export function AppShell({ children }: { children: ReactNode }) {
               </p>
             </div>
           </Link>
+
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Open global knowledge search"
+            className="mb-4 flex items-center justify-between rounded-2xl border-2 border-[#E5E5E5] bg-[#FAFAFA] px-3 py-2 text-xs font-extrabold text-[#555555] hover:border-[#84D8FF] hover:bg-[#F2FAFF]"
+          >
+            <span className="flex items-center gap-2">
+              <Search className="h-4 w-4 text-[#0E8BC9]" />
+              Search Knowledge
+            </span>
+            <kbd className="rounded-md border border-[#E5E5E5] bg-white px-1.5 py-0.5 text-[10px] font-black text-[#777777]">
+              Ctrl K
+            </kbd>
+          </button>
 
           <nav className="flex-1 space-y-4">
             {NAV_GROUPS.map((group) => (
@@ -424,6 +461,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       )}
+
+      <GlobalSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }

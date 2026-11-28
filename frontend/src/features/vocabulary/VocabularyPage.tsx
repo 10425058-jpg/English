@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { BookText, Eye, FolderHeart, Plus, RotateCw, Search, Sparkles, Volume2 } from 'lucide-react';
 import {
@@ -17,6 +18,7 @@ import {
 } from '@content/index';
 import { PillBadge, QuestCard } from '@/components/ui/QuestUI';
 import { TactileButton } from '@/components/ui/TactileButton';
+import { normalizeQuery } from '@/services/knowledgeSearch';
 import { speakText } from '@/services/speechService';
 import { getCombinedVocabulary, useQuestStore } from '@/stores/useQuestStore';
 
@@ -42,6 +44,25 @@ function toUserVocab(
 }
 
 export function VocabularyPage() {
+  const [searchParams] = useSearchParams();
+  const initialQ = searchParams.get('q') ?? '';
+  const initialTabParam = searchParams.get('tab') ?? '';
+  return (
+    <VocabularyPageInner
+      key={`${initialQ}|${initialTabParam}`}
+      initialQ={initialQ}
+      initialTabParam={initialTabParam}
+    />
+  );
+}
+
+function VocabularyPageInner({
+  initialQ,
+  initialTabParam,
+}: {
+  initialQ: string;
+  initialTabParam: string;
+}) {
   const customVocabulary = useQuestStore((s) => s.customVocabulary);
   const vocabularySchedules = useQuestStore((s) => s.vocabularySchedules);
   const preferences = useQuestStore((s) => s.preferences);
@@ -50,7 +71,9 @@ export function VocabularyPage() {
   const awardActivityXp = useQuestStore((s) => s.awardActivityXp);
 
   const [nowIso] = useState(() => new Date().toISOString());
-  const [tab, setTab] = useState<'flashcards' | 'notebook' | 'collections'>('flashcards');
+  const [tab, setTab] = useState<'flashcards' | 'notebook' | 'collections'>(
+    initialTabParam === 'collections' ? 'collections' : initialQ ? 'notebook' : 'flashcards'
+  );
   const [pack, setPack] = useState<VocabPackKey>('CORE');
   const [activeCollectionDeck, setActiveCollectionDeck] = useState<{
     title: string;
@@ -58,7 +81,7 @@ export function VocabularyPage() {
   } | null>(null);
   const [domainFilter, setDomainFilter] = useState<'ALL' | ThematicCollection['domain']>('ALL');
   const [expandedColId, setExpandedColId] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialQ);
   const [cefrFilter, setCefrFilter] = useState<'ALL' | CEFRLevel>('ALL');
   const [notebookLimit, setNotebookLimit] = useState(40);
   const [flipped, setFlipped] = useState(false);
@@ -92,7 +115,7 @@ export function VocabularyPage() {
   const { data: allExpandedForCollection = [] } = useQuery({
     queryKey: ['vocab-all-for-collection'],
     queryFn: loadAllVocabulary,
-    enabled: activeCollectionDeck !== null,
+    enabled: activeCollectionDeck !== null || (tab === 'notebook' && search.trim().length >= 2),
     staleTime: Infinity,
   });
 
@@ -115,18 +138,23 @@ export function VocabularyPage() {
   const activeCard = studyDeck.length > 0 ? studyDeck[cardIndex % studyDeck.length] : undefined;
 
   const filteredNotebook = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const base = pack === 'CORE' ? coreVocab : toUserVocab(lazyPack, vocabularySchedules, nowIso);
-    return base.filter((item) => {
+    const q = normalizeQuery(search);
+    const expandedPool =
+      pack === 'CORE' && q.length >= 2 && allExpandedForCollection.length > 0
+        ? toUserVocab([...coreVocab, ...allExpandedForCollection], vocabularySchedules, nowIso)
+        : pack === 'CORE'
+          ? coreVocab
+          : toUserVocab(lazyPack, vocabularySchedules, nowIso);
+    return expandedPool.filter((item) => {
       if (cefrFilter !== 'ALL' && item.cefrLevel !== cefrFilter) return false;
       if (!q) return true;
       return (
-        item.word.toLowerCase().includes(q) ||
-        item.definition.toLowerCase().includes(q) ||
-        item.vietnameseTranslation.toLowerCase().includes(q)
+        normalizeQuery(item.word).includes(q) ||
+        normalizeQuery(item.definition).includes(q) ||
+        normalizeQuery(item.vietnameseTranslation).includes(q)
       );
     });
-  }, [pack, coreVocab, lazyPack, vocabularySchedules, nowIso, search, cefrFilter]);
+  }, [pack, coreVocab, allExpandedForCollection, lazyPack, vocabularySchedules, nowIso, search, cefrFilter]);
 
   const visibleNotebook = filteredNotebook.slice(0, notebookLimit);
 

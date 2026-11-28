@@ -22,6 +22,7 @@ import {
   loadAllVocabulary,
   loadAllWriting,
   loadCurriculumMatrix,
+  loadIeltsFullMockComponents,
   loadIeltsIdeaBanks,
   loadIeltsListening,
   loadIeltsMockManifests,
@@ -37,6 +38,9 @@ import {
   loadThematicCollections,
   loadThinkInEnglish,
 } from '../content/index';
+import { SEARCH_SHARD_MANIFEST } from '../content/search/manifest';
+import { buildSearchShardData } from './pipeline/generateSearchIndex';
+import { makeLexicalDedupKey, validateLexicalRecord } from './pipeline/normalizeAndDeduplicate';
 import { SEED_VOCABULARY } from '../frontend/src/data/vocabularySeed';
 import { GRAMMAR_TOPICS } from '../frontend/src/data/grammarTopics';
 import { ALL_UNITS } from '../frontend/src/data/curriculum/index';
@@ -79,6 +83,7 @@ export async function runValidation(writeReport = false): Promise<number> {
     ieltsIdeaBanks,
     ieltsStrategies,
     ieltsMocks,
+    fullMockComponents,
   ] = await Promise.all([
     loadAllVocabulary(),
     loadAllGrammar(),
@@ -103,6 +108,7 @@ export async function runValidation(writeReport = false): Promise<number> {
     loadIeltsIdeaBanks(),
     loadIeltsStrategies(),
     loadIeltsMockManifests(),
+    loadIeltsFullMockComponents(),
   ]);
 
   // 1. Vocabulary integrity
@@ -1047,18 +1053,71 @@ export async function runValidation(writeReport = false): Promise<number> {
     errors.push(`Expected all 5 IELTS strategy categories, got ${stratCats.size}`);
   }
 
-  if (ieltsMocks.length !== 12) {
-    errors.push(`Expected 12 complete IELTS Mock Exams, got ${ieltsMocks.length}`);
+  if (ieltsMocks.length !== 14) {
+    errors.push(`Expected 14 IELTS Mock Exams (2 Full 40/40 + 12 Practice Mini-Mocks), got ${ieltsMocks.length}`);
   }
   const acMockCount = ieltsMocks.filter((m) => m.pathway === 'academic').length;
   const gtMockCount = ieltsMocks.filter((m) => m.pathway === 'general_training').length;
-  if (acMockCount !== 8) errors.push(`Expected 8 Academic Mock Exams, got ${acMockCount}`);
-  if (gtMockCount !== 4) errors.push(`Expected 4 General Training Mock Exams, got ${gtMockCount}`);
+  const fullExamCount = ieltsMocks.filter((m) => m.examFormat === 'full_exam').length;
+  const miniMockCount = ieltsMocks.filter((m) => m.examFormat === 'practice_mini').length;
+  if (acMockCount !== 9) errors.push(`Expected 9 Academic Mock Packs (1 full + 8 mini), got ${acMockCount}`);
+  if (gtMockCount !== 5) errors.push(`Expected 5 General Training Mock Packs (1 full + 4 mini), got ${gtMockCount}`);
+  if (fullExamCount !== 2) errors.push(`Expected 2 Full 40/40 Mock Exams, got ${fullExamCount}`);
+  if (miniMockCount !== 12) errors.push(`Expected 12 Practice Mini-Mocks, got ${miniMockCount}`);
 
-  const listeningSet = new Set(ieltsListening.map((x) => x.id));
+  const fullListeningMap = new Map(
+    [...fullMockComponents.fullAcListening, ...fullMockComponents.fullGtListening].map((x) => [x.id, x])
+  );
+  const fullReadingMap = new Map(
+    [...fullMockComponents.fullAcReading, ...fullMockComponents.fullGtReading].map((x) => [x.id, x])
+  );
+  const listeningMap = new Map(ieltsListening.map((x) => [x.id, x]));
   const readingMap = new Map(ieltsReading.map((x) => [x.id, x]));
   const writingMap = new Map(ieltsWriting.map((x) => [x.id, x]));
   const speakingSet = new Set(ieltsSpeaking.map((x) => x.id));
+
+  let m4FullMockExercisesCount = 0;
+  const fullMockPromptSet = new Set<string>();
+  for (const part of [...fullMockComponents.fullAcListening, ...fullMockComponents.fullGtListening]) {
+    if (part.exercises.length !== 10) {
+      errors.push(`Full mock listening part ${part.id} expected 10 questions, found ${part.exercises.length}`);
+    }
+    for (const ex of part.exercises) {
+      m4FullMockExercisesCount += 1;
+      if (exerciseIds.has(ex.id)) errors.push(`Duplicate full mock exercise ID: ${ex.id}`);
+      exerciseIds.add(ex.id);
+      const pNorm = ex.prompt.toLowerCase().trim();
+      if (fullMockPromptSet.has(pNorm)) errors.push(`Duplicate full mock listening prompt: ${ex.id}`);
+      fullMockPromptSet.add(pNorm);
+      if (ex.options && !Array.isArray(ex.correctAnswer) && !ex.options.includes(ex.correctAnswer)) {
+        errors.push(`Full mock listening ${ex.id} correctAnswer missing from options`);
+      }
+      checkNonEmpty(`FullMock.${ex.id}.explanation`, ex.explanation, errors);
+      if (!evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect) {
+        errors.push(`Self-evaluation failed for full mock exercise ${ex.id}`);
+      }
+    }
+  }
+  for (const passage of [...fullMockComponents.fullAcReading, ...fullMockComponents.fullGtReading]) {
+    if (passage.exercises.length < 13 || passage.exercises.length > 14) {
+      errors.push(`Full mock reading passage ${passage.id} expected 13-14 questions, found ${passage.exercises.length}`);
+    }
+    for (const ex of passage.exercises) {
+      m4FullMockExercisesCount += 1;
+      if (exerciseIds.has(ex.id)) errors.push(`Duplicate full mock exercise ID: ${ex.id}`);
+      exerciseIds.add(ex.id);
+      const pNorm = ex.prompt.toLowerCase().trim();
+      if (fullMockPromptSet.has(pNorm)) errors.push(`Duplicate full mock reading prompt: ${ex.id}`);
+      fullMockPromptSet.add(pNorm);
+      if (ex.options && !Array.isArray(ex.correctAnswer) && !ex.options.includes(ex.correctAnswer)) {
+        errors.push(`Full mock reading ${ex.id} correctAnswer missing from options`);
+      }
+      checkNonEmpty(`FullMock.${ex.id}.explanation`, ex.explanation, errors);
+      if (!evaluateExerciseAnswer(ex, ex.correctAnswer).isCorrect) {
+        errors.push(`Self-evaluation failed for full mock exercise ${ex.id}`);
+      }
+    }
+  }
 
   for (const mock of ieltsMocks) {
     if (ieltsItemIds.has(mock.id)) errors.push(`Duplicate mock ID: ${mock.id}`);
@@ -1066,15 +1125,38 @@ export async function runValidation(writeReport = false): Promise<number> {
     if (!mock.isUnofficialNotice.toLowerCase().includes('unofficial')) {
       errors.push(`Mock ${mock.id} lacks unofficial practice disclaimer`);
     }
+
+    const activeLMap = mock.examFormat === 'full_exam' ? fullListeningMap : listeningMap;
+    const activeRMap = mock.examFormat === 'full_exam' ? fullReadingMap : readingMap;
+
+    let actualLQ = 0;
     for (const lid of mock.listeningIds) {
-      if (!listeningSet.has(lid)) errors.push(`Mock ${mock.id} invalid listening ref ${lid}`);
+      const lObj = activeLMap.get(lid);
+      if (!lObj) errors.push(`Mock ${mock.id} invalid listening ref ${lid}`);
+      else actualLQ += lObj.exercises.length;
     }
+    let actualRQ = 0;
     for (const rid of mock.readingIds) {
-      const rObj = readingMap.get(rid);
+      const rObj = activeRMap.get(rid);
       if (!rObj || rObj.pathway !== mock.pathway) {
         errors.push(`Mock ${mock.id} (${mock.pathway}) invalid/mismatched reading ref ${rid}`);
+      } else {
+        actualRQ += rObj.exercises.length;
       }
     }
+
+    if (actualLQ !== mock.listeningQuestionTotal || actualRQ !== mock.readingQuestionTotal) {
+      errors.push(
+        `Mock ${mock.id} declared question total (${mock.listeningQuestionTotal}L/${mock.readingQuestionTotal}R) mismatches actual (${actualLQ}L/${actualRQ}R)`
+      );
+    }
+    if (mock.examFormat === 'full_exam' && (actualLQ !== 40 || actualRQ !== 40)) {
+      errors.push(`Full exam ${mock.id} must have 40L+40R questions; found ${actualLQ}L+${actualRQ}R`);
+    }
+    if (mock.examFormat === 'practice_mini' && (actualLQ !== 8 || actualRQ !== 15)) {
+      errors.push(`Mini-mock ${mock.id} expected 8L+15R questions; found ${actualLQ}L+${actualRQ}R`);
+    }
+
     const w1 = writingMap.get(mock.writingTask1Id);
     const w2 = writingMap.get(mock.writingTask2Id);
     if (!w1 || (w1.pathway !== 'shared' && w1.pathway !== mock.pathway)) {
@@ -1087,6 +1169,45 @@ export async function runValidation(writeReport = false): Promise<number> {
       if (!speakingSet.has(sid)) errors.push(`Mock ${mock.id} invalid speaking ref ${sid}`);
     }
   }
+
+  // 20. Milestone 4 Batch 4A Lexical Pipeline Normalization & Search Shard Sync
+  const pipelineSenseKeys = new Set<string>();
+  for (const item of [...SEED_VOCABULARY, ...expandedVocab]) {
+    const recordErrs = validateLexicalRecord(item);
+    errors.push(...recordErrs);
+    const key = makeLexicalDedupKey(item);
+    if (pipelineSenseKeys.has(key)) {
+      errors.push(`Pipeline deduplication conflict for key ${key} (ID ${item.id})`);
+    }
+    pipelineSenseKeys.add(key);
+  }
+
+  const generatedShards = await buildSearchShardData();
+  const generatedSearchTotal =
+    generatedShards.vocab_core.length +
+    generatedShards.grammar_core.length +
+    generatedShards.skills_core.length +
+    generatedShards.ielts_resources.length;
+  if (SEARCH_SHARD_MANIFEST.totalEntries !== generatedSearchTotal) {
+    errors.push(
+      `Search index manifest stale: manifest reports ${SEARCH_SHARD_MANIFEST.totalEntries} entries, live builder generated ${generatedSearchTotal}. Re-run search index generator.`
+    );
+  }
+  const searchKeySet = new Set<string>();
+  for (const sEntry of [
+    ...generatedShards.vocab_core,
+    ...generatedShards.grammar_core,
+    ...generatedShards.skills_core,
+    ...generatedShards.ielts_resources,
+  ]) {
+    const sk = `${sEntry.kind}::${sEntry.id}`;
+    if (searchKeySet.has(sk)) {
+      errors.push(`Duplicate search shard entry key: ${sk}`);
+    }
+    searchKeySet.add(sk);
+  }
+
+  const m4NewExercises = m4FullMockExercisesCount;
 
   const m3NewExercises =
     m3LessonExercisesCount +
@@ -1115,7 +1236,8 @@ export async function runValidation(writeReport = false): Promise<number> {
     grammarQuizCount +
     expandedExercises.length +
     m2NewExercises +
-    m3NewExercises;
+    m3NewExercises +
+    m4NewExercises;
 
   console.log('\n=== ENGLISH QUEST CONTENT VALIDATION REPORT ===');
   console.log(`Expanded Vocabulary: ${expandedVocab.length} (+ ${SEED_VOCABULARY.length} core seed = ${totalVocab})`);
@@ -1166,8 +1288,9 @@ export async function runValidation(writeReport = false): Promise<number> {
     `Milestone 3 Newly Authored Exercises: ${m3NewExercises} (${m3LessonExercisesCount} lesson + ${m3AssessExercisesCount} assessment + ${m3IeltsExercisesCount} IELTS academies + ${m3StrategyExercisesCount} strategy) [Reused refs tracked separately: ${m3ReusedRefCount}]`
   );
   console.log(
-    `Milestone 3 IELTS Mastery Center: ${ieltsTotalEntries} items (Listening ${ieltsListening.length}, Speaking ${ieltsSpeaking.length}, Reading ${ieltsReading.length} [Ac:${acReadingCount}/GT:${gtReadingCount}], Writing ${ieltsWriting.length}, Ideas ${ieltsIdeaBanks.length}, Strategy ${ieltsStrategies.length}, Mocks ${ieltsMocks.length}) [${m3IeltsExercisesCount + m3StrategyExercisesCount} ex]`
+    `Milestone 3+4A IELTS Mastery Center: ${ieltsTotalEntries} items (Listening ${ieltsListening.length}, Speaking ${ieltsSpeaking.length}, Reading ${ieltsReading.length} [Ac:${acReadingCount}/GT:${gtReadingCount}], Writing ${ieltsWriting.length}, Ideas ${ieltsIdeaBanks.length}, Strategy ${ieltsStrategies.length}, Mocks ${ieltsMocks.length} [Full40:${fullExamCount}/Mini:${miniMockCount}]) [${m3IeltsExercisesCount + m3StrategyExercisesCount + m4NewExercises} ex]`
   );
+  console.log(`Sharded Search Index Entries: ${generatedSearchTotal} (manifest: ${SEARCH_SHARD_MANIFEST.totalEntries})`);
   console.log(`Curated Learning Resources: ${resources.length}`);
   console.log(`Curriculum Matrix Levels: ${matrix.length}`);
   console.log(`Warnings: ${warnings.length}`);
@@ -1202,9 +1325,11 @@ Generated automatically by \`npm run validate:content\`.
 | Grammar Academy Mini-Quizzes | ${legacyGrammarQuizzes} | ${grammarQuizCount} | ${legacyGrammarQuizzes + grammarQuizCount} |
 | Milestone 2 Academy Interactive Exercises | 0 | ${m2NewExercises} | ${m2NewExercises} |
 | Milestone 3 Curriculum, Assessment & IELTS Exercises (Newly Authored) | 0 | ${m3NewExercises} | ${m3NewExercises} |
+| Milestone 4A Full 40/40 Mock Listening & Reading Questions | 0 | ${m4NewExercises} | ${m4NewExercises} |
 | IELTS Mastery Center Activities & Banks | 7 | ${ieltsTotalEntries} | ${7 + ieltsTotalEntries} |
+| Sharded Search Index Entries | 0 | ${generatedSearchTotal} | ${generatedSearchTotal} |
 | Core Learning Path Exercises | ${legacyPathExercises} | 0 | ${legacyPathExercises} |
-| **Combined Interactive Exercises** | **${legacyPathExercises + legacyGrammarQuizzes}** | **${expandedExercises.length + grammarQuizCount + m2NewExercises + m3NewExercises}** | **${totalExercises}** |
+| **Combined Interactive Exercises** | **${legacyPathExercises + legacyGrammarQuizzes}** | **${expandedExercises.length + grammarQuizCount + m2NewExercises + m3NewExercises + m4NewExercises}** | **${totalExercises}** |
 | Learning Path CEFR Units | ${ALL_UNITS.length} | ${m3Units.length} | ${ALL_UNITS.length + m3Units.length} |
 | Learning Path Lessons | ${ALL_UNITS.reduce((s, u) => s + u.lessons.length, 0)} | ${m3LessonCount} | ${ALL_UNITS.reduce((s, u) => s + u.lessons.length, 0) + m3LessonCount} |
 | Structured Assessments & CEFR Exams | 0 | ${m3Assessments.length} | ${m3Assessments.length} |

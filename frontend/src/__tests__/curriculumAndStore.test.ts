@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  computeOverallBandIfEligible,
   convertListeningRawToBand,
   convertReadingRawToBand,
   evaluateExerciseAnswer,
   roundIeltsOverallBand,
   type CEFRLevel,
 } from '@english-quest/shared';
+import { searchEntriesSync } from '@/services/knowledgeSearch';
 import { loadMergedUnitsByCefr, loadAllMergedUnits, getUnitLockState, computeCefrMasteryProgress, getLessonNodeState, isUnitChestUnlocked } from '@/services/curriculumService';
 import { ALL_UNITS, CURRICULUM_SECTIONS } from '@/data/curriculum';
 import { evaluatePlacementLevel, PLACEMENT_QUESTIONS } from '@/data/placementTest';
@@ -233,7 +235,7 @@ describe('Quest Store Progression & Idempotency', () => {
     expect(afterMastery.masteryPercent).toBeGreaterThan(beforeMastery.masteryPercent);
   });
 
-  it('computes official IELTS 40-mark Academic vs General Training scales and .25/.75 half-band rounding', () => {
+  it('computes official IELTS 40-mark scales strictly, refuses short mini-mock extrapolation, and gates Overall Band cleanly', () => {
     expect(convertListeningRawToBand(30, 40)).toBe(7.0);
     expect(convertListeningRawToBand(35, 40)).toBe(8.0);
     // General Training Reading requires stricter raw hits than Academic at equivalent band
@@ -241,13 +243,44 @@ describe('Quest Store Progression & Idempotency', () => {
     expect(convertReadingRawToBand(30, 'general_training', 40)).toBe(6.0);
     expect(convertReadingRawToBand(34, 'general_training', 40)).toBe(7.0);
 
-    // Official IELTS overall averaging (.25 -> .5, .75 -> next whole band)
+    // Batch 4A Integrity Repair: short 8Q/15Q sets MUST return null instead of extrapolating bands
+    expect(convertListeningRawToBand(7, 8)).toBeNull();
+    expect(convertReadingRawToBand(10, 'academic', 15)).toBeNull();
+    expect(
+      computeOverallBandIfEligible({
+        examFormat: 'practice_mini',
+        listening: 7.0,
+        reading: 7.0,
+        writing: 6.5,
+        speaking: 6.5,
+      })
+    ).toBeNull();
+    expect(
+      computeOverallBandIfEligible({
+        examFormat: 'full_exam',
+        listening: 7.0,
+        reading: 7.0,
+        writing: null,
+        speaking: 6.5,
+      })
+    ).toBeNull();
+
+    // Official IELTS overall averaging (.25 -> .5, .75 -> next whole band) ONLY when full_exam + all 4 assessed
     expect(roundIeltsOverallBand([6.5, 6.5, 6.0, 6.0])).toBe(6.5); // 6.25 -> 6.5
     expect(roundIeltsOverallBand([7.0, 7.0, 6.5, 6.5])).toBe(7.0); // 6.75 -> 7.0
     expect(roundIeltsOverallBand([6.5, 6.0, 6.0, 6.0])).toBe(6.0); // 6.125 -> 6.0
+    expect(
+      computeOverallBandIfEligible({
+        examFormat: 'full_exam',
+        listening: 7.0,
+        reading: 7.0,
+        writing: 6.5,
+        speaking: 6.5,
+      })
+    ).toBe(7.0);
   });
 
-  it('generates rule-based adaptive study plan highlighting mistake clusters, IELTS mock gaps, and mock autosave recovery', async () => {
+  it('generates rule-based adaptive study plan, enforces unassessed defaults on mock submissions, and supports post-exam teacher grading', async () => {
     const { buildPersonalizedDailyPlan, clusterUnresolvedMistakes } = await import('@/services/curriculumService');
 
     useQuestStore.getState().recordMistake({
@@ -272,45 +305,66 @@ describe('Quest Store Progression & Idempotency', () => {
     const clusters = clusterUnresolvedMistakes(useQuestStore.getState().mistakes);
     expect(clusters[0]).toMatchObject({ skill: 'reading', source: 'reading', count: 2 });
 
-    // Save & record mock exam progression
+    // Save & record Full 40/40 mock exam draft with strictly unassessed productive skills initially
     const draft = {
-      mockId: 'ielts-mock-ac-01',
+      mockId: 'ielts-mock-full-ac-01',
       pathway: 'academic' as const,
+      examFormat: 'full_exam' as const,
       currentSection: 'reading' as const,
       sectionRemainingSeconds: 2400,
       listeningAnswers: {},
       readingAnswers: {},
-      writingTask1Draft: 'Overall chart trends.',
-      writingTask2Draft: 'Essay body.',
-      speakingSelfBand: 6.5,
+      writingTask1Draft: '',
+      writingTask2Draft: '',
+      writingAssessmentStatus: 'unassessed' as const,
+      writingSelfBand: null,
+      speakingAssessmentStatus: 'unassessed' as const,
+      speakingSelfBand: null,
       speakingNotes: '',
       startedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     useQuestStore.getState().saveInProgressMockExam(draft);
-    expect(useQuestStore.getState().inProgressMockExam?.mockId).toBe('ielts-mock-ac-01');
+    expect(useQuestStore.getState().inProgressMockExam?.mockId).toBe('ielts-mock-full-ac-01');
 
-    const { awardedXp } = useQuestStore.getState().recordMockExamCompletion({
-      mockId: 'ielts-mock-ac-01',
-      title: 'Mock Exam 1',
+    const { result, awardedXp } = useQuestStore.getState().recordMockExamCompletion({
+      mockId: 'ielts-mock-full-ac-01',
+      title: 'Full Academic Mock Exam 1',
       pathway: 'academic',
-      listeningRaw: 7,
-      listeningMax: 8,
+      examFormat: 'full_exam',
+      listeningRaw: 35,
+      listeningMax: 40,
       listeningBand: 8.0,
-      readingRaw: 8,
-      readingMax: 15,
-      readingBand: 5.5,
-      writingBand: 6.5,
-      writingTask1Words: 165,
-      writingTask2Words: 270,
-      speakingBand: 6.5,
-      overallBand: 6.5,
-      durationSeconds: 1800,
+      readingRaw: 23,
+      readingMax: 40,
+      readingBand: 6.0,
+      writingBand: null,
+      writingAssessmentStatus: 'unassessed',
+      writingTask1Words: 0,
+      writingTask2Words: 0,
+      speakingBand: null,
+      speakingAssessmentStatus: 'unassessed',
+      overallBand: null,
+      durationSeconds: 3200,
       isUnofficialEstimate: true,
     });
     expect(awardedXp).toBe(120);
+    expect(result.writingBand).toBeNull();
+    expect(result.speakingBand).toBeNull();
+    expect(result.overallBand).toBeNull();
     expect(useQuestStore.getState().inProgressMockExam).toBeNull();
     expect(useQuestStore.getState().ieltsMockHistory).toHaveLength(1);
+
+    // Supply post-exam teacher Writing + Speaking bands -> computes Overall Band automatically
+    useQuestStore.getState().updateMockProductiveAssessment(result.id, {
+      writingAssessmentStatus: 'teacher_assessed',
+      writingBand: 6.5,
+      speakingAssessmentStatus: 'teacher_assessed',
+      speakingBand: 7.0,
+      teacherNotes: 'Strong cohesion in body paragraphs.',
+    });
+    const updatedMock = useQuestStore.getState().ieltsMockHistory[0];
+    expect(updatedMock.overallBand).toBe(7.0); // (8 + 6 + 6.5 + 7)/4 = 6.875 -> 7.0
 
     const plan = buildPersonalizedDailyPlan({
       skillStats: useQuestStore.getState().skillStats,
@@ -329,5 +383,45 @@ describe('Quest Store Progression & Idempotency', () => {
 
     expect(plan.some((p) => p.category === 'mistake' && p.title.includes('2 active'))).toBe(true);
     expect(plan.some((p) => p.category === 'ielts' && p.title.includes('Reading Gap'))).toBe(true);
+  });
+
+  it('supports Vietnamese diacritic-insensitive, inflected-form, and bounded-typo search queries', () => {
+    const sampleIndex = [
+      {
+        id: 'v-hotel',
+        kind: 'vocabulary' as const,
+        title: 'hotel',
+        subtitle: 'noun • /hoʊˈtɛl/ — commercial establishment providing lodging',
+        vietnamese: 'khách sạn',
+        cefrLevel: 'A1' as const,
+        tags: ['travel'],
+        route: '/vocabulary?q=hotel',
+      },
+      {
+        id: 'v-ubiq',
+        kind: 'vocabulary' as const,
+        title: 'ubiquitous',
+        subtitle: 'adjective • /juːˈbɪk.wɪ.təs/ — found everywhere',
+        vietnamese: 'phổ biến khắp mọi nơi',
+        cefrLevel: 'C1' as const,
+        tags: ['academic'],
+        route: '/vocabulary?q=ubiquitous',
+      },
+      {
+        id: 'v-analyze',
+        kind: 'vocabulary' as const,
+        title: 'analyze',
+        lemma: 'analyze',
+        subtitle: 'verb • examine systematically in detail',
+        vietnamese: 'phân tích',
+        cefrLevel: 'B1' as const,
+        tags: ['academic'],
+        route: '/vocabulary?q=analyze',
+      },
+    ];
+
+    expect(searchEntriesSync(sampleIndex, 'khach san')[0]?.entry.id).toBe('v-hotel');
+    expect(searchEntriesSync(sampleIndex, 'analyzing')[0]?.entry.id).toBe('v-analyze');
+    expect(searchEntriesSync(sampleIndex, 'ubiqitous')[0]?.entry.id).toBe('v-ubiq');
   });
 });

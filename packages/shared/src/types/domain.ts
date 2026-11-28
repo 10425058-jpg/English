@@ -256,13 +256,41 @@ export interface SkillProgress {
   lastPracticedAt?: string;
 }
 
+export type LexicalEntryType =
+  | 'headword'
+  | 'phrasal_verb'
+  | 'idiom'
+  | 'collocation_entry'
+  | 'expression'
+  | 'contrastive_pair';
+
+export type KnowledgeRelationType =
+  | 'synonym'
+  | 'antonym'
+  | 'word_family'
+  | 'collocation'
+  | 'phrasal_verb'
+  | 'idiom'
+  | 'confused_with'
+  | 'formal_equivalent'
+  | 'informal_equivalent';
+
+export interface LexicalKnowledgeLink {
+  targetId: string;
+  targetWord: string;
+  relation: KnowledgeRelationType;
+  note?: string;
+}
+
 export interface Vocabulary {
   id: string;
   word: string;
+  lemma?: string;
   partOfSpeech: string;
   ipa: string;
   ipaUk?: string;
   ipaUs?: string;
+  stressPattern?: string;
   definition: string;
   detailedDefinition?: string;
   vietnameseTranslation: string;
@@ -274,15 +302,149 @@ export interface Vocabulary {
   collocations: string[];
   wordFamily: string[];
   inflectedForms?: string[];
+  grammaticalPatterns?: string[];
   register?: 'formal' | 'neutral' | 'informal' | 'academic' | 'technical' | 'spoken' | 'literary';
+  usageRestrictions?: string;
   commonMistakes?: string[];
   usageNote?: string;
   topics?: string[];
+  senseId?: string;
   senseLabel?: string;
+  senseCefr?: CEFRLevel;
   sourceMetadata?: string;
+  sourceLicense?: string;
+  editorialStatus?: 'imported' | 'authored' | 'reviewed';
+  lexicalType?: LexicalEntryType;
+  wordFrequencyRank?: number;
+  wordFamilyGroupId?: string;
+  separability?: 'separable' | 'inseparable' | 'always_separated' | 'non_applicable';
+  transitivity?: 'transitive' | 'intransitive' | 'both' | 'non_applicable';
+  knowledgeLinks?: LexicalKnowledgeLink[];
   cefrLevel: CEFRLevel;
   category: string;
   isUserSaved?: boolean;
+}
+
+export interface WordFamilyGroup {
+  id: string;
+  rootWord: string;
+  coreMeaning: string;
+  coreMeaningVi: string;
+  cefrRange: [CEFRLevel, CEFRLevel];
+  members: Array<{
+    vocabularyId?: string;
+    word: string;
+    partOfSpeech: string;
+    ipaUk: string;
+    ipaUs: string;
+    stressNote: string;
+    meaning: string;
+    example: string;
+    grammaticalPattern: string;
+  }>;
+  morphologyNotes: string[];
+  commonMistakes: Array<{ wrong: string; right: string; why: string }>;
+  exercises: Exercise[];
+}
+
+export interface CollocationEntry {
+  id: string;
+  phrase: string;
+  pattern:
+    | 'verb_noun'
+    | 'adj_noun'
+    | 'noun_noun'
+    | 'adv_adj'
+    | 'verb_adv'
+    | 'adj_prep'
+    | 'verb_prep'
+    | 'noun_prep';
+  domain: 'everyday' | 'academic' | 'business' | 'ielts' | 'technical' | 'spoken';
+  cefrLevel: CEFRLevel;
+  meaning: string;
+  vietnamese: string;
+  example: string;
+  unnaturalContrast?: { unnatural: string; why: string };
+  relatedVocabularyId?: string;
+}
+
+export interface ConfusedWordsPair {
+  id: string;
+  title: string;
+  cefrLevel: CEFRLevel;
+  words: [string, string, ...string[]];
+  distinctions: Array<{
+    word: string;
+    partOfSpeech: string;
+    meaning: string;
+    vietnamese: string;
+    grammarPattern: string;
+    example: string;
+  }>;
+  vietnameseLearnerPitfall: string;
+  exercises: Exercise[];
+}
+
+export interface GrammarComparisonItem {
+  id: string;
+  title: string;
+  cefrLevel: CEFRLevel;
+  structuresCompared: [string, string, ...string[]];
+  coreContrastSummary: string;
+  sideBySide: Array<{
+    structure: string;
+    meaningNuance: string;
+    timelineOrRule: string;
+    example: string;
+  }>;
+  decisionGuide: string[];
+  exercises: Exercise[];
+}
+
+export interface ExpressionFunctionGroup {
+  id: string;
+  communicativeFunction: string;
+  cefrRange: [CEFRLevel, CEFRLevel];
+  overview: string;
+  tiers: {
+    basic: Array<{ phrase: string; register: string; example: string }>;
+    intermediate: Array<{ phrase: string; register: string; example: string }>;
+    advanced: Array<{ phrase: string; register: string; example: string }>;
+  };
+  miniDialogue: Array<{ speaker: string; line: string }>;
+}
+
+export interface SearchIndexEntry {
+  id: string;
+  shardId?: 'vocab_core' | 'grammar_core' | 'skills_core' | 'ielts_resources';
+  kind:
+    | 'vocabulary'
+    | 'grammar'
+    | 'collection'
+    | 'collocation'
+    | 'confused_words'
+    | 'word_family'
+    | 'lesson'
+    | 'listening'
+    | 'speaking'
+    | 'reading'
+    | 'writing'
+    | 'pronunciation'
+    | 'conversation'
+    | 'ielts'
+    | 'resource';
+  title: string;
+  lemma?: string;
+  subtitle: string;
+  vietnamese?: string;
+  cefrLevel?: CEFRLevel;
+  category?: string;
+  register?: string;
+  inflectedForms?: string[];
+  keywords?: string[];
+  tags: string[];
+  route: string;
+  rankWeight?: number;
 }
 
 export interface ReviewSchedule {
@@ -818,7 +980,7 @@ export interface IELTSPracticeSession {
   title: string;
   score: number;
   maxScore: number;
-  estimatedBand: number;
+  estimatedBand: number | null;
   isUnofficialEstimate: true;
   durationSeconds: number;
   completedAt: string;
@@ -1049,10 +1211,15 @@ export interface IELTSStrategyLesson {
   exercises: Exercise[];
 }
 
+export type ProductiveAssessmentStatus = 'unassessed' | 'self_assessed' | 'teacher_assessed';
+
 export interface IELTSMockExamManifest {
   id: string;
   number: number;
   pathway: IELTSPathway;
+  examFormat: 'full_exam' | 'practice_mini';
+  listeningQuestionTotal: number;
+  readingQuestionTotal: number;
   title: string;
   subtitle: string;
   estimatedMinutes: number;
@@ -1076,13 +1243,17 @@ export interface AssembledIELTSMockExam {
 export interface IELTSMockAttemptDraft {
   mockId: string;
   pathway: IELTSPathway;
+  examFormat: 'full_exam' | 'practice_mini';
   currentSection: 'listening' | 'reading' | 'writing' | 'speaking';
   sectionRemainingSeconds: number;
   listeningAnswers: Record<string, string | string[]>;
   readingAnswers: Record<string, string | string[]>;
   writingTask1Draft: string;
   writingTask2Draft: string;
-  speakingSelfBand: number;
+  writingAssessmentStatus: ProductiveAssessmentStatus;
+  writingSelfBand: number | null;
+  speakingAssessmentStatus: ProductiveAssessmentStatus;
+  speakingSelfBand: number | null;
   speakingNotes: string;
   startedAt: string;
   updatedAt: string;
@@ -1093,18 +1264,31 @@ export interface IELTSMockAttemptResult {
   mockId: string;
   title: string;
   pathway: IELTSPathway;
+  examFormat: 'full_exam' | 'practice_mini';
   listeningRaw: number;
   listeningMax: number;
-  listeningBand: number;
+  listeningBand: number | null;
   readingRaw: number;
   readingMax: number;
-  readingBand: number;
-  writingBand: number;
+  readingBand: number | null;
+  writingBand: number | null;
+  writingAssessmentStatus: ProductiveAssessmentStatus;
   writingTask1Words: number;
   writingTask2Words: number;
-  speakingBand: number;
-  overallBand: number;
+  mechanicalFeedback?: {
+    task1MinMet: boolean;
+    task2MinMet: boolean;
+    paragraphCountT1: number;
+    paragraphCountT2: number;
+    connectorsCount: number;
+    notes: string[];
+  };
+  speakingBand: number | null;
+  speakingAssessmentStatus: ProductiveAssessmentStatus;
+  teacherNotes?: string;
+  overallBand: number | null;
   durationSeconds: number;
   isUnofficialEstimate: true;
+  legacyHeuristicMigrated?: boolean;
   completedAt: string;
 }

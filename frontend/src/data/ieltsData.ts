@@ -119,11 +119,7 @@ export const IELTS_MINI_MOCK_QUESTIONS: IELTSMiniMockQuestion[] = [
   },
 ];
 
-export function estimatePracticeBandFromRatio(correct: number, total: number): number {
-  if (total <= 0) return 4.5;
-  const ratio = correct / total;
-  if (ratio >= 0.9) return 7.5;
-  if (ratio >= 0.75) return 6.5;
-  if (ratio >= 0.5) return 5.5;
-  return 4.5;
+export function computeMiniMockPercent(correct: number, total: number): number {
+  if (total <= 0) return 0;
+  return Math.round((correct / total) * 100);
 }

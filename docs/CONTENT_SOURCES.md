@@ -29,3 +29,16 @@ English Quest hosts original in-house curriculum modules authored specifically f
    - **TED-Ed** (`ed.ted.com`), **Simple English Wikipedia** (`simple.wikipedia.org`, CC BY-SA), **Project Gutenberg** (`www.gutenberg.org`, public domain classics), and **OER Commons** (`www.oercommons.org`, Open Educational Resources).
 
 > Every external link in `content/resources/learningResources.ts` was verified via search lookup on 2026-11-27 and is validated programmatically against placeholder or malformed URLs by `scripts/validate-content.ts`.
+
+## Milestone 4 Source License Whitelist Policy
+
+Any third-party public corpus or open dataset ingested through `scripts/pipeline/normalizeAndDeduplicate.ts` must explicitly declare an approved `sourceLicense` within `ALLOWED_LICENSE_SET`:
+
+- `English Quest Original`
+- `CC0`
+- `CC BY 4.0`
+- `CC BY-SA 4.0`
+- `Public Domain`
+- `MIT`
+
+Entries referencing unverified commercial dictionaries or restrictive non-redistributable sources are rejected automatically by both the import pipeline and `scripts/validate-content.ts`.

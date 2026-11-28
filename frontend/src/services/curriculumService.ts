@@ -386,14 +386,29 @@ export function buildPersonalizedDailyPlan(params: {
   // Rule-based IELTS weakness diagnostics when learner tracks IELTS or logged mock runs
   const latestMock = ieltsMockHistory[0];
   if (latestMock) {
-    const skillPairs: Array<{ label: string; band: number }> = [
-      { label: 'Listening', band: latestMock.listeningBand },
-      { label: 'Reading', band: latestMock.readingBand },
+    const candidates: Array<{ label: string; band: number | null; rawAccuracyPct?: number }> = [
+      {
+        label: 'Listening',
+        band: latestMock.listeningBand,
+        rawAccuracyPct:
+          latestMock.listeningMax > 0
+            ? Math.round((latestMock.listeningRaw / latestMock.listeningMax) * 100)
+            : undefined,
+      },
+      {
+        label: 'Reading',
+        band: latestMock.readingBand,
+        rawAccuracyPct:
+          latestMock.readingMax > 0
+            ? Math.round((latestMock.readingRaw / latestMock.readingMax) * 100)
+            : undefined,
+      },
       { label: 'Writing', band: latestMock.writingBand },
       { label: 'Speaking', band: latestMock.speakingBand },
     ];
-    skillPairs.sort((a, b) => a.band - b.band);
-    const laggingIelts = skillPairs[0];
+    const assessed = candidates.filter((c): c is { label: string; band: number; rawAccuracyPct?: number } => c.band !== null);
+    assessed.sort((a, b) => a.band - b.band);
+    const laggingIelts = assessed[0];
     if (laggingIelts && laggingIelts.band < ieltsTargetBand) {
       plan.push({
         id: 'plan-ielts-gap',
@@ -404,6 +419,21 @@ export function buildPersonalizedDailyPlan(params: {
         priority: 'high',
         category: 'ielts',
       });
+    } else if (assessed.length === 0) {
+      const miniObjective = candidates
+        .filter((c) => c.rawAccuracyPct !== undefined)
+        .sort((a, b) => (a.rawAccuracyPct ?? 100) - (b.rawAccuracyPct ?? 100))[0];
+      if (miniObjective && (miniObjective.rawAccuracyPct ?? 100) < 70) {
+        plan.push({
+          id: 'plan-ielts-gap',
+          title: `Strengthen IELTS ${miniObjective.label} (${miniObjective.rawAccuracyPct}% raw check)`,
+          reason: `Latest practice mini-mock showed ${miniObjective.rawAccuracyPct}% raw accuracy in ${miniObjective.label}; practice distractors or try a Full 40/40 Mock.`,
+          route: '/ielts',
+          estimatedMinutes: 12,
+          priority: 'high',
+          category: 'ielts',
+        });
+      }
     }
   } else if (purpose === 'ielts') {
     plan.push({

@@ -143,8 +143,8 @@ export function IeltsListeningTab({ items, accent, soundEffects }: ListeningTabP
     });
   };
 
-  const band30 = convertListeningRawToBand(30, 40);
-  const band35 = convertListeningRawToBand(35, 40);
+  const band30 = convertListeningRawToBand(30, 40) ?? 7.0;
+  const band35 = convertListeningRawToBand(35, 40) ?? 8.0;
 
   return (
     <div className="space-y-4">
@@ -371,7 +371,7 @@ export function IeltsSpeakingTab({ items, accent, soundEffects }: SpeakingTabPro
   const [isRecording, setIsRecording] = useState(false);
   const [recordedUrl, setRecordedUrl] = useState<string | null>(null);
   const [micNote, setMicNote] = useState<string | null>(null);
-  const [selfBand, setSelfBand] = useState<number>(6.5);
+  const [selfBand, setSelfBand] = useState<number | null>(null);
   const [savedFlag, setSavedFlag] = useState(false);
 
   const streamRef = useRef<MediaStream | null>(null);
@@ -459,6 +459,7 @@ export function IeltsSpeakingTab({ items, accent, soundEffects }: SpeakingTabPro
     setTimerMode('idle');
     setSecondsLeft(0);
     setShowModels(false);
+    setSelfBand(null);
     setSavedFlag(false);
     setMicNote(null);
   };
@@ -469,8 +470,8 @@ export function IeltsSpeakingTab({ items, accent, soundEffects }: SpeakingTabPro
       pathway: 'academic',
       skill: 'speaking',
       title: `Speaking ${active.part.replace('_', ' ').toUpperCase()} • ${active.title}`,
-      score: Math.round(selfBand * 2),
-      maxScore: 18,
+      score: selfBand === null ? 0 : Math.round(selfBand * 2),
+      maxScore: selfBand === null ? 0 : 18,
       estimatedBand: selfBand,
       isUnofficialEstimate: true,
       durationSeconds: active.part === 'part_2' ? 180 : 120,
@@ -681,17 +682,18 @@ export function IeltsSpeakingTab({ items, accent, soundEffects }: SpeakingTabPro
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#EFEFEF] pt-3">
           <div className="flex items-center gap-2">
             <label htmlFor="spk-self-band" className="text-xs font-black text-[#666666]">
-              Self-Rated Band (Unofficial):
+              Optional Self-Assessment (Unassessed by default):
             </label>
             <select
               id="spk-self-band"
-              value={selfBand}
-              onChange={(e) => setSelfBand(Number(e.target.value))}
+              value={selfBand === null ? '' : String(selfBand)}
+              onChange={(e) => setSelfBand(e.target.value ? Number(e.target.value) : null)}
               className="rounded-xl border-2 border-[#E5E5E5] bg-white px-2.5 py-1.5 text-xs font-black"
             >
-              {[5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5].map((b) => (
+              <option value="">Unassessed (Log practice only)</option>
+              {[4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5].map((b) => (
                 <option key={b} value={b}>
-                  Band {b.toFixed(1)}
+                  Self-Rated Band {b.toFixed(1)}
                 </option>
               ))}
             </select>

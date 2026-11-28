@@ -175,10 +175,20 @@ export function ProfilePage() {
                 <div>
                   <span className="font-black text-[#3C3C3C]">{mock.title}</span>
                   <p className="text-xs font-bold text-[#666666]">
-                    L {mock.listeningBand.toFixed(1)} • R {mock.readingBand.toFixed(1)} • W {mock.writingBand.toFixed(1)} • S {mock.speakingBand.toFixed(1)} ({mock.pathway === 'academic' ? 'Academic' : 'GT'})
+                    L {mock.listeningBand !== null ? mock.listeningBand.toFixed(1) : `${mock.listeningRaw}/${mock.listeningMax}`}
+                    {' • '}R {mock.readingBand !== null ? mock.readingBand.toFixed(1) : `${mock.readingRaw}/${mock.readingMax}`}
+                    {' • '}W {mock.writingBand !== null ? mock.writingBand.toFixed(1) : 'Unassessed'}
+                    {' • '}S {mock.speakingBand !== null ? mock.speakingBand.toFixed(1) : 'Unassessed'} (
+                    {mock.pathway === 'academic' ? 'Academic' : 'GT'})
                   </p>
                 </div>
-                <PillBadge tone="purple">Est. Overall {mock.overallBand.toFixed(1)}</PillBadge>
+                <PillBadge tone={mock.overallBand !== null ? 'purple' : 'neutral'}>
+                  {mock.overallBand !== null
+                    ? `Est. Overall ${mock.overallBand.toFixed(1)}`
+                    : mock.examFormat === 'practice_mini'
+                      ? 'Practice Mini-Mock (Raw)'
+                      : 'Pending W/S Assessment'}
+                </PillBadge>
               </div>
             ))}
           </div>

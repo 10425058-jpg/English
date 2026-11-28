@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
   calculateSM2Review,
+  computeOverallBandIfEligible,
   createInitialSkillProgress,
   estimateSkillCEFR,
   toLocalDateKey,
@@ -20,6 +21,7 @@ import {
   type LearningPurpose,
   type LessonProgress,
   type Mistake,
+  type ProductiveAssessmentStatus,
   type ReviewSchedule,
   type SkillProgress,
   type SkillTag,
@@ -168,6 +170,16 @@ export interface QuestStoreState {
   recordMockExamCompletion: (
     result: Omit<IELTSMockAttemptResult, 'id' | 'completedAt'>
   ) => { result: IELTSMockAttemptResult; awardedXp: number };
+  updateMockProductiveAssessment: (
+    resultId: string,
+    patch: {
+      writingBand?: number | null;
+      writingAssessmentStatus?: ProductiveAssessmentStatus;
+      speakingBand?: number | null;
+      speakingAssessmentStatus?: ProductiveAssessmentStatus;
+      teacherNotes?: string;
+    }
+  ) => void;
   recordAssessmentAttempt: (
     attempt: Omit<AssessmentAttemptRecord, 'id' | 'completedAt'>,
   ) => { awardedXp: number; record: AssessmentAttemptRecord };
@@ -775,6 +787,37 @@ export const useQuestStore = create<QuestStoreState>()(
         return { result, awardedXp };
       },
 
+      updateMockProductiveAssessment: (resultId, patch) => {
+        set((state) => {
+          const updated = (state.ieltsMockHistory ?? []).map((item) => {
+            if (item.id !== resultId) return item;
+            const writingBand = patch.writingBand !== undefined ? patch.writingBand : item.writingBand;
+            const writingAssessmentStatus =
+              patch.writingAssessmentStatus ?? item.writingAssessmentStatus;
+            const speakingBand = patch.speakingBand !== undefined ? patch.speakingBand : item.speakingBand;
+            const speakingAssessmentStatus =
+              patch.speakingAssessmentStatus ?? item.speakingAssessmentStatus;
+            const overallBand = computeOverallBandIfEligible({
+              examFormat: item.examFormat,
+              listening: item.listeningBand,
+              reading: item.readingBand,
+              writing: writingAssessmentStatus === 'unassessed' ? null : writingBand,
+              speaking: speakingAssessmentStatus === 'unassessed' ? null : speakingBand,
+            });
+            return {
+              ...item,
+              writingBand: writingAssessmentStatus === 'unassessed' ? null : writingBand,
+              writingAssessmentStatus,
+              speakingBand: speakingAssessmentStatus === 'unassessed' ? null : speakingBand,
+              speakingAssessmentStatus,
+              teacherNotes: patch.teacherNotes !== undefined ? patch.teacherNotes : item.teacherNotes,
+              overallBand,
+            };
+          });
+          return { ieltsMockHistory: updated };
+        });
+      },
+
       upsertAiMessage: (conversation, message) => {
         set((state) => {
           const nowIso = new Date().toISOString();
@@ -1014,7 +1057,75 @@ export const useQuestStore = create<QuestStoreState>()(
     }),
     {
       name: 'english-quest-state-v1',
-      version: 1,
+      version: 2,
+      migrate: (persistedState: unknown, version: number) => {
+        if (!persistedState || typeof persistedState !== 'object' || version >= 2) {
+          return persistedState as QuestStoreState;
+        }
+        const raw = persistedState as Partial<QuestStoreState> & {
+          ieltsMockHistory?: Array<Record<string, unknown>>;
+          inProgressMockExam?: Record<string, unknown> | null;
+        };
+        const migratedHistory: IELTSMockAttemptResult[] | undefined = Array.isArray(raw.ieltsMockHistory)
+          ? raw.ieltsMockHistory.map((item) => {
+              const lMax = Number(item.listeningMax ?? 0);
+              const rMax = Number(item.readingMax ?? 0);
+              const isFull40 = lMax === 40 && rMax === 40;
+              return {
+                ...(item as unknown as IELTSMockAttemptResult),
+                examFormat: isFull40 ? 'full_exam' : 'practice_mini',
+                listeningBand: isFull40 && typeof item.listeningBand === 'number' ? item.listeningBand : null,
+                readingBand: isFull40 && typeof item.readingBand === 'number' ? item.readingBand : null,
+                writingBand: null,
+                writingAssessmentStatus: 'unassessed',
+                mechanicalFeedback:
+                  item.mechanicalFeedback && typeof item.mechanicalFeedback === 'object' && !Array.isArray(item.mechanicalFeedback)
+                    ? (item.mechanicalFeedback as IELTSMockAttemptResult['mechanicalFeedback'])
+                    : {
+                        task1MinMet: Number(item.writingTask1Words ?? 0) >= 150,
+                        task2MinMet: Number(item.writingTask2Words ?? 0) >= 250,
+                        paragraphCountT1: 0,
+                        paragraphCountT2: 0,
+                        connectorsCount: 0,
+                        notes: ['Legacy pre-Milestone 4 attempt: heuristic Writing band cleared for scoring integrity.'],
+                      },
+                speakingBand:
+                  typeof item.speakingBand === 'number' && isFull40 ? item.speakingBand : null,
+                speakingAssessmentStatus:
+                  typeof item.speakingBand === 'number' && isFull40 ? 'self_assessed' : 'unassessed',
+                overallBand: null,
+                legacyHeuristicMigrated: true,
+              };
+            })
+          : raw.ieltsMockHistory;
+
+        const migratedDraft: IELTSMockAttemptDraft | null | undefined =
+          raw.inProgressMockExam && typeof raw.inProgressMockExam === 'object'
+            ? {
+                ...(raw.inProgressMockExam as unknown as IELTSMockAttemptDraft),
+                examFormat: String(raw.inProgressMockExam.mockId ?? '').startsWith('ielts-mock-full')
+                  ? 'full_exam'
+                  : 'practice_mini',
+                writingAssessmentStatus:
+                  (raw.inProgressMockExam.writingAssessmentStatus as ProductiveAssessmentStatus) ??
+                  'unassessed',
+                writingSelfBand:
+                  typeof raw.inProgressMockExam.writingSelfBand === 'number'
+                    ? raw.inProgressMockExam.writingSelfBand
+                    : null,
+                speakingAssessmentStatus:
+                  (raw.inProgressMockExam.speakingAssessmentStatus as ProductiveAssessmentStatus) ??
+                  'unassessed',
+                speakingSelfBand: null,
+              }
+            : raw.inProgressMockExam;
+
+        return {
+          ...raw,
+          ieltsMockHistory: migratedHistory ?? [],
+          inProgressMockExam: migratedDraft ?? null,
+        } as QuestStoreState;
+      },
     }
   )
 );

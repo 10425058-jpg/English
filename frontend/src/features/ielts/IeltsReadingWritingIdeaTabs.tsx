@@ -57,8 +57,8 @@ export function IeltsReadingTab({ passages, pathway, accent, soundEffects }: Rea
     setChecked(false);
   };
 
-  const acBand30 = convertReadingRawToBand(30, 'academic', 40);
-  const gtBand30 = convertReadingRawToBand(30, 'general_training', 40);
+  const acBand30 = convertReadingRawToBand(30, 'academic', 40) ?? 7.0;
+  const gtBand30 = convertReadingRawToBand(30, 'general_training', 40) ?? 6.0;
   const completedCount = passages.filter((p) => completedAcademyIds.includes(p.id)).length;
 
   const handleGrade = () => {

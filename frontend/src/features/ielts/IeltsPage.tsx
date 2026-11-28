@@ -38,7 +38,7 @@ import {
 import { HonestNotice, PillBadge, QuestCard } from '@/components/ui/QuestUI';
 import { TactileButton } from '@/components/ui/TactileButton';
 import {
-  estimatePracticeBandFromRatio,
+  computeMiniMockPercent,
   IELTS_MINI_MOCK_QUESTIONS,
   IELTS_SPEAKING_PROMPTS,
 } from '@/data/ieltsData';
@@ -137,16 +137,15 @@ export function IeltsPage() {
     const correct = pathwayQuestions.filter(
       (q) => mockAnswers[q.id] === q.correctAnswer
     ).length;
-    const band = estimatePracticeBandFromRatio(correct, pathwayQuestions.length);
 
     setMockSubmitted(true);
     recordIeltsSession({
       pathway: ieltsPathway,
       skill: 'mini_mock',
-      title: `${ieltsPathway === 'academic' ? 'Academic' : 'General Training'} Mini-Mock`,
+      title: `${ieltsPathway === 'academic' ? 'Academic' : 'General Training'} Quick Mini-Mock (${computeMiniMockPercent(correct, pathwayQuestions.length)}%)`,
       score: correct,
       maxScore: pathwayQuestions.length,
-      estimatedBand: band,
+      estimatedBand: null,
       isUnofficialEstimate: true,
       durationSeconds: mockSeconds,
     });
@@ -175,7 +174,7 @@ export function IeltsPage() {
     { id: 'reading', label: 'Reading (60)', icon: BookOpen },
     { id: 'writing', label: 'Writing (60)', icon: PenTool },
     { id: 'strategy', label: 'Strategy (60)', icon: Compass },
-    { id: 'mocks', label: 'Mock Exams (12)', icon: Play },
+    { id: 'mocks', label: 'Mock Exams (14)', icon: Play },
     { id: 'ideas', label: 'Idea & Lexis (10)', icon: Lightbulb },
   ];
 
@@ -185,13 +184,13 @@ export function IeltsPage() {
         <div>
           <PillBadge tone="purple">
             <Target className="h-3.5 w-3.5" />
-            IELTS Mastery Center ({ieltsDoneCount}/382 Completed)
+            IELTS Mastery Center ({ieltsDoneCount}/384 Completed)
           </PillBadge>
           <h1 className="mt-2 text-2xl font-black sm:text-3xl">
             Academic & General Training Practice Hub
           </h1>
           <p className="mt-1 text-sm font-semibold text-[#666666]">
-            Original IELTS-aligned training across Listening (80), Speaking (100), Reading (60), Writing (60), Strategy (60), Timed Mocks (12), and Topic Idea Packs (10).
+            Original IELTS-aligned training across Listening (80), Speaking (100), Reading (60), Writing (60), Strategy (60), Mock Packs (14: 2 Full 40/40 + 12 Mini-Mocks), and Idea Packs (10).
           </p>
         </div>
 
@@ -239,8 +238,8 @@ export function IeltsPage() {
 
         <div className="text-xs font-bold text-[#555555]">
           {ieltsPathway === 'academic'
-            ? `Academic Reading 30/40 ≈ Band ${convertReadingRawToBand(30, 'academic', 40).toFixed(1)} • Task 1 Visual Data`
-            : `GT Reading 30/40 ≈ Band ${convertReadingRawToBand(30, 'general_training', 40).toFixed(1)} • Task 1 Formal/Semi/Informal Letters`}
+            ? `Academic Reading 30/40 ≈ Band ${(convertReadingRawToBand(30, 'academic', 40) ?? 7.0).toFixed(1)} • Task 1 Visual Data`
+            : `GT Reading 30/40 ≈ Band ${(convertReadingRawToBand(30, 'general_training', 40) ?? 6.0).toFixed(1)} • Task 1 Formal/Semi/Informal Letters`}
         </div>
       </div>
 
@@ -413,7 +412,7 @@ export function IeltsPage() {
               </Link>
             </div>
             <p className="text-xs font-semibold text-[#555555]">
-              Listening (shared): 23/40 ≈ {convertListeningRawToBand(23, 40).toFixed(1)}, 30/40 ≈ {convertListeningRawToBand(30, 40).toFixed(1)}, 35/40 ≈ {convertListeningRawToBand(35, 40).toFixed(1)}. General Training Reading requires higher raw hits (e.g., 34/40 ≈ Band {convertReadingRawToBand(34, 'general_training', 40).toFixed(1)}) than Academic Reading (30/40 ≈ Band {convertReadingRawToBand(30, 'academic', 40).toFixed(1)}). Overall averages round to nearest 0.5 (.25 rounds up to .5, .75 rounds up to whole band).
+              Listening (shared): 23/40 ≈ {(convertListeningRawToBand(23, 40) ?? 6.0).toFixed(1)}, 30/40 ≈ {(convertListeningRawToBand(30, 40) ?? 7.0).toFixed(1)}, 35/40 ≈ {(convertListeningRawToBand(35, 40) ?? 8.0).toFixed(1)}. General Training Reading requires higher raw hits (e.g., 34/40 ≈ Band {(convertReadingRawToBand(34, 'general_training', 40) ?? 7.0).toFixed(1)}) than Academic Reading (30/40 ≈ Band {(convertReadingRawToBand(30, 'academic', 40) ?? 7.0).toFixed(1)}). Overall averages round to nearest 0.5 (.25 rounds up to .5, .75 rounds up to whole band) — applied strictly to 40-question sets only.
             </p>
           </QuestCard>
 
@@ -476,7 +475,7 @@ export function IeltsPage() {
                   Timed Mini-Mock ({ieltsPathway === 'academic' ? 'Academic' : 'General Training'})
                 </h2>
                 <p className="text-xs font-semibold text-[#666666]">
-                  Quick diagnostic checkpoint with unofficial practice band indicator.
+                  Quick diagnostic checkpoint reporting raw accuracy (%) — no Band scaling on 3-question checks.
                 </p>
               </div>
               <span className="inline-flex items-center gap-1.5 rounded-xl bg-[#F7F8FA] px-3 py-1.5 text-xs font-black border border-[#E5E5E5]">
@@ -524,7 +523,7 @@ export function IeltsPage() {
             {!mockSubmitted ? (
               <div className="flex justify-end">
                 <TactileButton variant="purple" onClick={handleRunMiniMock}>
-                  Finish Mini-Mock & Log Practice Estimate
+                  Finish Mini-Mock & Check Raw Score
                 </TactileButton>
               </div>
             ) : (
@@ -556,10 +555,17 @@ export function IeltsPage() {
                     <div>
                       <p className="font-black">{s.title}</p>
                       <p className="text-xs font-semibold text-[#666666]">
-                        Score {s.score}/{s.maxScore} • Unofficial Practice Indicator
+                        {s.maxScore > 0
+                          ? `Score ${s.score}/${s.maxScore} (${Math.round((s.score / s.maxScore) * 100)}%)`
+                          : 'Speaking practice log'}{' '}
+                        • Unofficial Practice Record
                       </p>
                     </div>
-                    <PillBadge tone="purple">Est. Band {s.estimatedBand.toFixed(1)} (Unofficial)</PillBadge>
+                    <PillBadge tone="purple">
+                      {s.estimatedBand !== null
+                        ? `Est. Band ${s.estimatedBand.toFixed(1)} (Unofficial)`
+                        : 'Unassessed / Practice Only'}
+                    </PillBadge>
                   </div>
                 ))}
               </div>

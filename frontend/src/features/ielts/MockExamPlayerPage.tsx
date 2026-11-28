@@ -6,6 +6,7 @@ import {
   Award,
   BookOpen,
   CheckCircle2,
+  ClipboardCheck,
   Clock,
   Headphones,
   Mic,
@@ -28,12 +29,15 @@ import type {
   AssembledIELTSMockExam,
   IELTSMockAttemptDraft,
   IELTSMockAttemptResult,
+  ProductiveAssessmentStatus,
 } from '@english-quest/shared';
 import {
+  computeOverallBandIfEligible,
   convertListeningRawToBand,
   convertReadingRawToBand,
   evaluateExerciseAnswer,
-  roundIeltsOverallBand,
+  isComplete40QuestionMock,
+  MINI_MOCK_SCALING_WARNING,
   UNOFFICIAL_IELTS_NOTICE,
 } from '@english-quest/shared';
 import { assembleIeltsMockExamById } from '@content/index';
@@ -42,7 +46,7 @@ import { HonestNotice, PillBadge, QuestCard } from '@/components/ui/QuestUI';
 import { TactileButton } from '@/components/ui/TactileButton';
 import { ExerciseRenderer } from '@/features/learning/ExerciseRenderer';
 import { getSpeechCapabilities, playFeedbackTone, speakText, stopSpeaking } from '@/services/speechService';
-import { countWords } from '@/services/writingAnalyzer';
+import { analyzeWritingLocally, countWords } from '@/services/writingAnalyzer';
 import { useQuestStore } from '@/stores/useQuestStore';
 import { IeltsVisualRenderer } from './IeltsVisualRenderer';
 
@@ -55,6 +59,8 @@ const SECTION_DEFAULT_SECONDS: Record<SectionKey, number> = {
   speaking: 14 * 60,
 };
 
+const BAND_OPTIONS = [4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0];
+
 function formatClock(totalSeconds: number): string {
   const s = Math.max(0, totalSeconds);
   const mins = Math.floor(s / 60);
@@ -62,31 +68,61 @@ function formatClock(totalSeconds: number): string {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
-/**
- * Deterministic offline Writing band heuristic (unofficial self-practice estimate only):
- * checks word target compliance, paragraph segmentation, and analytical punctuation range.
- */
-function estimateMockWritingBandHeuristic(task1Text: string, task2Text: string): number {
+function formatAssessmentStatus(status: ProductiveAssessmentStatus): string {
+  if (status === 'teacher_assessed') return 'Teacher-Assessed';
+  if (status === 'self_assessed') return 'Self-Assessed (Unofficial)';
+  return 'Unassessed';
+}
+
+function buildWritingMechanicalFeedback(
+  task1Text: string,
+  task2Text: string,
+  exam: AssembledIELTSMockExam
+): NonNullable<IELTSMockAttemptResult['mechanicalFeedback']> {
   const w1 = countWords(task1Text);
   const w2 = countWords(task2Text);
-  const p1 = task1Text.split(/\n+/).filter((p) => p.trim().length > 20).length;
-  const p2 = task2Text.split(/\n+/).filter((p) => p.trim().length > 20).length;
+  const paragraphCountT1 = task1Text.split(/\n+/).filter((p) => p.trim().length > 15).length;
+  const paragraphCountT2 = task2Text.split(/\n+/).filter((p) => p.trim().length > 15).length;
+  const connectorMatches = `${task1Text} ${task2Text}`.match(
+    /\b(however|moreover|furthermore|therefore|consequently|although|whereas|overall|nevertheless|additionally|meanwhile)\b/gi
+  );
+  const connectorsCount = connectorMatches ? connectorMatches.length : 0;
 
-  let score1 = 4.0;
-  if (w1 >= 150) score1 += 1.5;
-  else if (w1 >= 80) score1 += 0.8;
-  if (p1 >= 3) score1 += 0.8;
-  if (/\b(overall|while|whereas|furthermore|dear|sincerely|faithfully)\b/i.test(task1Text)) score1 += 0.7;
+  const notes: string[] = [
+    `Task 1 mechanical length: ${w1} words (${paragraphCountT1} paragraph block${paragraphCountT1 === 1 ? '' : 's'}) vs ${exam.writingTask1.minWords}-word minimum.`,
+    `Task 2 mechanical length: ${w2} words (${paragraphCountT2} paragraph block${paragraphCountT2 === 1 ? '' : 's'}) vs ${exam.writingTask2.minWords}-word minimum.`,
+  ];
 
-  let score2 = 4.0;
-  if (w2 >= 250) score2 += 1.5;
-  else if (w2 >= 140) score2 += 0.8;
-  if (p2 >= 4) score2 += 1.0;
-  if (/\b(although|nevertheless|consequently|moreover|however|ultimately)\b/i.test(task2Text)) score2 += 0.8;
+  if (w1 === 0 && w2 === 0) {
+    notes.push('No written response submitted — Writing remains Unassessed until graded by a teacher or explicit rubric self-check.');
+  } else {
+    const combinedFeedback = analyzeWritingLocally(
+      {
+        id: exam.writingTask2.id,
+        title: exam.writingTask2.title,
+        category: 'ielts_task_2',
+        cefrLevel: exam.writingTask2.cefrTarget,
+        prompt: exam.writingTask2.prompt,
+        instructions: '',
+        minWords: 250,
+        targetWords: 270,
+        checklist: [],
+        sampleResponse: '',
+      },
+      task2Text || task1Text
+    );
+    notes.push(...combinedFeedback.improvements.slice(0, 2));
+    notes.push('Mechanical metrics do not evaluate argument logic, task accuracy, or nuance and NEVER generate a Band score.');
+  }
 
-  const weighted = score1 * (1 / 3) + score2 * (2 / 3);
-  const clamped = Math.max(4.0, Math.min(8.0, Math.round(weighted * 2) / 2));
-  return clamped;
+  return {
+    task1MinMet: w1 >= exam.writingTask1.minWords,
+    task2MinMet: w2 >= exam.writingTask2.minWords,
+    paragraphCountT1,
+    paragraphCountT2,
+    connectorsCount,
+    notes,
+  };
 }
 
 export function MockExamPlayerPage() {
@@ -97,6 +133,7 @@ export function MockExamPlayerPage() {
   const inProgressMockExam = useQuestStore((s) => s.inProgressMockExam);
   const saveInProgressMockExam = useQuestStore((s) => s.saveInProgressMockExam);
   const recordMockExamCompletion = useQuestStore((s) => s.recordMockExamCompletion);
+  const updateMockProductiveAssessment = useQuestStore((s) => s.updateMockProductiveAssessment);
   const recordMistake = useQuestStore((s) => s.recordMistake);
 
   const [exam, setExam] = useState<AssembledIELTSMockExam | null>(null);
@@ -121,8 +158,22 @@ export function MockExamPlayerPage() {
   );
   const [task1Text, setTask1Text] = useState(initialDraft?.writingTask1Draft ?? '');
   const [task2Text, setTask2Text] = useState(initialDraft?.writingTask2Draft ?? '');
-  const [speakingSelfBand, setSpeakingSelfBand] = useState<number>(initialDraft?.speakingSelfBand ?? 6.5);
+
+  // Productive assessment starts strictly unassessed (no heuristic Writing band, no default Speaking 6.5)
+  const [writingAssessmentStatus, setWritingAssessmentStatus] = useState<ProductiveAssessmentStatus>(
+    initialDraft?.writingAssessmentStatus ?? 'unassessed'
+  );
+  const [writingSelfBand, setWritingSelfBand] = useState<number | null>(
+    initialDraft?.writingSelfBand ?? null
+  );
+  const [speakingAssessmentStatus, setSpeakingAssessmentStatus] = useState<ProductiveAssessmentStatus>(
+    initialDraft?.speakingAssessmentStatus ?? 'unassessed'
+  );
+  const [speakingSelfBand, setSpeakingSelfBand] = useState<number | null>(
+    initialDraft?.speakingSelfBand ?? null
+  );
   const [speakingNotes, setSpeakingNotes] = useState(initialDraft?.speakingNotes ?? '');
+  const [teacherNotes, setTeacherNotes] = useState('');
 
   // Speaking Cue Card local prep/long-turn timers + audio recorder
   const [cueTimerMode, setCueTimerMode] = useState<'idle' | 'prep' | 'speak'>('idle');
@@ -159,7 +210,6 @@ export function MockExamPlayerPage() {
     };
   }, [mockId]);
 
-  // Global section clock + crash recovery autosave every 3 seconds cleanly
   useEffect(() => {
     if (finalResult || !exam) return;
     const t = window.setInterval(() => {
@@ -175,12 +225,16 @@ export function MockExamPlayerPage() {
       const draft: IELTSMockAttemptDraft = {
         mockId: exam.manifest.id,
         pathway: exam.manifest.pathway,
+        examFormat: exam.manifest.examFormat,
         currentSection: section,
         sectionRemainingSeconds: secondsLeft,
         listeningAnswers,
         readingAnswers,
         writingTask1Draft: task1Text,
         writingTask2Draft: task2Text,
+        writingAssessmentStatus,
+        writingSelfBand,
+        speakingAssessmentStatus,
         speakingSelfBand,
         speakingNotes,
         startedAt: startedAtRef.current,
@@ -198,6 +252,9 @@ export function MockExamPlayerPage() {
     readingAnswers,
     task1Text,
     task2Text,
+    writingAssessmentStatus,
+    writingSelfBand,
+    speakingAssessmentStatus,
     speakingSelfBand,
     speakingNotes,
     saveInProgressMockExam,
@@ -229,7 +286,7 @@ export function MockExamPlayerPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#F7F8FA] p-6 gap-3">
         <PipMascot mood="thinking" size={76} />
-        <p className="text-base font-black text-[#4B4B4B]">Loading 4-Skill Mock Examination Bundle...</p>
+        <p className="text-base font-black text-[#4B4B4B]">Loading Mock Examination Bundle...</p>
       </div>
     );
   }
@@ -253,7 +310,7 @@ export function MockExamPlayerPage() {
     setSecondsLeft(SECTION_DEFAULT_SECONDS[next]);
   };
 
-  const handleFinishFullMock = () => {
+  const handleFinishMock = () => {
     stopSpeaking();
     const listeningExercises = exam.listeningParts.flatMap((p) => p.exercises);
     const readingExercises = exam.readingPassages.flatMap((p) => p.exercises);
@@ -296,30 +353,44 @@ export function MockExamPlayerPage() {
       }
     }
 
+    const isComplete40 = isComplete40QuestionMock(listeningExercises.length, readingExercises.length);
+    const examFormat = isComplete40 ? 'full_exam' : 'practice_mini';
+
+    // Strict 40/40 gating: short 8L/15R mini-mocks MUST remain null (raw % only)
     const listeningBand = convertListeningRawToBand(lRaw, listeningExercises.length);
     const readingBand = convertReadingRawToBand(rRaw, exam.manifest.pathway, readingExercises.length);
-    const writingBand = estimateMockWritingBandHeuristic(task1Text, task2Text);
-    const overallBand = roundIeltsOverallBand([
-      listeningBand,
-      readingBand,
-      writingBand,
-      speakingSelfBand,
-    ]);
+
+    const wBand = writingAssessmentStatus === 'unassessed' ? null : writingSelfBand;
+    const sBand = speakingAssessmentStatus === 'unassessed' ? null : speakingSelfBand;
+    const overallBand = computeOverallBandIfEligible({
+      examFormat,
+      listening: listeningBand,
+      reading: readingBand,
+      writing: wBand,
+      speaking: sBand,
+    });
+
+    const mechanicalFeedback = buildWritingMechanicalFeedback(task1Text, task2Text, exam);
 
     const { result, awardedXp: xpWon } = recordMockExamCompletion({
       mockId: exam.manifest.id,
       title: exam.manifest.title,
       pathway: exam.manifest.pathway,
+      examFormat,
       listeningRaw: lRaw,
       listeningMax: listeningExercises.length,
       listeningBand,
       readingRaw: rRaw,
       readingMax: readingExercises.length,
       readingBand,
-      writingBand,
+      writingBand: wBand,
+      writingAssessmentStatus,
       writingTask1Words: countWords(task1Text),
       writingTask2Words: countWords(task2Text),
-      speakingBand: speakingSelfBand,
+      mechanicalFeedback,
+      speakingBand: sBand,
+      speakingAssessmentStatus,
+      teacherNotes: teacherNotes.trim() || undefined,
       overallBand,
       durationSeconds: Math.max(60, totalElapsedSeconds),
       isUnofficialEstimate: true,
@@ -332,18 +403,95 @@ export function MockExamPlayerPage() {
 
   if (finalResult) {
     const profileData = [
-      { skill: 'Listening', Band: finalResult.listeningBand },
-      { skill: 'Reading', Band: finalResult.readingBand },
-      { skill: 'Writing (Heur.)', Band: finalResult.writingBand },
-      { skill: 'Speaking (Self)', Band: finalResult.speakingBand },
+      {
+        skill: 'Listening',
+        Band: finalResult.listeningBand ?? 0,
+        status:
+          finalResult.listeningBand !== null
+            ? `Band ${finalResult.listeningBand.toFixed(1)} (${finalResult.listeningRaw}/${finalResult.listeningMax})`
+            : `Raw ${finalResult.listeningRaw}/${finalResult.listeningMax} (No Band Scaling)`,
+      },
+      {
+        skill: 'Reading',
+        Band: finalResult.readingBand ?? 0,
+        status:
+          finalResult.readingBand !== null
+            ? `Band ${finalResult.readingBand.toFixed(1)} (${finalResult.readingRaw}/${finalResult.readingMax})`
+            : `Raw ${finalResult.readingRaw}/${finalResult.readingMax} (No Band Scaling)`,
+      },
+      {
+        skill: 'Writing',
+        Band: finalResult.writingBand ?? 0,
+        status:
+          finalResult.writingBand !== null
+            ? `Band ${finalResult.writingBand.toFixed(1)} (${formatAssessmentStatus(finalResult.writingAssessmentStatus)})`
+            : 'Unassessed',
+      },
+      {
+        skill: 'Speaking',
+        Band: finalResult.speakingBand ?? 0,
+        status:
+          finalResult.speakingBand !== null
+            ? `Band ${finalResult.speakingBand.toFixed(1)} (${formatAssessmentStatus(finalResult.speakingAssessmentStatus)})`
+            : 'Unassessed',
+      },
     ];
+
+    const applyPostExamAssessment = (
+      nextWStatus: ProductiveAssessmentStatus,
+      nextWBand: number | null,
+      nextSStatus: ProductiveAssessmentStatus,
+      nextSBand: number | null,
+      notes: string
+    ) => {
+      updateMockProductiveAssessment(finalResult.id, {
+        writingAssessmentStatus: nextWStatus,
+        writingBand: nextWStatus === 'unassessed' ? null : nextWBand,
+        speakingAssessmentStatus: nextSStatus,
+        speakingBand: nextSStatus === 'unassessed' ? null : nextSBand,
+        teacherNotes: notes.trim() || undefined,
+      });
+      const updatedOverall = computeOverallBandIfEligible({
+        examFormat: finalResult.examFormat,
+        listening: finalResult.listeningBand,
+        reading: finalResult.readingBand,
+        writing: nextWStatus === 'unassessed' ? null : nextWBand,
+        speaking: nextSStatus === 'unassessed' ? null : nextSBand,
+      });
+      setFinalResult({
+        ...finalResult,
+        writingAssessmentStatus: nextWStatus,
+        writingBand: nextWStatus === 'unassessed' ? null : nextWBand,
+        speakingAssessmentStatus: nextSStatus,
+        speakingBand: nextSStatus === 'unassessed' ? null : nextSBand,
+        teacherNotes: notes.trim() || undefined,
+        overallBand: updatedOverall,
+      });
+    };
+
+    const lPct =
+      finalResult.listeningMax > 0
+        ? Math.round((finalResult.listeningRaw / finalResult.listeningMax) * 100)
+        : 0;
+    const rPct =
+      finalResult.readingMax > 0
+        ? Math.round((finalResult.readingRaw / finalResult.readingMax) * 100)
+        : 0;
 
     return (
       <div className="min-h-screen bg-[#F7F8FA] p-4 sm:p-8">
         <div className="mx-auto max-w-4xl space-y-6">
           <HonestNotice
-            title="Unofficial 4-Skill Simulation Summary"
-            description={UNOFFICIAL_IELTS_NOTICE}
+            title={
+              finalResult.examFormat === 'full_exam'
+                ? 'Unofficial 40/40 Exam Simulation Report'
+                : 'Practice Mini-Mock Report (Raw Score Only — No Band Extrapolation)'
+            }
+            description={
+              finalResult.examFormat === 'practice_mini'
+                ? MINI_MOCK_SCALING_WARNING
+                : UNOFFICIAL_IELTS_NOTICE
+            }
             tone="warning"
           />
 
@@ -352,7 +500,7 @@ export function MockExamPlayerPage() {
               <div>
                 <PillBadge tone="purple">
                   <Award className="h-4 w-4" />
-                  Mock Simulation Complete (+{awardedXp} XP)
+                  {finalResult.examFormat === 'full_exam' ? 'Full 40/40 Mock' : 'Practice Mini-Mock'} Complete (+{awardedXp} XP)
                 </PillBadge>
                 <h1 className="mt-2 text-2xl font-black text-[#3C3C3C]">{exam.manifest.title}</h1>
                 <p className="text-sm font-semibold text-[#666666]">
@@ -361,38 +509,200 @@ export function MockExamPlayerPage() {
               </div>
               <div className="rounded-2xl border-2 border-[#CE82FF] bg-[#FAF4FF] px-6 py-4 text-center">
                 <p className="text-xs font-black uppercase text-[#8E3FD6]">Est. Overall Band</p>
-                <p className="text-4xl font-black text-[#3C3C3C]">{finalResult.overallBand.toFixed(1)}</p>
-                <p className="text-[11px] font-bold text-[#777777]">Unofficial Round (.25/.75)</p>
+                <p className="text-4xl font-black text-[#3C3C3C]">
+                  {finalResult.overallBand !== null ? finalResult.overallBand.toFixed(1) : 'N/A'}
+                </p>
+                <p className="text-[11px] font-bold text-[#777777]">
+                  {finalResult.overallBand !== null
+                    ? 'Unofficial 4-Skill Round (.25/.75)'
+                    : finalResult.examFormat === 'practice_mini'
+                      ? 'Short Mock (Needs 40L+40R)'
+                      : 'Complete W + S Rubric Below'}
+                </p>
               </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-4">
               <div className="rounded-xl border border-[#BCE7FD] bg-[#F2FAFF] p-3">
                 <p className="text-xs font-black text-[#0E8BC9]">Listening</p>
-                <p className="text-xl font-black">{finalResult.listeningBand.toFixed(1)}</p>
+                <p className="text-xl font-black">
+                  {finalResult.listeningBand !== null
+                    ? finalResult.listeningBand.toFixed(1)
+                    : `${lPct}% raw`}
+                </p>
                 <p className="text-xs font-semibold text-[#555555]">
-                  {finalResult.listeningRaw}/{finalResult.listeningMax} raw objective
+                  {finalResult.listeningRaw}/{finalResult.listeningMax} objective hits
                 </p>
               </div>
               <div className="rounded-xl border border-[#C8F0A6] bg-[#EEFFDF] p-3">
                 <p className="text-xs font-black text-[#357D00]">Reading</p>
-                <p className="text-xl font-black">{finalResult.readingBand.toFixed(1)}</p>
+                <p className="text-xl font-black">
+                  {finalResult.readingBand !== null
+                    ? finalResult.readingBand.toFixed(1)
+                    : `${rPct}% raw`}
+                </p>
                 <p className="text-xs font-semibold text-[#555555]">
-                  {finalResult.readingRaw}/{finalResult.readingMax} ({finalResult.pathway === 'academic' ? 'Academic' : 'GT'} curve)
+                  {finalResult.readingRaw}/{finalResult.readingMax} ({finalResult.pathway === 'academic' ? 'Academic' : 'GT'})
                 </p>
               </div>
               <div className="rounded-xl border border-[#FFE175] bg-[#FFFBEB] p-3">
-                <p className="text-xs font-black text-[#8A5A00]">Writing (Heuristic)</p>
-                <p className="text-xl font-black">{finalResult.writingBand.toFixed(1)}</p>
+                <p className="text-xs font-black text-[#8A5A00]">
+                  Writing ({formatAssessmentStatus(finalResult.writingAssessmentStatus)})
+                </p>
+                <p className="text-xl font-black">
+                  {finalResult.writingBand !== null ? finalResult.writingBand.toFixed(1) : 'Unassessed'}
+                </p>
                 <p className="text-xs font-semibold text-[#555555]">
                   T1: {finalResult.writingTask1Words}w • T2: {finalResult.writingTask2Words}w
                 </p>
               </div>
               <div className="rounded-xl border border-[#DFB9FF] bg-[#FAF4FF] p-3">
-                <p className="text-xs font-black text-[#8E3FD6]">Speaking (Self)</p>
-                <p className="text-xl font-black">{finalResult.speakingBand.toFixed(1)}</p>
-                <p className="text-xs font-semibold text-[#555555]">Guided rubric self-check</p>
+                <p className="text-xs font-black text-[#8E3FD6]">
+                  Speaking ({formatAssessmentStatus(finalResult.speakingAssessmentStatus)})
+                </p>
+                <p className="text-xl font-black">
+                  {finalResult.speakingBand !== null ? finalResult.speakingBand.toFixed(1) : 'Unassessed'}
+                </p>
+                <p className="text-xs font-semibold text-[#555555]">Criterion self / teacher check</p>
               </div>
+            </div>
+
+            {finalResult.mechanicalFeedback && finalResult.mechanicalFeedback.notes.length > 0 && (
+              <div className="rounded-2xl border border-[#E5E5E5] bg-[#F7F8FA] p-4 space-y-1.5">
+                <p className="text-xs font-black uppercase text-[#555555]">
+                  Mechanical Writing Check (Non-Scoring Metadata)
+                </p>
+                <ul className="list-disc pl-5 text-xs font-semibold text-[#4B4B4B] space-y-1">
+                  {finalResult.mechanicalFeedback.notes.map((note) => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="rounded-2xl border-2 border-[#E5E5E5] bg-white p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <ClipboardCheck className="h-4 w-4 text-[#8E3FD6]" />
+                <p className="text-sm font-black text-[#3C3C3C]">
+                  Post-Exam Writing & Speaking Rubric / Teacher Grading Panel
+                </p>
+              </div>
+              <p className="text-xs font-semibold text-[#666666]">
+                Productive skills stay Unassessed unless you apply official 4-criterion self-assessment or enter a human teacher grade. On full 40/40 mocks, supplying both calculates Overall Band automatically.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2 rounded-xl border border-[#E5E5E5] bg-[#FAFAFA] p-3">
+                  <label htmlFor="post-writing-mode" className="block text-xs font-black text-[#555555]">
+                    Writing Grading Mode
+                  </label>
+                  <select
+                    id="post-writing-mode"
+                    value={finalResult.writingAssessmentStatus}
+                    onChange={(e) => {
+                      const mode = e.target.value as ProductiveAssessmentStatus;
+                      const nextBand = mode === 'unassessed' ? null : (finalResult.writingBand ?? 6.0);
+                      applyPostExamAssessment(
+                        mode,
+                        nextBand,
+                        finalResult.speakingAssessmentStatus,
+                        finalResult.speakingBand,
+                        teacherNotes
+                      );
+                    }}
+                    className="w-full rounded-xl border-2 border-[#E5E5E5] bg-white px-2.5 py-1.5 text-xs font-bold"
+                  >
+                    <option value="unassessed">Unassessed (Mechanical Notes Only)</option>
+                    <option value="self_assessed">Self-Assessed (4-Criterion Rubric)</option>
+                    <option value="teacher_assessed">Teacher / Examiner Assessed</option>
+                  </select>
+                  {finalResult.writingAssessmentStatus !== 'unassessed' && (
+                    <select
+                      aria-label="Writing Band Selection"
+                      value={finalResult.writingBand ?? 6.0}
+                      onChange={(e) =>
+                        applyPostExamAssessment(
+                          finalResult.writingAssessmentStatus,
+                          Number(e.target.value),
+                          finalResult.speakingAssessmentStatus,
+                          finalResult.speakingBand,
+                          teacherNotes
+                        )
+                      }
+                      className="w-full rounded-xl border-2 border-[#E5E5E5] bg-white px-2.5 py-1.5 text-xs font-black"
+                    >
+                      {BAND_OPTIONS.map((b) => (
+                        <option key={b} value={b}>
+                          Writing Band {b.toFixed(1)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                <div className="space-y-2 rounded-xl border border-[#E5E5E5] bg-[#FAFAFA] p-3">
+                  <label htmlFor="post-speaking-mode" className="block text-xs font-black text-[#555555]">
+                    Speaking Grading Mode
+                  </label>
+                  <select
+                    id="post-speaking-mode"
+                    value={finalResult.speakingAssessmentStatus}
+                    onChange={(e) => {
+                      const mode = e.target.value as ProductiveAssessmentStatus;
+                      const nextBand = mode === 'unassessed' ? null : (finalResult.speakingBand ?? 6.0);
+                      applyPostExamAssessment(
+                        finalResult.writingAssessmentStatus,
+                        finalResult.writingBand,
+                        mode,
+                        nextBand,
+                        teacherNotes
+                      );
+                    }}
+                    className="w-full rounded-xl border-2 border-[#E5E5E5] bg-white px-2.5 py-1.5 text-xs font-bold"
+                  >
+                    <option value="unassessed">Unassessed (Default)</option>
+                    <option value="self_assessed">Self-Assessed (4-Criterion Rubric)</option>
+                    <option value="teacher_assessed">Teacher / Examiner Assessed</option>
+                  </select>
+                  {finalResult.speakingAssessmentStatus !== 'unassessed' && (
+                    <select
+                      aria-label="Speaking Band Selection"
+                      value={finalResult.speakingBand ?? 6.0}
+                      onChange={(e) =>
+                        applyPostExamAssessment(
+                          finalResult.writingAssessmentStatus,
+                          finalResult.writingBand,
+                          finalResult.speakingAssessmentStatus,
+                          Number(e.target.value),
+                          teacherNotes
+                        )
+                      }
+                      className="w-full rounded-xl border-2 border-[#E5E5E5] bg-white px-2.5 py-1.5 text-xs font-black"
+                    >
+                      {BAND_OPTIONS.map((b) => (
+                        <option key={b} value={b}>
+                          Speaking Band {b.toFixed(1)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+              <textarea
+                rows={2}
+                value={teacherNotes}
+                onChange={(e) => setTeacherNotes(e.target.value)}
+                onBlur={() =>
+                  applyPostExamAssessment(
+                    finalResult.writingAssessmentStatus,
+                    finalResult.writingBand,
+                    finalResult.speakingAssessmentStatus,
+                    finalResult.speakingBand,
+                    teacherNotes
+                  )
+                }
+                placeholder="Optional teacher comments or self-rubric evidence notes..."
+                className="w-full rounded-xl border-2 border-[#E5E5E5] bg-white p-2.5 text-xs font-semibold"
+              />
             </div>
 
             <div className="h-64 w-full min-w-0">
@@ -401,7 +711,9 @@ export function MockExamPlayerPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#EFEFEF" />
                   <XAxis dataKey="skill" />
                   <YAxis domain={[0, 9]} />
-                  <Tooltip />
+                  <Tooltip
+                    formatter={(_val, _name, item) => [item?.payload?.status ?? 'Unassessed', 'Score']}
+                  />
                   <Bar dataKey="Band" fill="#8E3FD6" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -425,6 +737,7 @@ export function MockExamPlayerPage() {
   const spkP1 = exam.speakingParts[0];
   const spkP2 = exam.speakingParts[1];
   const spkP3 = exam.speakingParts[2];
+  const isFull40Exam = exam.manifest.examFormat === 'full_exam';
 
   const startSpeakingMic = async () => {
     if (!capabilities.micSupported) {
@@ -448,7 +761,7 @@ export function MockExamPlayerPage() {
       setIsRecording(true);
       setMicNote(null);
     } catch {
-      setMicNote('Microphone denied—complete guided vocal self-rating below.');
+      setMicNote('Microphone denied—complete guided vocal self-reflection below.');
     }
   };
 
@@ -459,9 +772,10 @@ export function MockExamPlayerPage() {
     setIsRecording(false);
   };
 
+  const liveWritingNotes = buildWritingMechanicalFeedback(task1Text, task2Text, exam);
+
   return (
     <div className="min-h-screen bg-[#F7F8FA]">
-      {/* Distraction-Free Top Exam Header Bar */}
       <header className="sticky top-0 z-30 border-b-2 border-[#E5E5E5] bg-white px-4 py-3">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -477,7 +791,11 @@ export function MockExamPlayerPage() {
                 {exam.manifest.title}
               </h1>
               <p className="text-[11px] font-bold text-[#777777]">
-                {exam.manifest.pathway === 'academic' ? 'Academic Paper' : 'General Training Paper'} • Autosave Active • Unofficial Mock
+                {exam.manifest.pathway === 'academic' ? 'Academic' : 'General Training'} •{' '}
+                {isFull40Exam
+                  ? 'Full 40L + 40R Exam (Band Curve Eligible)'
+                  : 'Practice Mini-Mock (8L + 15R • Raw % Only)'}{' '}
+                • Autosave Active
               </p>
             </div>
           </div>
@@ -496,12 +814,19 @@ export function MockExamPlayerPage() {
           </div>
         </div>
 
-        {/* 4-Paper Exam Switcher Bar */}
         <div className="mx-auto mt-2.5 flex max-w-6xl flex-wrap gap-2">
           {(
             [
-              { key: 'listening', label: '1. Listening (Parts 1–4)', icon: Headphones },
-              { key: 'reading', label: '2. Reading (Split Screen)', icon: BookOpen },
+              {
+                key: 'listening',
+                label: `1. Listening (${exam.manifest.listeningQuestionTotal}Q)`,
+                icon: Headphones,
+              },
+              {
+                key: 'reading',
+                label: `2. Reading (${exam.manifest.readingQuestionTotal}Q Split Screen)`,
+                icon: BookOpen,
+              },
               { key: 'writing', label: '3. Writing (T1 + T2)', icon: PenTool },
               { key: 'speaking', label: '4. Speaking Simulation', icon: Mic },
             ] as const
@@ -528,12 +853,11 @@ export function MockExamPlayerPage() {
 
       <main className="mx-auto max-w-6xl p-4 sm:p-6 space-y-6">
         <HonestNotice
-          title="Exam Simulation Mode"
-          description={UNOFFICIAL_IELTS_NOTICE}
-          tone="info"
+          title={isFull40Exam ? 'Full 40/40 Exam Simulation Mode' : 'Practice Mini-Mock Mode (8L + 15R)'}
+          description={isFull40Exam ? UNOFFICIAL_IELTS_NOTICE : MINI_MOCK_SCALING_WARNING}
+          tone={isFull40Exam ? 'info' : 'warning'}
         />
 
-        {/* SECTION 1: LISTENING */}
         {section === 'listening' && (
           <div className="space-y-5">
             {exam.listeningParts.map((part, pIdx) => {
@@ -542,7 +866,9 @@ export function MockExamPlayerPage() {
                 <QuestCard key={part.id} className="space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <PillBadge tone="blue">Part {pIdx + 1} • {part.wordLimitNote}</PillBadge>
+                      <PillBadge tone="blue">
+                        Part {pIdx + 1} • {part.exercises.length} Qs • {part.wordLimitNote}
+                      </PillBadge>
                       <h2 className="mt-1.5 text-lg font-black">{part.title}</h2>
                       <p className="text-xs font-semibold text-[#666666]">{part.contextDescription}</p>
                     </div>
@@ -591,7 +917,6 @@ export function MockExamPlayerPage() {
           </div>
         )}
 
-        {/* SECTION 2: READING SPLIT SCREEN */}
         {section === 'reading' && activeReadingPassage && (
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
@@ -660,7 +985,6 @@ export function MockExamPlayerPage() {
           </div>
         )}
 
-        {/* SECTION 3: WRITING */}
         {section === 'writing' && (
           <div className="space-y-6">
             <QuestCard className="space-y-4">
@@ -713,6 +1037,51 @@ export function MockExamPlayerPage() {
               />
             </QuestCard>
 
+            <QuestCard className="space-y-3 border-2 border-[#E5E5E5]">
+              <p className="text-sm font-black text-[#3C3C3C]">
+                Mechanical Writing Feedback & Optional Criterion Assessment
+              </p>
+              <ul className="list-disc pl-5 text-xs font-semibold text-[#555555] space-y-1">
+                {liveWritingNotes.notes.map((note) => (
+                  <li key={note}>{note}</li>
+                ))}
+              </ul>
+              <div className="flex flex-wrap items-center gap-3 border-t border-[#EFEFEF] pt-3">
+                <label htmlFor="mock-wrt-mode" className="text-xs font-black text-[#555555]">
+                  Writing Assessment Status:
+                </label>
+                <select
+                  id="mock-wrt-mode"
+                  value={writingAssessmentStatus}
+                  onChange={(e) => {
+                    const next = e.target.value as ProductiveAssessmentStatus;
+                    setWritingAssessmentStatus(next);
+                    if (next === 'unassessed') setWritingSelfBand(null);
+                    else if (writingSelfBand === null) setWritingSelfBand(6.0);
+                  }}
+                  className="rounded-xl border-2 border-[#E5E5E5] bg-white px-3 py-1.5 text-xs font-bold"
+                >
+                  <option value="unassessed">Unassessed (Default — Mechanical Notes Only)</option>
+                  <option value="self_assessed">Self-Assessed (Task Achievement / Coherence / Lexis / Grammar)</option>
+                  <option value="teacher_assessed">Teacher / Examiner Assessed</option>
+                </select>
+                {writingAssessmentStatus !== 'unassessed' && (
+                  <select
+                    aria-label="Writing Assessed Band"
+                    value={writingSelfBand ?? 6.0}
+                    onChange={(e) => setWritingSelfBand(Number(e.target.value))}
+                    className="rounded-xl border-2 border-[#E5E5E5] bg-white px-3 py-1.5 text-sm font-black"
+                  >
+                    {BAND_OPTIONS.map((b) => (
+                      <option key={b} value={b}>
+                        Band {b.toFixed(1)}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </QuestCard>
+
             <div className="flex justify-end">
               <TactileButton variant="primary" onClick={() => switchSection('speaking')}>
                 Next Paper: Speaking Simulation
@@ -722,7 +1091,6 @@ export function MockExamPlayerPage() {
           </div>
         )}
 
-        {/* SECTION 4: SPEAKING */}
         {section === 'speaking' && (
           <div className="space-y-5">
             {spkP1 && (
@@ -834,31 +1202,48 @@ export function MockExamPlayerPage() {
                 rows={3}
                 value={speakingNotes}
                 onChange={(e) => setSpeakingNotes(e.target.value)}
-                placeholder="Optional 60s Part 2 bullet notes or self-reflection..."
+                placeholder="Optional 60s Part 2 bullet notes or self-reflection across Fluency, Lexis, Grammar, and Pronunciation..."
                 className="w-full rounded-xl border-2 border-[#E5E5E5] bg-white p-3 text-xs font-semibold"
               />
               <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                <div className="flex items-center gap-2">
-                  <label htmlFor="mock-spk-band" className="text-xs font-black text-[#555555]">
-                    Honest Criterion Self-Rating (Unofficial):
+                <div className="flex flex-wrap items-center gap-2">
+                  <label htmlFor="mock-spk-mode" className="text-xs font-black text-[#555555]">
+                    Speaking Assessment:
                   </label>
                   <select
-                    id="mock-spk-band"
-                    value={speakingSelfBand}
-                    onChange={(e) => setSpeakingSelfBand(Number(e.target.value))}
-                    className="rounded-xl border-2 border-[#E5E5E5] bg-white px-3 py-1.5 text-sm font-black"
+                    id="mock-spk-mode"
+                    value={speakingAssessmentStatus}
+                    onChange={(e) => {
+                      const next = e.target.value as ProductiveAssessmentStatus;
+                      setSpeakingAssessmentStatus(next);
+                      if (next === 'unassessed') setSpeakingSelfBand(null);
+                      else if (speakingSelfBand === null) setSpeakingSelfBand(6.0);
+                    }}
+                    className="rounded-xl border-2 border-[#E5E5E5] bg-white px-3 py-1.5 text-xs font-bold"
                   >
-                    {[4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5].map((b) => (
-                      <option key={b} value={b}>
-                        Band {b.toFixed(1)}
-                      </option>
-                    ))}
+                    <option value="unassessed">Unassessed (Default)</option>
+                    <option value="self_assessed">Self-Assessed (Fluency/Lexis/Grammar/Pronunciation)</option>
+                    <option value="teacher_assessed">Teacher / Examiner Assessed</option>
                   </select>
+                  {speakingAssessmentStatus !== 'unassessed' && (
+                    <select
+                      aria-label="Speaking Assessed Band"
+                      value={speakingSelfBand ?? 6.0}
+                      onChange={(e) => setSpeakingSelfBand(Number(e.target.value))}
+                      className="rounded-xl border-2 border-[#E5E5E5] bg-white px-3 py-1.5 text-sm font-black"
+                    >
+                      {BAND_OPTIONS.map((b) => (
+                        <option key={b} value={b}>
+                          Band {b.toFixed(1)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
-                <TactileButton variant="purple" onClick={handleFinishFullMock}>
+                <TactileButton variant="purple" onClick={handleFinishMock}>
                   <CheckCircle2 className="h-4 w-4" />
-                  Submit Full Mock Exam & View Unofficial Report
+                  Submit Mock Exam & View Honest Report
                 </TactileButton>
               </div>
             </QuestCard>

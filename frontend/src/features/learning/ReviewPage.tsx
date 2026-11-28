@@ -119,15 +119,16 @@ export function ReviewPage() {
 
   const ieltsTrendData = useMemo(() => {
     return [...(ieltsMockHistory ?? [])]
+      .filter((m) => m.examFormat === 'full_exam' || m.overallBand !== null)
       .slice(0, 8)
       .reverse()
       .map((m, idx) => ({
         run: `Mock #${idx + 1}`,
-        Overall: m.overallBand,
-        Listening: m.listeningBand,
-        Reading: m.readingBand,
-        Writing: m.writingBand,
-        Speaking: m.speakingBand,
+        Overall: m.overallBand ?? undefined,
+        Listening: m.listeningBand ?? undefined,
+        Reading: m.readingBand ?? undefined,
+        Writing: m.writingBand ?? undefined,
+        Speaking: m.speakingBand ?? undefined,
       }));
   }, [ieltsMockHistory]);
 

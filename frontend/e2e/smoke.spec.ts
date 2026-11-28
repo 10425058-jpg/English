@@ -199,7 +199,7 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
   await expect(page.getByText(/Shadowing Self-Check/i)).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-shadowing-studio.png'), fullPage: false });
 
-  // Verify Batch 3B IELTS Mastery Center tabs, Academic vs GT filter, and Recharts visual rendering
+  // Verify Batch 3B + Batch 4A IELTS Mastery Center tabs, Full 40Q vs Mini-Mocks, and Global Knowledge Search
   await page.goto('./#/ielts');
   await expect(page.getByText(/IELTS Mastery Center/i)).toBeVisible();
   await page.getByRole('tab', { name: /Listening \(80\)/i }).click();
@@ -211,16 +211,29 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
   await expect(page.locator('[data-testid="ielts-task1-chart"]').first()).toBeVisible();
   await page.getByRole('tab', { name: /Strategy \(60\)/i }).click();
   await expect(page.getByText(/IELTS Strategy & Methodology Academy/i)).toBeVisible();
-  await page.getByRole('tab', { name: /Mock Exams \(12\)/i }).click();
-  await expect(page.getByText(/Timed 4-Skill IELTS Mock Examination Center/i)).toBeVisible();
+  await page.getByRole('tab', { name: /Mock Exams \(14\)/i }).click();
+  await expect(page.getByText(/Full-Length Examinations \(40 Listening \+ 40 Reading/i)).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-ielts-mastery.png'), fullPage: false });
 
-  // Verify Distraction-Free Full Timed Mock Simulator route opens cleanly (Listening + Reading Split-Screen)
-  await page.goto('./#/mock-exam/ielts-mock-ac-01');
-  await expect(page.getByRole('heading', { name: /Mock Exam 1/i })).toBeVisible();
-  await page.getByRole('button', { name: /Reading \(Split Screen\)/i }).click();
+  // Verify Full 40/40 Mock Simulator renders 40L + 40R and unassessed productive defaults
+  await page.goto('./#/mock-exam/ielts-mock-full-ac-01');
+  await expect(page.getByRole('heading', { name: /Full Academic Mock Exam 1/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /1\. Listening \(40Q\)/i })).toBeVisible();
+  await page.getByRole('button', { name: /2\. Reading \(40Q Split Screen\)/i }).click();
   await expect(page.getByText(/Academic Passage 1/i).first()).toBeVisible();
+  await page.getByRole('button', { name: /4\. Speaking Simulation/i }).click();
+  await expect(page.locator('#mock-spk-mode')).toHaveValue('unassessed');
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-ielts-mock-simulator.png'), fullPage: false });
+
+  // Verify Global Knowledge Search modal (Ctrl+K) works across English and Vietnamese without diacritics
+  await page.goto('./#/learn');
+  await page.getByRole('button', { name: /Open global knowledge search/i }).first().click();
+  const searchBox = page.getByLabel(/Search English or Vietnamese/i);
+  await searchBox.fill('ubiquitous');
+  await expect(page.getByText(/Exact headword match/i).first()).toBeVisible();
+  await searchBox.fill('khach san');
+  await expect(page.getByText(/hotel/i).first()).toBeVisible();
+  await page.getByRole('button', { name: /Close global search/i }).click();
 
   // Also check Onboarding page
   await page.goto('./#/onboarding');

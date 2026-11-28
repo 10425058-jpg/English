@@ -516,14 +516,40 @@ export async function loadIeltsMockManifests(): Promise<IELTSMockExamManifest[]>
   return import('./ielts/mock_exams').then((m) => m.IELTS_MOCK_EXAMS);
 }
 
+export async function loadIeltsFullMockComponents(): Promise<{
+  fullAcListening: IELTSListeningActivity[];
+  fullAcReading: IELTSReadingPassage[];
+  fullGtListening: IELTSListeningActivity[];
+  fullGtReading: IELTSReadingPassage[];
+}> {
+  const [acMod, gtMod] = await Promise.all([
+    import('./ielts/mock_full_ac'),
+    import('./ielts/mock_full_gt'),
+  ]);
+  return {
+    fullAcListening: acMod.IELTS_FULL_AC_01_LISTENING,
+    fullAcReading: acMod.IELTS_FULL_AC_01_READING,
+    fullGtListening: gtMod.IELTS_FULL_GT_01_LISTENING,
+    fullGtReading: gtMod.IELTS_FULL_GT_01_READING,
+  };
+}
+
 export async function assembleIeltsMockExamById(mockId: string): Promise<AssembledIELTSMockExam | null> {
   const manifests = await loadIeltsMockManifests();
   const manifest = manifests.find((m) => m.id === mockId);
   if (!manifest) return null;
 
   const [listening, reading, writing, speaking] = await Promise.all([
-    loadIeltsListening(),
-    loadIeltsReading(manifest.pathway),
+    manifest.examFormat === 'full_exam'
+      ? manifest.pathway === 'academic'
+        ? import('./ielts/mock_full_ac').then((m) => m.IELTS_FULL_AC_01_LISTENING)
+        : import('./ielts/mock_full_gt').then((m) => m.IELTS_FULL_GT_01_LISTENING)
+      : loadIeltsListening(),
+    manifest.examFormat === 'full_exam'
+      ? manifest.pathway === 'academic'
+        ? import('./ielts/mock_full_ac').then((m) => m.IELTS_FULL_AC_01_READING)
+        : import('./ielts/mock_full_gt').then((m) => m.IELTS_FULL_GT_01_READING)
+      : loadIeltsReading(manifest.pathway),
     loadIeltsWriting(manifest.pathway),
     loadIeltsSpeaking(),
   ]);

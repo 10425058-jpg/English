@@ -19,9 +19,11 @@ Generated automatically by `npm run validate:content`.
 | Grammar Academy Mini-Quizzes | 8 | 144 | 152 |
 | Milestone 2 Academy Interactive Exercises | 0 | 1830 | 1830 |
 | Milestone 3 Curriculum, Assessment & IELTS Exercises (Newly Authored) | 0 | 1608 | 1608 |
-| IELTS Mastery Center Activities & Banks | 7 | 382 | 389 |
+| Milestone 4A Full 40/40 Mock Listening & Reading Questions | 0 | 160 | 160 |
+| IELTS Mastery Center Activities & Banks | 7 | 384 | 391 |
+| Sharded Search Index Entries | 0 | 2911 | 2911 |
 | Core Learning Path Exercises | 192 | 0 | 192 |
-| **Combined Interactive Exercises** | **200** | **4182** | **4382** |
+| **Combined Interactive Exercises** | **200** | **4342** | **4542** |
 | Learning Path CEFR Units | 12 | 36 | 48 |
 | Learning Path Lessons | 48 | 216 | 264 |
 | Structured Assessments & CEFR Exams | 0 | 45 | 45 |

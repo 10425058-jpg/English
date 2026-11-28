@@ -17,7 +17,7 @@ import type {
   IELTSStrategyCategory,
   IELTSStrategyLesson,
 } from '@english-quest/shared';
-import { evaluateExerciseAnswer, UNOFFICIAL_IELTS_NOTICE } from '@english-quest/shared';
+import { evaluateExerciseAnswer, MINI_MOCK_SCALING_WARNING, UNOFFICIAL_IELTS_NOTICE } from '@english-quest/shared';
 import { PillBadge, QuestCard } from '@/components/ui/QuestUI';
 import { TactileButton } from '@/components/ui/TactileButton';
 import { ExerciseRenderer } from '@/features/learning/ExerciseRenderer';
@@ -243,23 +243,31 @@ export function IeltsMockHubTab({ manifests, pathway }: MockHubProps) {
   const [filterMode, setFilterMode] = useState<'all' | IELTSPathway>(pathway);
 
   const filtered = manifests.filter((m) => filterMode === 'all' || m.pathway === filterMode);
+  const fullExams = filtered.filter((m) => m.examFormat === 'full_exam');
+  const miniMocks = filtered.filter((m) => m.examFormat === 'practice_mini');
 
   return (
     <div className="space-y-4">
       <QuestCard className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-lg font-black">Timed 4-Skill IELTS Mock Examination Center ({manifests.length} Full Mocks)</h2>
+            <h2 className="text-lg font-black">
+              Timed 4-Skill IELTS Mock Examination Center ({manifests.length} Packs: 2 Full 40/40 + 12 Mini-Mocks)
+            </h2>
             <p className="text-xs font-semibold text-[#666666]">{UNOFFICIAL_IELTS_NOTICE}</p>
           </div>
-          <PillBadge tone="purple">8 Academic • 4 General Training</PillBadge>
+          <PillBadge tone="purple">2 Full 40Q Mocks • 12 Mini-Mocks (8L/15R)</PillBadge>
+        </div>
+
+        <div className="rounded-xl border border-[#FFE175] bg-[#FFFBEB] p-3 text-xs font-bold text-[#785300]">
+          {MINI_MOCK_SCALING_WARNING}
         </div>
 
         <div className="flex flex-wrap gap-2">
           {[
-            { key: 'all', label: `All Mocks (${manifests.length})` },
-            { key: 'academic', label: 'Academic Pathway (8)' },
-            { key: 'general_training', label: 'General Training (4)' },
+            { key: 'all', label: `All Packs (${manifests.length})` },
+            { key: 'academic', label: `Academic (${manifests.filter((m) => m.pathway === 'academic').length})` },
+            { key: 'general_training', label: `General Training (${manifests.filter((m) => m.pathway === 'general_training').length})` },
           ].map((btn) => (
             <button
               key={btn.key}
@@ -306,47 +314,119 @@ export function IeltsMockHubTab({ manifests, pathway }: MockHubProps) {
         </QuestCard>
       )}
 
-      <div className="grid gap-3 md:grid-cols-2">
-        {filtered.map((mock) => {
-          const pastRuns = (ieltsMockHistory ?? []).filter((h) => h.mockId === mock.id);
-          const bestOverall = pastRuns.length > 0 ? Math.max(...pastRuns.map((h) => h.overallBand)) : null;
+      {fullExams.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-black uppercase tracking-wide text-[#8E3FD6]">
+            Full-Length Examinations (40 Listening + 40 Reading Questions • Eligible for Band Scaling)
+          </h3>
+          <div className="grid gap-3 md:grid-cols-2">
+            {fullExams.map((mock) => {
+              const pastRuns = (ieltsMockHistory ?? []).filter((h) => h.mockId === mock.id);
+              const numericOveralls = pastRuns
+                .map((h) => h.overallBand)
+                .filter((b): b is number => typeof b === 'number');
+              const bestOverall = numericOveralls.length > 0 ? Math.max(...numericOveralls) : null;
 
-          return (
-            <QuestCard key={mock.id} className="flex flex-col justify-between space-y-3">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <PillBadge tone={mock.pathway === 'academic' ? 'purple' : 'blue'}>
-                    {mock.pathway === 'academic' ? 'Academic Simulation' : 'General Training Simulation'}
-                  </PillBadge>
-                  <span className="inline-flex items-center gap-1 text-xs font-black text-[#666666]">
-                    <Timer className="h-3.5 w-3.5" />
-                    ~{mock.estimatedMinutes} min (4 Skills)
-                  </span>
-                </div>
-                <h3 className="text-base font-black text-[#3C3C3C]">{mock.title}</h3>
-                <p className="text-xs font-semibold text-[#666666]">{mock.subtitle}</p>
-              </div>
+              return (
+                <QuestCard key={mock.id} className="border-2 border-[#DFB9FF] flex flex-col justify-between space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        <PillBadge tone={mock.pathway === 'academic' ? 'purple' : 'blue'}>
+                          {mock.pathway === 'academic' ? 'Full Academic Mock' : 'Full General Training Mock'}
+                        </PillBadge>
+                        <PillBadge tone="green">
+                          {mock.listeningQuestionTotal}L + {mock.readingQuestionTotal}R
+                        </PillBadge>
+                      </div>
+                      <span className="inline-flex items-center gap-1 text-xs font-black text-[#666666]">
+                        <Timer className="h-3.5 w-3.5" />
+                        ~{mock.estimatedMinutes} min
+                      </span>
+                    </div>
+                    <h4 className="text-base font-black text-[#3C3C3C]">{mock.title}</h4>
+                    <p className="text-xs font-semibold text-[#666666]">{mock.subtitle}</p>
+                  </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#EFEFEF] pt-3">
-                {bestOverall !== null ? (
-                  <PillBadge tone="green">
-                    <Award className="h-3.5 w-3.5" />
-                    Best Unofficial Est. {bestOverall.toFixed(1)}
-                  </PillBadge>
-                ) : (
-                  <span className="text-xs font-bold text-[#888888]">Not yet attempted</span>
-                )}
-                <Link to={`/mock-exam/${mock.id}`}>
-                  <TactileButton variant="purple" size="sm">
-                    <Play className="h-3.5 w-3.5" />
-                    Start Mock Exam
-                  </TactileButton>
-                </Link>
-              </div>
-            </QuestCard>
-          );
-        })}
-      </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#EFEFEF] pt-3">
+                    {bestOverall !== null ? (
+                      <PillBadge tone="green">
+                        <Award className="h-3.5 w-3.5" />
+                        Best Assessed Overall {bestOverall.toFixed(1)}
+                      </PillBadge>
+                    ) : pastRuns.length > 0 ? (
+                      <span className="text-xs font-bold text-[#666666]">
+                        Attempted • L {pastRuns[0].listeningBand?.toFixed(1) ?? '—'} • R {pastRuns[0].readingBand?.toFixed(1) ?? '—'} (W/S Unassessed)
+                      </span>
+                    ) : (
+                      <span className="text-xs font-bold text-[#888888]">Not yet attempted</span>
+                    )}
+                    <Link to={`/mock-exam/${mock.id}`}>
+                      <TactileButton variant="purple" size="sm">
+                        <Play className="h-3.5 w-3.5" />
+                        Start Full Exam (40L+40R)
+                      </TactileButton>
+                    </Link>
+                  </div>
+                </QuestCard>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {miniMocks.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-black uppercase tracking-wide text-[#555555]">
+            Short Practice Mini-Mocks (8 Listening + 15 Reading • Raw Percentage Only)
+          </h3>
+          <div className="grid gap-3 md:grid-cols-2">
+            {miniMocks.map((mock) => {
+              const pastRuns = (ieltsMockHistory ?? []).filter((h) => h.mockId === mock.id);
+              const latestRun = pastRuns[0];
+
+              return (
+                <QuestCard key={mock.id} className="flex flex-col justify-between space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        <PillBadge tone={mock.pathway === 'academic' ? 'purple' : 'blue'}>
+                          {mock.pathway === 'academic' ? 'Academic Mini-Mock' : 'GT Mini-Mock'}
+                        </PillBadge>
+                        <PillBadge tone="neutral">
+                          {mock.listeningQuestionTotal}L + {mock.readingQuestionTotal}R • No Band Scaling
+                        </PillBadge>
+                      </div>
+                      <span className="inline-flex items-center gap-1 text-xs font-black text-[#666666]">
+                        <Timer className="h-3.5 w-3.5" />
+                        ~{mock.estimatedMinutes} min
+                      </span>
+                    </div>
+                    <h4 className="text-base font-black text-[#3C3C3C]">{mock.title}</h4>
+                    <p className="text-xs font-semibold text-[#666666]">{mock.subtitle}</p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#EFEFEF] pt-3">
+                    {latestRun ? (
+                      <PillBadge tone="neutral">
+                        Latest Raw: L {latestRun.listeningRaw}/{latestRun.listeningMax} • R {latestRun.readingRaw}/{latestRun.readingMax}
+                      </PillBadge>
+                    ) : (
+                      <span className="text-xs font-bold text-[#888888]">Not yet attempted</span>
+                    )}
+                    <Link to={`/mock-exam/${mock.id}`}>
+                      <TactileButton variant="outline" size="sm">
+                        <Play className="h-3.5 w-3.5" />
+                        Start Mini-Mock
+                      </TactileButton>
+                    </Link>
+                  </div>
+                </QuestCard>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
