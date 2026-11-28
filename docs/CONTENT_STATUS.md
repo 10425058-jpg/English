@@ -1,12 +1,12 @@
 # English Quest — Current Content Status
 
-> Updated: 2026-11-28 | Synchronized with regenerated [CONTENT_QUALITY_REPORT.md](./CONTENT_QUALITY_REPORT.md) (`0` errors, `0` warnings; Batch 3C on `feature/advanced-cefr-ielts-mastery`)
+> Updated: 2026-11-28 | Synchronized with regenerated [CONTENT_QUALITY_REPORT.md](./CONTENT_QUALITY_REPORT.md) (`0` errors, `0` warnings; Milestone 3 Complete Batches 3A–3D on `feature/advanced-cefr-ielts-mastery`)
 
-This document records **exact observed repository counts** only—never counting planned Phase 4 or unimplemented Batch 3D items as finished work.
+This document records **exact observed repository counts** only—never counting planned Phase 4 items as finished work.
 
 ## Cumulative Content Inventory
 
-| Content Category | Baseline (Phase 1) | Milestone 1 + 2 Added | Milestone 3 Added (Batches 3A–3C) | Combined Total | Long-Term Blueprint Target | Completion Status |
+| Content Category | Baseline (Phase 1) | Milestone 1 + 2 Added | Milestone 3 Added (Batches 3A–3D) | Combined Total | Long-Term Blueprint Target | Completion Status |
 |---|---:|---:|---:|---:|---:|---|
 | Learning Path CEFR Units | 12 *(A1–B1 u1–4)* | 0 | 36 *(A1–B1 u5–8 + B2–C2 u1–8)* | **48** *(8 per level)* | 48+ | **Batch 3A Complete (All A1–C2 Active)** |
 | Learning Path Lessons | 48 | 0 | 216 *(6 per M3 unit)* | **264** | 264+ | **Batch 3A Complete** |

@@ -9,8 +9,8 @@
 | **Audit & Baseline** | Repository count audit & official IELTS spec reconciliation | **Done** | [MILESTONE_3_AUDIT.md](./MILESTONE_3_AUDIT.md) + reconciled M1/M2 baseline (`2,774` baseline exercises) |
 | **Batch 3A** | Complete A1–C2 CEFR Learning Path & Structured Assessments | **Done (CI Passed `358b7dd`)** | `36` new CEFR units (`48` total), `216` new lessons (`264` total), `45` assessments (`36` unit + `6` level exams + `3` diagnostic/review), `888` newly authored exercises (`51` reused refs tracked separately) |
 | **Batch 3B** | IELTS Mastery Center Academies & Idea/Lexis Banks | **Done (CI Passed `e945f1c`)** | `310` IELTS entries (`80` Listening, `100` Speaking, `60` Reading [40 Ac / 20 GT], `60` Writing [20 Ac T1 w/ Recharts visuals / 10 GT Letters / 30 T2 Essays], `10` Topic Idea Banks) + `600` new IELTS exercises + Academic/GT scoring scaling |
-| **Batch 3C** | IELTS Strategy Academy & 12 Timed Mock Examinations | **Done (Local Validated; CI Pending Push)** | `60` IELTS strategy lessons (`120` new exercises) + distraction-free `/mock-exam/:mockId` engine (timers, split-screen Reading, Task 1 visuals, local recorder, autosave) + `8` Academic & `4` GT full 4-skill mocks |
-| **Batch 3D** | Real Analytics, Study Planner, Mistake Diagnostic & Release Verification | **Planned** | Real study metrics, rule-based planner, mistake clustering, full CI verification & open PR |
+| **Batch 3C** | IELTS Strategy Academy & 12 Timed Mock Examinations | **Done (CI Passed `41655ee`)** | `60` IELTS strategy lessons (`120` new exercises) + distraction-free `/mock-exam/:mockId` engine (timers, split-screen Reading, Task 1 visuals, local recorder, autosave) + `8` Academic & `4` GT full 4-skill mocks |
+| **Batch 3D** | Real Analytics, Study Planner, Mistake Diagnostic & Release Verification | **Done (Local Validated; Final CI Pending Push)** | Real IELTS mock trajectory chart + CEFR assessment KPIs on `ReviewPage.tsx` & `ProfilePage.tsx`, `clusterUnresolvedMistakes`, rule-based adaptive study planner (`buildPersonalizedDailyPlan`), full regression suite |
 
 ---
 
@@ -66,3 +66,12 @@
 - **Timed 4-Skill Mock Examination Suite (`content/ielts/mock_exams.ts` & `MockExamPlayerPage.tsx`):**
   - `12` distinct non-overlapping mock bundles (`8` Academic `ielts-mock-ac-01..08`, `4` General Training `ielts-mock-gt-01..04`) assembled dynamically via `assembleIeltsMockExamById`.
   - Dedicated distraction-free `/mock-exam/:mockId` simulator with per-section countdown clocks (`30m`/`60m`/`60m`/`14m`), automatic crash-recovery autosave (`inProgressMockExam`), split-screen Reading reader, Task 1 visuals/letters, live Writing counters & heuristic self-practice band estimate, Speaking prep/turn timers + local `MediaRecorder` playback, Mistake Notebook sync, and unofficial overall `.25/.75` rounded reporting.
+
+---
+
+## Batch 3D Verified Analytics & Adaptive Study Planner
+
+- **Rule-Based Adaptive Study Planner (`frontend/src/services/curriculumService.ts`):**
+  - `buildPersonalizedDailyPlan` & `clusterUnresolvedMistakes` combine unresolved mistake clusters, completed-unit mastery assessment reminders, logged IELTS mock skill gaps against `ieltsTargetBand`, SM-2 flashcards due today, weakest logged skill KPIs, and next CEFR path lessons.
+- **Performance Analytics & Mistake Diagnostics (`ReviewPage.tsx` & `ProfilePage.tsx`):**
+  - Live `IELTS Mock Readiness Progression` Recharts `LineChart` (strictly rendered from stored `ieltsMockHistory`, zero fabricated numbers), CEFR Unit Mastery Exams passed KPI, Mistake Notebook skill/source cluster filter pills, and mock readiness ledger on `/profile`.

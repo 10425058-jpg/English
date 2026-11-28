@@ -85,9 +85,11 @@ test('desktop routes render cleanly, complete an interactive lesson, and persist
   await expect(page.getByText(/Pip Coach/i).first()).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-ai-tutor.png'), fullPage: false });
 
-  // Visit Review Dashboard & capture screenshot
+  // Visit Review Dashboard & capture screenshot (Batch 3D Analytics, Adaptive Plan & Mistake Clustering)
   await page.goto('./#/review');
   await expect(page.getByText(/Skill Proficiency Radar/i)).toBeVisible();
+  await expect(page.getByText(/Today’s Rule-Based Adaptive Study Plan/i)).toBeVisible();
+  await expect(page.getByText(/IELTS Mock Readiness Progression/i)).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-review.png'), fullPage: false });
 
   // Smoke-check every single navigation route has zero overflow and renders heading
